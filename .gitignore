@@ -1,0 +1,33 @@
+# Einstellungen von Claude und Editoren (lokal, nicht fürs Web)
+.claude/
+.vscode/
+.idea/
+
+# Alte Kopie für Netlify (wird nicht mehr gebraucht)
+netlify/
+
+# Passwörter, Schlüssel und Umgebungsvariablen
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets*
+credentials*
+
+# Persönliche Daten, Notizen und Exporte (z. B. Klassenlisten)
+private/
+privat/
+klassenlisten/
+*.csv
+*.xlsx
+*.xls
+*.docx
+
+# Systemdateien
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log
+*.tmp

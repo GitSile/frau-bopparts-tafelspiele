@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Célines Tafelspiele</title>
+  <meta name="description" content="Lernspiele für die digitale Schultafel">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+  <link rel="stylesheet" href="gemeinsam/filz.css">
+  <style>
+    body { background: #fdf6e3; min-height: 100%; }
+    .seite { max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; }
+    .kopf { text-align: center; margin-bottom: 36px; }
+    .kopf h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); font-weight: 900; color: #e65100; }
+    .kopf p { margin: 8px 0 0; font-size: 22px; color: #546e7a; font-weight: 600; }
+
+    .kacheln { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
+    .kachel {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      background: #fff; padding: 22px 22px 26px; text-decoration: none; color: inherit;
+      --filz-dicke: 5px; --filz-farbe: var(--farbe, var(--strich));
+      transition: transform .15s;
+    }
+    .kachel:hover, .kachel:focus-visible { transform: rotate(-1.2deg) scale(1.03); outline: none; }
+    .kachel:active { transform: scale(.98); }
+    .kachel-bild { width: 190px; height: 190px; display: grid; place-items: center; }
+    .kachel-bild img { width: 100%; height: 100%; object-fit: contain; }
+    .kachel h2 { margin: 10px 0 4px; font-size: 32px; font-weight: 900; color: var(--farbe, #1d2733); }
+    .fach { display: inline-block; padding: 4px 14px; border-radius: var(--wackel-klein); background: var(--farbe-hell, #eceff1); font-weight: 800; font-size: 16px; margin-bottom: 10px; }
+    .kachel p { margin: 0 0 18px; font-size: 18px; color: #455a64; line-height: 1.35; }
+    .kachel .knopf { pointer-events: none; }
+    .kachel.bald { opacity: .55; pointer-events: none; --filz-farbe: #b0bec5; }
+    .kachel.bald .kachel-bild { font-size: 110px; }
+    footer { margin-top: 48px; text-align: center; color: #78909c; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <!-- Filzstift-Effekt für alle Ränder -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="filz" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
+      <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <main class="seite">
+    <header class="kopf">
+      <h1>Célines Tafelspiele</h1>
+      <p>Lernspiele für die digitale Schultafel</p>
+    </header>
+
+    <nav class="kacheln" id="kacheln" aria-label="Spiele"></nav>
+
+    <footer>© 2026 Silvan Hunkeler. Alle Rechte vorbehalten.</footer>
+  </main>
+
+  <script>
+    /* =========================================================
+       Liste aller Spiele.
+       Für ein neues Spiel einfach einen weiteren Eintrag ergänzen.
+       ========================================================= */
+    const SPIELE = [
+      {
+        name: 'Mathe-Fussball',
+        fach: 'Mathematik',
+        text: 'Kopfrechnen im Duell: Wer zuerst richtig rechnet, schiesst den Ball Richtung Tor.',
+        link: 'spiele/mathe-fussball/index.html',
+        bild: 'spiele/mathe-fussball/bilder/figuren/loewe-jubel.png',
+        farbe: '#2e7d32'
+      }
+    ];
+
+    const kacheln = document.getElementById('kacheln');
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    kacheln.innerHTML = SPIELE.map(s => `
+      <a class="kachel filz" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
+        <div class="kachel-bild"><img src="${esc(s.bild)}" alt=""></div>
+        <h2>${esc(s.name)}</h2>
+        <span class="fach">${esc(s.fach)}</span>
+        <p>${esc(s.text)}</p>
+        <span class="knopf gross filz">Spielen ▶</span>
+      </a>`).join('') + `
+      <div class="kachel bald filz" aria-hidden="true">
+        <div class="kachel-bild">✨</div>
+        <h2>Bald mehr</h2>
+        <p>Weitere Spiele für andere Fächer folgen.</p>
+      </div>`;
+  </script>
+</body>
+</html>

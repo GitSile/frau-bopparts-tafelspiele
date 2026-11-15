@@ -1,0 +1,319 @@
+/* =========================================================
+   Mathe-Fussball – Stil
+   Grundstil, Farben, Filzstift-Rand und Knöpfe: ../../gemeinsam/filz.css
+   ========================================================= */
+body { background: #e8f4fb; }
+
+/* Link zurück zur Übersicht */
+.zur-uebersicht { text-decoration: none; display: inline-block; }
+
+/* =========================================================
+   Einstellungen und Verlauf
+   ========================================================= */
+#einstellungen, #verlauf { padding: 20px 24px 40px; max-width: 1280px; margin: 0 auto; }
+.kopf { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.kopf h1 { margin: 0; font-size: 40px; }
+.kopf > div { display: flex; gap: 10px; }
+
+.raster { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+.karte { grid-column: span 2; background: #fff; border-radius: var(--wackel); padding: 18px 22px; }
+.karte.breit { grid-column: 1 / -1; }
+.team-karte { grid-column: span 3; --filz-farbe: var(--farbe); --filz-dicke: 4px; }
+.karte h2 { margin: 0 0 12px; font-size: 26px; }
+@media (max-width: 900px) {
+  .raster { grid-template-columns: 1fr; }
+  .karte, .team-karte { grid-column: auto; }
+}
+
+/* Aufgaben-Karte */
+.abschnitt { padding: 14px 0; border-top: 2px dashed #b0bec5; }
+.abschnitt:first-of-type { border-top: 0; padding-top: 0; }
+.abschnitt-titel { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+.knopf-raster { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 14px; }
+.zelle { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.unter { font-size: 14px; line-height: 1.25; color: #546e7a; text-align: center; max-width: 140px; font-weight: 600; }
+.unter.blau { color: var(--blau); }
+
+.wahl {
+  width: 140px; height: 60px; border: 0; border-radius: var(--wackel-klein);
+  background: #fff; color: #78909c; font-size: 22px; font-weight: 800;
+  --filz-farbe: #b0bec5;
+}
+.wahl.an { background: var(--gruen-hell); color: #1b5e20; --filz-farbe: var(--gruen); }
+.wahl.rot { background: var(--rot-hell); color: #8e1b1b; --filz-farbe: var(--rot); }
+.wahl:active { transform: translateY(2px) rotate(-1deg); }
+
+.eigene {
+  width: 140px; height: 60px; display: flex; align-items: center; gap: 4px; padding: 0 12px;
+  background: #fff; border-radius: var(--wackel-klein); cursor: text;
+  --filz-farbe: var(--blau); --filz-dicke: 3px;
+  background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgba(21,101,192,.08) 6px 12px);
+}
+.eigene.an { background-color: var(--gruen-hell); }
+.stift { font-size: 22px; color: var(--blau); }
+.eigene input, .zahl-feld input {
+  width: 100%; border: 0; background: transparent; outline: none;
+  font: inherit; font-size: 24px; font-weight: 800; text-align: center; color: #1d2733;
+}
+.zahl-feld { display: inline-flex; width: 110px; height: 52px; align-items: center; background: #fff; border-radius: var(--wackel-klein); }
+
+.feld-zeile { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; margin: 12px 0; }
+.feld-zeile.eingerueckt { padding-left: 62px; }
+.feld-zeile.aus { opacity: .4; pointer-events: none; }
+.hinweis { margin: 0 0 6px; color: #546e7a; font-size: 16px; }
+
+.team-name {
+  font: inherit; font-size: 24px; font-weight: 800; width: 100%; padding: 8px 14px;
+  border: 0; border-radius: var(--wackel-klein); background: var(--farbe-hell); margin-bottom: 12px; outline: none;
+}
+
+/* Schalter */
+.schalter-zeile { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; margin: 14px 0; cursor: pointer; }
+.schalter-zeile input { position: absolute; opacity: 0; pointer-events: none; }
+.schalter { width: 54px; height: 32px; border-radius: 999px; background: #cfd8dc; position: relative; flex: none; border: 2.5px solid var(--strich); }
+.schalter::after { content: ""; position: absolute; top: 2px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--strich); transition: left .15s; }
+.schalter-zeile input:checked + .schalter { background: #81c784; }
+.schalter-zeile input:checked + .schalter::after { left: 24px; }
+.schalter-zeile input:focus-visible + .schalter { outline: 3px solid var(--blau); outline-offset: 2px; }
+
+/* Team-Karte */
+.team-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.team-kopf h2 { margin: 0; flex: 1; }
+.wuerfel { border: 0; background: #fff; border-radius: var(--wackel-klein); font-size: 28px; padding: 2px 12px; }
+.unterzeile { font-size: 15px; color: #546e7a; margin: 10px 0 6px; font-weight: 700; }
+.tier-wahl { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+.tier-wahl button {
+  aspect-ratio: 1; border: 0; border-radius: var(--wackel-klein); background: #f1f5f9;
+  display: grid; place-items: center; padding: 3px; --filz-farbe: transparent;
+}
+.tier-wahl button.aktiv { background: var(--farbe-hell); --filz-farbe: var(--farbe); --filz-dicke: 4px; }
+.farb-wahl { display: flex; gap: 10px; flex-wrap: wrap; }
+.farb-wahl button { width: 46px; height: 46px; border-radius: 50% 46% 52% 48%; border: 0; --filz-farbe: rgba(0,0,0,.25); }
+.farb-wahl button.aktiv { --filz-farbe: var(--strich); --filz-dicke: 5px; transform: scale(1.1); }
+.team-karte.automatisch .tier-wahl, .team-karte.automatisch .farb-wahl { opacity: .45; pointer-events: none; }
+
+/* Tier-Darstellung (Bild oder Emoji-Platzhalter) */
+.tier { display: grid; place-items: center; width: 100%; height: 100%; }
+.tier img { width: 100%; height: 100%; object-fit: contain; }
+.tier .emoji { font-size: 0.8em; line-height: 1; }
+.tier-wahl .tier { font-size: 40px; }
+
+.fehler { color: var(--rot); font-weight: 800; font-size: 22px; min-height: 30px; text-align: center; margin: 20px 0 8px; }
+.anpfiff-zeile { text-align: center; }
+
+/* Verlauf */
+#verlauf-inhalt { background: #fff; border-radius: var(--wackel); padding: 10px; overflow-x: auto; }
+.verlauf-tabelle { width: 100%; border-collapse: collapse; font-size: 20px; }
+.verlauf-tabelle th, .verlauf-tabelle td { padding: 12px 14px; text-align: left; border-bottom: 2px dashed #cfd8dc; white-space: nowrap; }
+.verlauf-tabelle th { font-size: 16px; color: #546e7a; }
+.verlauf-tabelle .stand { font-weight: 900; font-size: 24px; text-align: center; }
+.verlauf-tabelle tr.abgebrochen td { color: #9aa7b3; }
+.verlauf-team { display: inline-flex; align-items: center; gap: 8px; }
+.verlauf-team .ring { width: 40px; height: 40px; }
+.leer { padding: 40px; text-align: center; color: #546e7a; font-size: 22px; }
+
+.ring {
+  border-radius: 50%; background: #fff; overflow: hidden;
+  display: grid; place-items: center; flex: none;
+  box-shadow: 0 0 0 4px var(--farbe);
+}
+
+/* =========================================================
+   Spiel – Bühne 1600 × 900, wird auf das Fenster skaliert
+   ========================================================= */
+#spiel { position: fixed; inset: 0; background: #0f2a3f; overflow: hidden; }
+#buehne {
+  position: absolute; left: 50%; top: 50%;
+  width: 1600px; height: 900px; overflow: hidden;
+  background: #fdfaf3;
+}
+
+/* ---------- Feld (oben, volle Breite) ---------- */
+#feld {
+  position: absolute; left: 0; top: 0; width: 1600px; height: 520px; overflow: hidden;
+  background: linear-gradient(#5ec2ff, #bfe8ff 80%);
+}
+#feld.mit-bild { background: var(--feld-bild) 50% 60% / 100% auto no-repeat; }
+#feld.mit-bild #rasen, #feld.mit-bild .tor { display: none; }
+
+#rasen {
+  position: absolute; left: 0; top: 330px; width: 100%; height: 190px;
+  background: repeating-linear-gradient(90deg, #4caf50 0 100px, #43a047 100px 200px);
+  border-top: 5px solid #fff;
+}
+.mittellinie { position: absolute; left: 797px; top: 0; width: 6px; height: 100%; background: rgba(255,255,255,.9); }
+.mittelkreis { position: absolute; left: 740px; top: 30px; width: 120px; height: 120px; border: 6px solid rgba(255,255,255,.9); border-radius: 50%; }
+.tor {
+  position: absolute; top: 230px; width: 110px; height: 200px; border: 8px solid #fff;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.55) 0 2px, transparent 2px 16px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 2px, transparent 2px 16px), rgba(0,0,0,.1);
+}
+#tor-links { left: 0; border-left: 0; }
+#tor-rechts { right: 0; border-right: 0; }
+
+#sonne {
+  position: absolute; left: 300px; top: 30px; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fff59d, #ffd54f 60%, #ffb300);
+}
+#sonne.mit-bild { background: center / contain no-repeat var(--bild); border-radius: 0; width: 140px; height: 140px; }
+.wolke { position: absolute; width: 200px; height: 70px; border-radius: 50px; background: #fff; animation: ziehen linear infinite; }
+.wolke::before, .wolke::after { content: ""; position: absolute; background: #fff; border-radius: 50%; }
+.wolke::before { width: 90px; height: 90px; left: 30px; top: -45px; }
+.wolke::after { width: 70px; height: 70px; left: 100px; top: -30px; }
+.wolke.mit-bild { background: center / contain no-repeat var(--bild); border-radius: 0; height: 100px; width: 200px; }
+.wolke.mit-bild::before, .wolke.mit-bild::after { display: none; }
+#wolke-1 { top: 110px; animation-duration: 90s; animation-delay: -20s; }
+#wolke-2 { top: 30px;  animation-duration: 120s; animation-delay: -70s; transform: scale(.8); }
+#wolke-3 { top: 140px; animation-duration: 150s; animation-delay: -110s; transform: scale(.65); opacity: .9; }
+@keyframes ziehen { from { left: -260px; } to { left: 1640px; } }
+
+/* Ball */
+#ball {
+  position: absolute; width: 70px; height: 70px; top: 372px; margin-left: -35px;
+  font-size: 62px; line-height: 70px; text-align: center; z-index: 3;
+  transition: left .55s cubic-bezier(.3,1.3,.5,1);
+  filter: drop-shadow(0 6px 3px rgba(0,0,0,.3));
+}
+#ball img { width: 100%; height: 100%; object-fit: contain; }
+#ball.rollt { animation: drehen .55s; }
+@keyframes drehen { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+/* Figuren in den Toren */
+.figur {
+  position: absolute; bottom: 82px; width: 170px; height: 190px; margin-left: -85px; z-index: 2;
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: left .42s cubic-bezier(.4,0,.3,1);
+}
+.figur img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+#figur-1 > img { transform: scaleX(-1); }   /* rechte Figur schaut zur Mitte */
+.figur.mit-figur { width: 210px; height: 210px; margin-left: -105px; bottom: 78px; }
+.figur.mit-figur.traurig { filter: none; }
+/* Platzhalter: Tierkopf im Ring, bis die Figurenbilder da sind */
+.figur .ring { width: 130px; height: 130px; box-shadow: 0 0 0 6px var(--farbe); }
+.figur .ring .tier { font-size: 96px; }
+.figur.freude  { animation: hopsen .5s ease-in-out 2; }
+.figur.traurig { animation: sacken 1.1s ease-in-out; filter: grayscale(.6); }
+.figur.jubel   { animation: jubeln .45s ease-in-out infinite alternate; }
+.figur.sprung  { animation: springen .42s ease-out; }
+@keyframes hopsen  { 50% { transform: translateY(-30px); } }
+@keyframes sacken  { 20% { transform: translateY(10px) rotate(-6deg); } 40% { transform: translateY(10px) rotate(6deg); } 60% { transform: translateY(10px) rotate(-4deg); } }
+@keyframes jubeln  { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-40px) rotate(5deg); } }
+@keyframes springen { 50% { transform: translateY(-90px); } }
+
+/* Anzeigetafel oben */
+#oben { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 4; }
+#anzeigetafel {
+  display: inline-flex; align-items: center; gap: 18px;
+  background: #fff; border-radius: var(--wackel); padding: 6px 22px;
+}
+.tafel-team { display: inline-flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 800; min-width: 200px; justify-content: flex-end; }
+.tafel-team.rechts { justify-content: flex-start; }
+.tafel-team .ring { width: 48px; height: 48px; font-size: 36px; box-shadow: 0 0 0 4px var(--farbe); }
+#torstand { font-size: 60px; font-weight: 900; display: inline-flex; gap: 10px; }
+#torstand .doppelpunkt { color: #9aa7b3; }
+#tore-0 { color: var(--farbe-0); }
+#tore-1 { color: var(--farbe-1); }
+#ziel { margin-top: 6px; font-size: 24px; font-weight: 800; color: #0d3b66; text-shadow: 0 1px 0 rgba(255,255,255,.8); }
+#ziel.knapp { color: var(--rot); animation: blinken 1s steps(2) infinite; }
+#ziel.golden { font-size: 36px; color: #b8860b; text-shadow: 0 2px 0 #fff; }
+@keyframes blinken { 50% { opacity: .25; } }
+
+#werkzeuge { position: absolute; top: 14px; right: 14px; display: flex; gap: 10px; z-index: 4; }
+#werkzeuge button { width: 60px; height: 60px; border: 0; background: rgba(255,255,255,.95); font-size: 28px; border-radius: var(--wackel-klein); }
+
+/* ---------- Unten: Tastaturen und Aufgabe ---------- */
+.panel {
+  position: absolute; top: 530px; width: 400px; height: 362px;
+  background: var(--farbe-hell); padding: 12px 18px;
+  display: flex; flex-direction: column; align-items: center;
+  --filz-farbe: var(--farbe); --filz-dicke: 6px;
+}
+#panel-0 { left: 8px; }
+#panel-1 { right: 8px; }
+.panel.richtig { animation: blitz-gruen .6s; }
+.panel.falsch .tastatur, .panel.falsch .eingabe { animation: schuetteln .45s; }
+@keyframes blitz-gruen { 0%,100% { background: var(--farbe-hell); } 30% { background: #b9f6ca; } }
+@keyframes schuetteln { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-14px); } 40% { transform: translateX(12px); } 60% { transform: translateX(-8px); } 80% { transform: translateX(5px); } }
+
+.panel-kopf { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px; }
+.panel-name { flex: 1; font-size: 24px; font-weight: 900; color: var(--farbe-dunkel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eingabe {
+  width: 160px; height: 46px; border-radius: var(--wackel-klein); background: #fff;
+  font-size: 38px; font-weight: 900; text-align: center; line-height: 46px; color: #1d2733;
+  --filz-farbe: var(--farbe); --filz-dicke: 3px;
+}
+.tastatur { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; width: 100%; flex: 1; }
+.tastatur button {
+  border: 0; border-radius: var(--wackel-klein);
+  background: var(--farbe); color: var(--text);
+  font-size: 40px; font-weight: 900;
+  --filz-farbe: var(--farbe-dunkel); --filz-dicke: 3px;
+}
+.tastatur button:active { transform: translateY(3px) scale(.97); }
+.tastatur button.loeschen { background: #eceff1; color: #37474f; --filz-farbe: #37474f; font-size: 36px; }
+.tastatur button.ok { background: var(--gruen); color: #fff; --filz-farbe: #1b5e20; font-size: 32px; }
+.panel.gesperrt .tastatur button { background: #ef9a9a !important; color: #fff !important; opacity: .6; }
+.panel.gesperrt .eingabe { --filz-farbe: var(--rot); }
+.sperre { position: absolute; left: 18px; right: 18px; bottom: 4px; height: 8px; border-radius: 99px; overflow: hidden; visibility: hidden; }
+.panel.gesperrt .sperre { visibility: visible; }
+.sperre div { height: 100%; width: 100%; background: var(--rot); border-radius: 99px; }
+
+#mitte { position: absolute; left: 420px; top: 530px; width: 760px; height: 362px; }
+#aufgabe-box, #wechsel-box {
+  position: absolute; inset: 0; background: #fff; border-radius: var(--wackel);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 30px;
+  --filz-dicke: 5px;
+}
+#aufgabe-text { font-size: 120px; font-weight: 900; line-height: 1.1; white-space: nowrap; }
+#aufgabe-text.loesung { color: var(--gruen); }
+#zeitbalken { width: 80%; height: 18px; border-radius: 99px; background: #e3eaf0; overflow: hidden; margin-top: 12px; }
+#zeitbalken-fuellung { height: 100%; width: 100%; background: #1e88e5; border-radius: 99px; }
+#zeitbalken.knapp #zeitbalken-fuellung { background: var(--rot); }
+#btn-ueberspringen { margin-top: 16px; border: 0; background: #fff; font-size: 18px; font-weight: 700; color: #546e7a; padding: 8px 18px; border-radius: var(--wackel-klein); --filz-farbe: #b0bec5; }
+#wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; }
+#wechsel-titel { font-size: 56px; font-weight: 900; color: #e65100; }
+#wechsel-zahl { font-size: 170px; font-weight: 900; line-height: 1; color: #e65100; animation: puls 1s ease-in-out infinite; }
+@keyframes puls { 50% { transform: scale(1.12); } }
+
+/* ---------- Overlays ---------- */
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 10; }
+.overlay.dunkel { background: rgba(10,30,50,.82); }
+.menue-box {
+  background: #fff; border-radius: var(--wackel); padding: 36px 50px; min-width: 520px;
+  display: flex; flex-direction: column; gap: 16px; align-items: stretch; text-align: center; --filz-dicke: 5px;
+}
+.menue-box h2 { margin: 0 0 8px; font-size: 54px; }
+.menue-box .knopf { font-size: 30px; }
+
+#jubel { background: rgba(255,255,255,.4); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+#jubel.versteckt { display: none !important; }
+#jubel-figur { width: 320px; height: 340px; display: flex; align-items: flex-end; justify-content: center; animation: jubeln .45s ease-in-out infinite alternate; }
+#jubel-figur img { width: 100%; height: 100%; object-fit: contain; }
+#jubel-figur .ring { width: 280px; height: 280px; box-shadow: 0 0 0 14px var(--farbe); }
+#jubel-figur .ring .tier { font-size: 210px; }
+#jubel-text {
+  margin-top: 16px; font-size: 90px; font-weight: 900; color: var(--farbe); text-align: center;
+  -webkit-text-stroke: 3px #fff; paint-order: stroke fill; text-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
+
+.ende-box { min-width: 760px; align-items: center; }
+#ende-bild { display: flex; align-items: flex-end; gap: 10px; height: 240px; }
+#ende-bild .pokal { font-size: 200px; line-height: 1; width: 210px; height: 220px; display: grid; place-items: center; }
+#ende-bild .pokal img { width: 100%; height: 100%; object-fit: contain; }
+#ende-bild .figur-bild { width: 200px; height: 230px; display: flex; align-items: flex-end; justify-content: center; }
+#ende-bild .figur-bild img { width: 100%; height: 100%; object-fit: contain; }
+#ende-bild .ring { width: 170px; height: 170px; box-shadow: 0 0 0 10px var(--farbe); }
+#ende-bild .ring .tier { font-size: 120px; }
+#ende-text { font-size: 60px; }
+#ende-stand { font-size: 40px; font-weight: 800; color: #546e7a; }
+.knopf-reihe { display: flex; gap: 14px; margin-top: 10px; }
+
+/* Konfetti */
+#konfetti { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.konfetti-stueck { position: absolute; top: -30px; width: 14px; height: 22px; border-radius: 3px; animation: fallen linear forwards; }
+@keyframes fallen { to { transform: translateY(980px) rotate(720deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wolke, #jubel-figur, .figur, #ziel.knapp, #wechsel-zahl { animation: none !important; }
+}

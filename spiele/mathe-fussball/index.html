@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mathe-Fussball · Célines Tafelspiele</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="../../gemeinsam/filz.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Filzstift-Effekt für alle Ränder -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="filz" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
+      <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <section id="einstellungen" class="seite">
+    <header class="kopf">
+      <h1>⚽ Mathe-Fussball</h1>
+      <div>
+        <a href="../../index.html" class="knopf hell filz zur-uebersicht">← Alle Spiele</a>
+        <button id="btn-verlauf-einst" class="knopf hell filz">📋 Verlauf</button>
+      </div>
+    </header>
+
+    <div class="raster">
+      <div class="karte team-karte filz" id="karte-0"></div>
+      <div class="karte team-karte filz" id="karte-1"></div>
+
+      <div class="karte breit filz" id="karte-aufgaben">
+        <h2>Aufgaben</h2>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Zahlenraum bis</div>
+          <div class="knopf-raster">
+            <button class="wahl filz" data-zr="10">10</button>
+            <button class="wahl filz" data-zr="20">20</button>
+            <button class="wahl filz" data-zr="100">100</button>
+            <button class="wahl filz" data-zr="1000">1000</button>
+            <div class="zelle">
+              <label class="eigene filz"><span class="stift" aria-hidden="true">✎</span><input type="text" id="e-zahlenraum" inputmode="numeric" maxlength="4" aria-label="Eigene Zahl für den Zahlenraum"></label>
+              <span class="unter blau">eigene Zahl tippen</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Rechenarten</div>
+          <div class="knopf-raster">
+            <button class="wahl filz" data-op="plus">Plus</button>
+            <button class="wahl filz" data-op="minus">Minus</button>
+            <button class="wahl filz" data-op="mal">Mal</button>
+            <button class="wahl filz" data-op="geteilt">Geteilt</button>
+          </div>
+        </div>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Plus und Minus</div>
+          <div class="knopf-raster">
+            <div class="zelle"><button class="wahl filz" id="e-zueb">Z.Üb.</button><span class="unter">Zehnerübergang</span></div>
+            <div></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="ZE">ZE</button><span class="unter">2. Zahl mit Zehnern + Einern</span></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="E">E</button><span class="unter">2. Zahl nur Einer</span></div>
+          </div>
+        </div>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Einmaleins-Reihen</div>
+          <div class="knopf-raster" id="reihen"></div>
+        </div>
+      </div>
+
+      <div class="karte filz">
+        <h2>Spielende</h2>
+        <p class="hinweis">Nur <b>eines</b> der beiden Felder ausfüllen.</p>
+        <label class="feld-zeile">Tore bis Sieg
+          <span class="zahl-feld filz"><input type="text" id="e-tore" inputmode="numeric" maxlength="2" placeholder="–"></span>
+        </label>
+        <label class="feld-zeile">Minuten Spielzeit
+          <span class="zahl-feld filz"><input type="text" id="e-minuten" inputmode="numeric" maxlength="2" placeholder="–"></span>
+        </label>
+      </div>
+
+      <div class="karte filz">
+        <h2>Ablauf</h2>
+        <label class="feld-zeile">Wechselzeit (Sekunden)
+          <span class="zahl-feld filz"><input type="text" id="e-wechsel" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <p class="hinweis">Zeit zum Platzwechseln nach jeder Aufgabe. 0 = kein Wechsel.</p>
+        <label class="schalter-zeile"><input type="checkbox" id="e-zeitlimit-an"><span class="schalter"></span>Zeitlimit pro Aufgabe</label>
+        <label class="feld-zeile eingerueckt" id="zeile-sekunden">Sekunden
+          <span class="zahl-feld filz"><input type="text" id="e-zeitlimit-sek" inputmode="numeric" maxlength="2"></span>
+        </label>
+      </div>
+
+      <div class="karte filz">
+        <h2>Weitere Regeln</h2>
+        <label class="schalter-zeile"><input type="checkbox" id="e-rueckrollen"><span class="schalter"></span>Ball rollt zurück bei Fehler</label>
+        <label class="schalter-zeile"><input type="checkbox" id="e-auto"><span class="schalter"></span>Tier und Farbe automatisch</label>
+        <label class="schalter-zeile"><input type="checkbox" id="e-ton"><span class="schalter"></span>Ton</label>
+      </div>
+    </div>
+
+    <p id="fehler" class="fehler" role="alert"></p>
+    <div class="anpfiff-zeile">
+      <button id="btn-anpfiff" class="knopf gross filz">Anpfiff! ⚽</button>
+    </div>
+  </section>
+
+  <!-- ============ SPIEL ============ -->
+  <section id="spiel" class="seite versteckt">
+    <div id="buehne">
+
+      <!-- Spielfeld oben über die ganze Breite -->
+      <div id="feld">
+        <div id="sonne"></div>
+        <div class="wolke" id="wolke-1"></div>
+        <div class="wolke" id="wolke-2"></div>
+        <div class="wolke" id="wolke-3"></div>
+        <div id="rasen">
+          <div class="mittellinie"></div>
+          <div class="mittelkreis"></div>
+        </div>
+        <div class="tor" id="tor-links"></div>
+        <div class="tor" id="tor-rechts"></div>
+        <div class="figur" id="figur-0"></div>
+        <div class="figur" id="figur-1"></div>
+        <div id="ball"></div>
+
+        <div id="oben">
+          <div id="anzeigetafel" class="filz">
+            <span class="tafel-team" id="tafel-0"></span>
+            <span id="torstand"><span id="tore-0">0</span><span class="doppelpunkt">:</span><span id="tore-1">0</span></span>
+            <span class="tafel-team rechts" id="tafel-1"></span>
+          </div>
+          <div id="ziel"></div>
+        </div>
+        <div id="werkzeuge">
+          <button id="btn-pause" class="filz" title="Pause">⏸</button>
+          <button id="btn-ton" class="filz" title="Ton an/aus">🔊</button>
+          <button id="btn-vollbild" class="filz" title="Vollbild">⛶</button>
+        </div>
+      </div>
+
+      <!-- Unten: Tastatur – Aufgabe – Tastatur -->
+      <div class="panel filz" id="panel-0"></div>
+
+      <div id="mitte">
+        <div id="aufgabe-box" class="filz">
+          <div id="aufgabe-text"></div>
+          <div id="zeitbalken"><div id="zeitbalken-fuellung"></div></div>
+          <button id="btn-ueberspringen" class="filz">Überspringen ⏭</button>
+        </div>
+        <div id="wechsel-box" class="filz versteckt">
+          <div id="wechsel-titel">Platz wechseln!</div>
+          <div id="wechsel-zahl">10</div>
+        </div>
+      </div>
+
+      <div class="panel filz" id="panel-1"></div>
+
+      <!-- Overlays -->
+      <div id="jubel" class="overlay versteckt">
+        <div id="jubel-figur"></div>
+        <div id="jubel-text"></div>
+      </div>
+
+      <div id="pause-menue" class="overlay dunkel versteckt">
+        <div class="menue-box filz">
+          <h2>Pause</h2>
+          <button id="btn-weiter" class="knopf gross filz">▶ Weiterspielen</button>
+          <button id="btn-neustart" class="knopf hell filz">↻ Neu starten</button>
+          <button id="btn-zu-einst" class="knopf hell filz">⚙ Zu den Einstellungen</button>
+        </div>
+      </div>
+
+      <div id="ende" class="overlay dunkel versteckt">
+        <div class="menue-box ende-box filz">
+          <div id="ende-bild"></div>
+          <h2 id="ende-text"></h2>
+          <div id="ende-stand"></div>
+          <div class="knopf-reihe">
+            <button id="btn-nochmal" class="knopf gross filz">↻ Nochmal</button>
+            <button id="btn-ende-einst" class="knopf hell filz">⚙ Einstellungen</button>
+            <button id="btn-ende-verlauf" class="knopf hell filz">📋 Verlauf</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="konfetti"></div>
+    </div>
+  </section>
+
+  <!-- ============ VERLAUF ============ -->
+  <section id="verlauf" class="seite versteckt">
+    <header class="kopf">
+      <h1>📋 Verlauf</h1>
+      <div>
+        <button id="btn-verlauf-loeschen" class="knopf hell filz">🗑 Verlauf löschen</button>
+        <button id="btn-verlauf-zurueck" class="knopf filz">← Zurück</button>
+      </div>
+    </header>
+    <div id="verlauf-inhalt" class="filz"></div>
+  </section>
+
+  <script src="../../gemeinsam/hilfen.js"></script>
+  <script src="spiel.js"></script>
+</body>
+</html>
