@@ -29,6 +29,7 @@ body { background: #e8f4fb; }
 .abschnitt { padding: 14px 0; border-top: 2px dashed #b0bec5; }
 .abschnitt:first-of-type { border-top: 0; padding-top: 0; }
 .abschnitt-titel { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+.abschnitt.aus { opacity: .35; pointer-events: none; filter: grayscale(1); }
 .knopf-raster { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 14px; }
 .zelle { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .unter { font-size: 14px; line-height: 1.25; color: #546e7a; text-align: center; max-width: 140px; font-weight: 600; }
@@ -168,7 +169,7 @@ body { background: #e8f4fb; }
 
 /* Ball */
 #ball {
-  position: absolute; width: 70px; height: 70px; top: 372px; margin-left: -35px;
+  position: absolute; width: 70px; height: 70px; top: 345px; margin-left: -35px;
   font-size: 62px; line-height: 70px; text-align: center; z-index: 3;
   transition: left .55s cubic-bezier(.3,1.3,.5,1);
   filter: drop-shadow(0 6px 3px rgba(0,0,0,.3));
@@ -177,18 +178,28 @@ body { background: #e8f4fb; }
 
 /* Mögliche Ballpositionen: kleine weisse Punkte im Rasen, direkt unter dem Ball */
 .ball-punkt {
-  position: absolute; top: 446px; width: 16px; height: 10px; margin-left: -8px;
+  position: absolute; top: 419px; width: 16px; height: 10px; margin-left: -8px;
   border-radius: 50%; background: #fff; opacity: .9; z-index: 2;
   box-shadow: 0 1px 2px rgba(0,0,0,.25);
 }
 #ball.rollt { animation: drehen .55s; }
 /* Tor: Ball fliegt hoch und hinter die Figur ins Netz */
 #ball.im-tor {
-  z-index: 1; top: 300px; transform: scale(.85);
-  transition: left .55s cubic-bezier(.3,1.1,.5,1), top .55s cubic-bezier(.2,-0.6,.6,1);
+  z-index: 1; top: 185px; transform: scale(.8);
+  transition: left .55s cubic-bezier(.3,1.1,.5,1), top .55s cubic-bezier(.3,.8,.5,1);
 }
 #ball.im-tor.rollt { animation: drehen-tor .55s; }
-@keyframes drehen-tor { from { transform: scale(.85) rotate(0); } to { transform: scale(.85) rotate(360deg); } }
+@keyframes drehen-tor { from { transform: scale(.8) rotate(0); } to { transform: scale(.8) rotate(360deg); } }
+/* Netz vor dem Ball, damit er sichtbar HINTER dem Netz liegt */
+#ball::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; opacity: 0;
+  background:
+    repeating-linear-gradient(0deg,  rgba(255,255,255,.9) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.9) 0 2px, transparent 2px 11px);
+  transition: opacity .2s .4s;
+}
+#ball.im-tor::after { opacity: 1; }
+#ball.im-tor.rollt::after { animation: none; }
 @keyframes drehen { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
 /* Figuren in den Toren */
@@ -233,6 +244,7 @@ body { background: #e8f4fb; }
 
 #werkzeuge { position: absolute; top: 14px; right: 14px; display: flex; gap: 10px; z-index: 4; }
 #werkzeuge button { width: 60px; height: 60px; border: 0; background: rgba(255,255,255,.95); font-size: 28px; border-radius: var(--wackel-klein); }
+#werkzeuge #btn-pause { width: auto; padding: 0 18px; font-size: 26px; }
 
 /* ---------- Unten: Tastaturen und Aufgabe ---------- */
 .panel {
@@ -282,10 +294,11 @@ body { background: #e8f4fb; }
 #zeitbalken { width: 80%; height: 18px; border-radius: 99px; background: #e3eaf0; overflow: hidden; margin-top: 12px; }
 #zeitbalken-fuellung { height: 100%; width: 100%; background: #1e88e5; border-radius: 99px; }
 #zeitbalken.knapp #zeitbalken-fuellung { background: var(--rot); }
-#btn-ueberspringen { margin-top: 16px; border: 0; background: #fff; font-size: 18px; font-weight: 700; color: #546e7a; padding: 8px 18px; border-radius: var(--wackel-klein); --filz-farbe: #b0bec5; }
-#wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; }
-#wechsel-titel { font-size: 56px; font-weight: 900; color: #e65100; }
-#wechsel-zahl { font-size: 170px; font-weight: 900; line-height: 1; color: #e65100; animation: puls 1s ease-in-out infinite; }
+#wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; cursor: pointer; touch-action: manipulation; }
+#wechsel-kreis { width: 300px; height: 300px; transform: rotate(-90deg); }   /* Start oben (12 Uhr) */
+#wechsel-kreis circle { fill: none; stroke-width: 14; }
+#wechsel-kreis .spur { stroke: #ffe0b2; }
+#wechsel-kreis .rest { stroke: #e65100; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 0; }
 @keyframes puls { 50% { transform: scale(1.12); } }
 
 /* ---------- Overlays ---------- */
@@ -327,5 +340,5 @@ body { background: #e8f4fb; }
 @keyframes fallen { to { transform: translateY(980px) rotate(720deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .wolke, #jubel-figur, .figur, #ziel.knapp, #wechsel-zahl { animation: none !important; }
+  .wolke, #jubel-figur, .figur, #ziel.knapp { animation: none !important; }
 }

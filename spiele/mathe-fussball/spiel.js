@@ -30,10 +30,10 @@ const TIERE = [
   { id: 'erdmaennchen', name: 'Erdmännchen', team: 'Erdmännchen', emoji: '🐿️' }
 ];
 
+// Teamfarben (zufällig verteilt). Kein Grün: sonst fällt der grüne OK-Knopf nicht auf.
 const FARBEN = [
   { id: 'rot',     name: 'Rot',    wert: '#d32f2f' },
   { id: 'blau',    name: 'Blau',   wert: '#1565c0' },
-  { id: 'gruen',   name: 'Grün',   wert: '#2e7d32' },
   { id: 'gelb',    name: 'Gelb',   wert: '#fbc02d' },
   { id: 'orange',  name: 'Orange', wert: '#e65100' },
   { id: 'lila',    name: 'Lila',   wert: '#7b1fa2' },
@@ -48,9 +48,9 @@ const STANDARD = {
   zueb: true,              // true = mit Zehnerübergang (gemischt), false = ohne
   stellen: 'ZE',           // 2. Zahl: 'ZE' zweistellig, 'E' einstellig
   reihen: ALLE_REIHEN.slice(),
-  tore: '',
+  tore: '3',               // Standard: 3 Tore bis zum Sieg
   minuten: '',
-  wechselSek: '10',
+  wechselSek: '5',         // Standard: 5 Sekunden Kreis-Countdown zum Platzwechseln
   zeitlimitAn: false,
   zeitlimitSek: '20',
   rueckrollen: false,
@@ -170,6 +170,8 @@ let E = Object.assign(structuredClone(STANDARD), laden(SPEICHER_EINST, {}));
 if (!Array.isArray(E.teams) || E.teams.length !== 2) E.teams = structuredClone(STANDARD.teams);
 if (!E.ops) E.ops = structuredClone(STANDARD.ops);
 if (!Array.isArray(E.reihen)) E.reihen = ALLE_REIHEN.slice();
+// Ist weder Tore noch Minuten gesetzt, gilt der Standard (3 Tore)
+if (!String(E.tore).trim() && !String(E.minuten).trim()) E.tore = STANDARD.tore;
 const merke = () => speichern(SPEICHER_EINST, E);
 
 /** Bei jedem Öffnen bekommen die Teams zufällig zwei verschiedene Farben (nicht wählbar). */
@@ -227,6 +229,9 @@ function zeichneAufgabenKnoepfe() {
   if (document.activeElement !== $('e-zahlenraum')) $('e-zahlenraum').value = zr;
   document.querySelector('.eigene').classList.toggle('an', !['10', '20', '100', '1000'].includes(zr) && zr !== '');
   document.querySelectorAll('[data-op]').forEach(b => b.classList.toggle('an', !!E.ops[b.dataset.op]));
+  // Unter-Einstellungen nur wählbar, wenn die passende Rechenart an ist
+  $('abschnitt-plusminus').classList.toggle('aus', !(E.ops.plus || E.ops.minus));
+  $('abschnitt-reihen').classList.toggle('aus', !(E.ops.mal || E.ops.geteilt));
   const zu = $('e-zueb');
   zu.classList.toggle('an', E.zueb); zu.classList.toggle('rot', !E.zueb);
   document.querySelectorAll('[data-stellen]').forEach(b => b.classList.toggle('an', b.dataset.stellen === E.stellen));
@@ -274,7 +279,7 @@ function pruefeEinstellungen() {
   if (hatTore && hatMin) return 'Bitte nur Tore oder Minuten ausfüllen.';
   if (!hatTore && !hatMin) return 'Bitte Tore oder Minuten ausfüllen.';
   if (hatTore && ganzzahlIn(E.tore, 1, 20) === null) return 'Tore bis Sieg: bitte eine Zahl von 1 bis 20.';
-  if (hatMin && ganzzahlIn(E.minuten, 1, 30) === null) return 'Minuten Spielzeit: bitte eine Zahl von 1 bis 30.';
+  if (hatMin && ganzzahlIn(E.minuten, 1, 90) === null) return 'Minuten Spielzeit: bitte eine Zahl von 1 bis 90.';
   if (ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
   if (E.zeitlimitAn && ganzzahlIn(E.zeitlimitSek, 5, 60) === null) return 'Zeitlimit: bitte 5 bis 60 Sekunden.';
   return null;
@@ -516,6 +521,11 @@ function naechsteAufgabe() {
   zeichneEingaben();
 }
 
+/** Kreis-Countdown: anteil 1 = voller Ring, 0 = leer */
+function zeichneWechselKreis(anteil) {
+  $('wechsel-rest').style.strokeDashoffset = 100 * (1 - Math.max(0, Math.min(1, anteil)));
+}
+
 /** Countdown zum Platzwechseln, danach geht es mit `danach` weiter */
 function wechsel(danach) {
   if (S.modus === 'zeit' && !S.goldenGoal && S.restMs <= 0) { zeitAbgelaufen(); if (S.beendet) return; }
@@ -524,7 +534,7 @@ function wechsel(danach) {
   zeichneEingaben();
   $('aufgabe-box').classList.add('versteckt');
   $('wechsel-box').classList.remove('versteckt');
-  $('wechsel-zahl').textContent = Math.ceil(S.wechselMs / 1000);
+  zeichneWechselKreis(1);
   letzterTick = -1;
   setzePhase('wechsel', S.wechselMs, danach);
 }
@@ -672,7 +682,7 @@ function schleife(jetzt) {
       S.phaseRestMs -= dt;
       if (S.phase === 'wechsel') {
         const sek = Math.ceil(S.phaseRestMs / 1000);
-        $('wechsel-zahl').textContent = Math.max(sek, 1);
+        zeichneWechselKreis(S.phaseRestMs / S.wechselMs);
         if (sek <= 3 && sek > 0 && sek !== letzterTick) { letzterTick = sek; TON.tick(); }
       }
       if (S.phaseRestMs <= 0 && S.weiter) {
@@ -689,10 +699,10 @@ function schleife(jetzt) {
 /* ---------- Zeichnen ---------- */
 function zeichneBall(rollen) {
   const b = $('ball');
-  // Bei einem Tor fliegt der Ball hinter dem Tier tief ins Netz (nicht vor seine Füsse)
+  // Bei einem Tor fliegt der Ball oben in die Mitte des Tors, über dem Kopf des Tiers, hinter das Netz
   const imTor = Math.abs(S.ball) >= MAX_POS;
   b.classList.toggle('im-tor', imTor);
-  b.style.left = (imTor ? ballX(S.ball) + Math.sign(S.ball) * 85 : ballX(S.ball)) + 'px';
+  b.style.left = (imTor ? ballX(S.ball) - Math.sign(S.ball) * 27 : ballX(S.ball)) + 'px';
   if (rollen) { b.classList.remove('rollt'); void b.offsetWidth; b.classList.add('rollt'); }
 }
 function zeichneStand() {
@@ -833,6 +843,10 @@ $('btn-verlauf-einst').addEventListener('click', () => { leseFormular(); zeigeVe
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));
+// Tippen auf den Kreis-Countdown beendet ihn sofort -> nächste Aufgabe
+$('wechsel-box').addEventListener('pointerdown', () => {
+  if (S && !S.pausiert && S.phase === 'wechsel') { S.phaseRestMs = 0; zeichneWechselKreis(0); }
+});
 $('btn-weiter').addEventListener('click', () => pause(false));
 $('btn-neustart').addEventListener('click', () => abbrechenUnd(() => { neueTeamsWennAuto(); starteSpiel(); }));
 $('btn-zu-einst').addEventListener('click', () => abbrechenUnd(zeigeEinstellungen));
@@ -841,7 +855,6 @@ $('btn-vollbild').addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
 });
-$('btn-ueberspringen').addEventListener('click', () => { if (S && !S.pausiert && S.phase === 'spiel') zeigeLoesung(); });
 
 // Ende
 $('btn-nochmal').addEventListener('click', () => { neueTeamsWennAuto(); S = null; starteSpiel(); });

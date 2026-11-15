@@ -58,17 +58,17 @@
           </div>
         </div>
 
-        <div class="abschnitt">
+        <div class="abschnitt" id="abschnitt-plusminus">
           <div class="abschnitt-titel">Plus und Minus</div>
           <div class="knopf-raster">
-            <div class="zelle"><button class="wahl filz" id="e-zueb">Z.Üb.</button><span class="unter">Zehnerübergang</span></div>
+            <div class="zelle"><button class="wahl filz" id="e-zueb" title="Zehnerübergang">Z.Üb.</button></div>
             <div></div>
-            <div class="zelle"><button class="wahl filz" data-stellen="ZE">ZE</button><span class="unter">2. Zahl mit Zehnern + Einern</span></div>
-            <div class="zelle"><button class="wahl filz" data-stellen="E">E</button><span class="unter">2. Zahl nur Einer</span></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="ZE" title="2. Zahl mit Zehnern + Einern">ZE</button></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="E" title="2. Zahl nur Einer">E</button></div>
           </div>
         </div>
 
-        <div class="abschnitt">
+        <div class="abschnitt" id="abschnitt-reihen">
           <div class="abschnitt-titel">Einmaleins-Reihen</div>
           <div class="knopf-raster" id="reihen"></div>
         </div>
@@ -140,7 +140,7 @@
           <div id="ziel"></div>
         </div>
         <div id="werkzeuge">
-          <button id="btn-pause" class="filz" title="Pause">⏸</button>
+          <button id="btn-pause" class="filz" title="Menü (Spiel pausiert)">Menü</button>
           <button id="btn-ton" class="filz" title="Ton an/aus">🔊</button>
           <button id="btn-vollbild" class="filz" title="Vollbild">⛶</button>
         </div>
@@ -153,11 +153,13 @@
         <div id="aufgabe-box" class="filz">
           <div id="aufgabe-text"></div>
           <div id="zeitbalken"><div id="zeitbalken-fuellung"></div></div>
-          <button id="btn-ueberspringen" class="filz">Überspringen ⏭</button>
         </div>
         <div id="wechsel-box" class="filz versteckt">
-          <div id="wechsel-titel">Platz wechseln!</div>
-          <div id="wechsel-zahl">10</div>
+          <!-- Kreisrunder Countdown ohne Text: der farbige Ring wird kleiner, bis die Wechselzeit um ist -->
+          <svg id="wechsel-kreis" viewBox="0 0 100 100" aria-label="Countdown">
+            <circle class="spur" cx="50" cy="50" r="42"></circle>
+            <circle class="rest" id="wechsel-rest" cx="50" cy="50" r="42" pathLength="100"></circle>
+          </svg>
         </div>
       </div>
 
