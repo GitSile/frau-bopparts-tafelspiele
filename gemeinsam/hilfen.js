@@ -1,6 +1,6 @@
 'use strict';
 /* =========================================================
-   Célines Tafelspiele – gemeinsame Hilfsfunktionen
+   Frau Bopparts Tafelspiele – gemeinsame Hilfsfunktionen
    Reine Werkzeuge ohne Spiellogik. Vor dem Skript des Spiels laden:
    <script src="../../gemeinsam/hilfen.js"></script>
    ========================================================= */

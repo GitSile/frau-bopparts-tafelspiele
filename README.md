@@ -1,4 +1,4 @@
-# Célines Tafelspiele
+# Frau Bopparts Tafelspiele
 
 Lernspiele für die digitale Schultafel. Alle Spiele laufen direkt im Browser, ohne Installation und ohne Anmeldung. Es werden keine Daten an einen Server gesendet: Einstellungen und Spielverlauf bleiben im Browser des jeweiligen Geräts.
 
