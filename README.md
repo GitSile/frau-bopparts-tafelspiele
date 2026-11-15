@@ -37,6 +37,15 @@ Die Startseite `index.html` per Doppelklick im Browser öffnen. Alle Links funkt
 
 © 2026 Silvan Hunkeler. Alle Rechte vorbehalten. Nutzung nur mit Erlaubnis.
 
+Töne in `spiele/mathe-fussball/toene/` von Pixabay (Pixabay Content License, freie Nutzung ohne Namensnennung):
+- `pfiff.mp3` – "Referee whistle blow, gymnasium" (freesound_community), pixabay.com/sound-effects/film-special-effects-referee-whistle-blow-gymnasium-6320/
+- `schuss.mp3` – "Soccer Ball Kick" (freesound_community), pixabay.com/sound-effects/film-special-effects-soccer-ball-kick-37625/
+- `jubel.mp3` – "Crowd Cheering in Stadium" (vishiv), pixabay.com/sound-effects/people-crowd-cheering-in-stadium-435357/
+- `richtig.mp3` – "Glock – correct answer" (cartoon_music), pixabay.com/sound-effects/technology-glock-correct-answer-504462/
+- `falsch.mp3` – "Wrong Answer" (Universfield), pixabay.com/sound-effects/film-special-effects-wrong-answer-126515/
+
+Bild `spiele/mathe-fussball/bilder/vogel.png` erstellt mit ChatGPT.
+
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
 darf nicht verändert und nicht ausserhalb dieser Spiele weitergegeben werden.

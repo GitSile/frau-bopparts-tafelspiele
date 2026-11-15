@@ -48,7 +48,7 @@ const STANDARD = {
   zueb: true,              // true = mit Zehnerübergang (gemischt), false = ohne
   stellen: 'ZE',           // 2. Zahl: 'ZE' zweistellig, 'E' einstellig
   reihen: ALLE_REIHEN.slice(),
-  tore: '3',               // Standard: 3 Tore bis zum Sieg
+  tore: '5',               // Standard: 5 Tore bis zum Sieg
   minuten: '',
   wechselSek: '5',         // Standard: 5 Sekunden Kreis-Countdown zum Platzwechseln
   zeitlimitAn: false,
@@ -106,9 +106,55 @@ function mitArtikel(name) { return istStandardName(name) ? `die ${name}` : name;
 let audioCtx = null;
 let stumm = false;
 function audio() {
-  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+    ladeToene();
+  }
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
+}
+
+/* Echte Töne (toene/*.mp3, Quellen in der README).
+   von/dauer schneiden den passenden Teil heraus, laut gleicht die Lautstärken an. */
+const TON_DATEIEN = {
+  pfiff:   { von: 0.13, dauer: 0.7, laut: 0.55 },
+  schuss:  { von: 0.03, dauer: 0.4, laut: 1.1 },
+  jubel:   { von: 1.0,  dauer: 3.8, laut: 0.5, ausblenden: 1.2 },
+  richtig: { von: 0.3,  dauer: 1.8, laut: 0.9 },
+  falsch:  { von: 0.0,  dauer: 0.9, laut: 0.5 }
+};
+const tonPuffer = {};
+// Beim ersten Antippen der Seite Töne schon laden, damit der Anpfiff bereit ist
+document.addEventListener('pointerdown', () => { if (E.ton) audio(); }, { once: true });
+let tonAusgang = null;
+function ladeToene() {
+  const ac = audioCtx;
+  // Kompressor verhindert Übersteuern an lauten Wandtafel-Lautsprechern
+  tonAusgang = ac.createDynamicsCompressor();
+  tonAusgang.threshold.value = -14; tonAusgang.ratio.value = 4;
+  tonAusgang.connect(ac.destination);
+  Object.keys(TON_DATEIEN).forEach(name => {
+    fetch(`toene/${name}.mp3`).then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, fehler) => ac.decodeAudioData(b, ok, fehler)))
+      .then(puffer => { tonPuffer[name] = puffer; })
+      .catch(() => {});   // ohne Datei bleibt der erzeugte Ersatzton
+  });
+}
+/** Spielt eine Tondatei ab. Gibt false zurück, wenn sie (noch) nicht geladen ist. */
+function spieleDatei(name, start = 0) {
+  const ac = audio(), puffer = tonPuffer[name], t = TON_DATEIEN[name];
+  if (!ac || !puffer) return false;
+  const t0 = ac.currentTime + start;
+  const src = ac.createBufferSource(), g = ac.createGain();
+  src.buffer = puffer;
+  g.gain.setValueAtTime(t.laut, t0);
+  if (t.ausblenden) {
+    g.gain.setValueAtTime(t.laut, t0 + t.dauer - t.ausblenden);
+    g.gain.linearRampToValueAtTime(0.0001, t0 + t.dauer);
+  }
+  src.connect(g).connect(tonAusgang);
+  src.start(t0, t.von, t.dauer);
+  return true;
 }
 function tonAn() { return E.ton && !stumm; }
 function piep(freq, dauer, { typ = 'sine', start = 0, laut = 0.2, bis = null } = {}) {
@@ -136,18 +182,21 @@ function rauschen(dauer, { start = 0, laut = 0.15 } = {}) {
   src.start(ac.currentTime + start);
 }
 const TON = {
-  richtig() { if (!tonAn()) return; piep(880, 0.12, { laut: 0.25 }); piep(1320, 0.18, { start: 0.09, laut: 0.25 }); },
-  falsch()  { if (!tonAn()) return; piep(150, 0.35, { typ: 'sawtooth', laut: 0.12, bis: 110 }); },
+  // Jeweils zuerst die echte Tondatei, sonst der im Code erzeugte Ersatzton
+  richtig() { if (!tonAn() || spieleDatei('richtig')) return; piep(880, 0.12, { laut: 0.25 }); piep(1320, 0.18, { start: 0.09, laut: 0.25 }); },
+  falsch()  { if (!tonAn() || spieleDatei('falsch')) return; piep(150, 0.35, { typ: 'sawtooth', laut: 0.12, bis: 110 }); },
   tick()    { if (!tonAn()) return; piep(1000, 0.04, { typ: 'square', laut: 0.06 }); },
-  kick()    { if (!tonAn()) return; piep(180, 0.08, { typ: 'triangle', laut: 0.35, bis: 70 }); },
+  kick()    { if (!tonAn() || spieleDatei('schuss')) return; piep(180, 0.08, { typ: 'triangle', laut: 0.35, bis: 70 }); },
   tor()     {
-    if (!tonAn()) return;
+    if (!tonAn() || spieleDatei('jubel')) return;
     [523, 659, 784, 1047].forEach((f, i) => piep(f, 0.22, { typ: 'triangle', start: i * 0.1, laut: 0.25 }));
     piep(1047, 0.6, { typ: 'triangle', start: 0.4, laut: 0.25 });
     rauschen(3, { start: 0.05, laut: 0.18 });
   },
   pfiff(lang = false) {
     if (!tonAn()) return;
+    // Anpfiff: ein Pfiff. Schlusspfiff: dreimal hintereinander.
+    if (lang ? [0, 0.6, 1.2].every(s => spieleDatei('pfiff', s)) : spieleDatei('pfiff')) return;
     const ac = audio(); if (!ac) return;
     const pfeife = (start, dauer) => {
       const t0 = ac.currentTime + start;
@@ -170,7 +219,7 @@ let E = Object.assign(structuredClone(STANDARD), laden(SPEICHER_EINST, {}));
 if (!Array.isArray(E.teams) || E.teams.length !== 2) E.teams = structuredClone(STANDARD.teams);
 if (!E.ops) E.ops = structuredClone(STANDARD.ops);
 if (!Array.isArray(E.reihen)) E.reihen = ALLE_REIHEN.slice();
-// Ist weder Tore noch Minuten gesetzt, gilt der Standard (3 Tore)
+// Ist weder Tore noch Minuten gesetzt, gilt der Standard (5 Tore)
 if (!String(E.tore).trim() && !String(E.minuten).trim()) E.tore = STANDARD.tore;
 const merke = () => speichern(SPEICHER_EINST, E);
 
@@ -521,9 +570,24 @@ function naechsteAufgabe() {
   zeichneEingaben();
 }
 
-/** Kreis-Countdown: anteil 1 = voller Ring, 0 = leer */
+/** Kreis-Countdown: anteil 1 = voller Ring, 0 = leer.
+    Der Vogel fliegt im Uhrzeigersinn von oben los und "frisst" den Ring hinter sich weg. */
 function zeichneWechselKreis(anteil) {
-  $('wechsel-rest').style.strokeDashoffset = 100 * (1 - Math.max(0, Math.min(1, anteil)));
+  const a = Math.max(0, Math.min(1, anteil));
+  const weg = 1 - a;                                   // schon geflogener Anteil
+  $('wechsel-rest').style.strokeDashoffset = -100 * weg;
+  const winkel = weg * 360;                            // 0° = oben, im Uhrzeigersinn
+  const rad = winkel * Math.PI / 180;
+  const x = 50 + 42 * Math.sin(rad), y = 50 - 42 * Math.cos(rad);
+  // In der unteren Kreishälfte spiegeln, damit der Vogel nicht auf dem Rücken fliegt
+  const groesse = 1, spiegel = winkel > 90 && winkel < 270 ? -1 : 1;
+  $('wechsel-vogel').setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${winkel.toFixed(1)}) scale(${groesse} ${groesse * spiegel})`);
+  const sek = Math.max(1, Math.ceil(a * S.wechselMs / 1000));
+  const el = $('wechsel-sek');
+  if (el.textContent !== String(sek)) {
+    el.textContent = sek;
+    el.classList.remove('hops'); void el.getBoundingClientRect(); el.classList.add('hops');
+  }
 }
 
 /** Countdown zum Platzwechseln, danach geht es mit `danach` weiter */
