@@ -172,14 +172,31 @@ if (!E.ops) E.ops = structuredClone(STANDARD.ops);
 if (!Array.isArray(E.reihen)) E.reihen = ALLE_REIHEN.slice();
 const merke = () => speichern(SPEICHER_EINST, E);
 
+/** Bei jedem Öffnen bekommen die Teams zufällig zwei verschiedene Farben (nicht wählbar). */
+function verteileFarben() {
+  const [a, b] = mischen(FARBEN.slice());
+  E.teams[0].farbe = a.id; E.teams[1].farbe = b.id;
+}
+verteileFarben();
+
+/** Ein Tier gehört immer nur einem Team: Falls beide gleich sind, bekommt Team rechts ein anderes. */
+if (E.teams[0].tier === E.teams[1].tier) {
+  const t = waehle(TIERE.filter(x => x.id !== E.teams[0].tier));
+  if (istStandardName(E.teams[1].name)) E.teams[1].name = t.team;
+  E.teams[1].tier = t.id;
+}
+merke();
+
 function zufallsTeam(team) {
-  const t = waehle(TIERE);
-  team.tier = t.id; team.farbe = waehle(FARBEN).id; team.name = t.team;
+  const anderes = E.teams.find(x => x !== team);
+  const t = waehle(TIERE.filter(x => !anderes || x.id !== anderes.tier));
+  team.tier = t.id; team.name = t.team;
 }
 
 function baueTeamKarte(i) {
   const team = E.teams[i];
   const karte = $(`karte-${i}`);
+  const andererTier = E.teams[1 - i].tier;
   setzeFarbVariablen(karte, team.farbe);
   karte.classList.toggle('automatisch', E.auto);
   karte.innerHTML = `
@@ -189,18 +206,17 @@ function baueTeamKarte(i) {
     </div>
     <input class="team-name" maxlength="18" value="${esc(team.name)}" aria-label="Teamname">
     <div class="unterzeile">Tier</div>
-    <div class="tier-wahl">${TIERE.map(t => `<button data-tier="${t.id}" class="filz ${t.id === team.tier ? 'aktiv' : ''}" title="${t.name}">${tierHtml(t.id)}</button>`).join('')}</div>
-    <div class="unterzeile">Farbe</div>
-    <div class="farb-wahl">${FARBEN.map(f => `<button data-farbe="${f.id}" class="filz ${f.id === team.farbe ? 'aktiv' : ''}" title="${f.name}" aria-label="${f.name}" style="background:${f.wert}"></button>`).join('')}</div>`;
+    <div class="tier-wahl">${TIERE.map(t => {
+      const vergeben = t.id === andererTier;
+      return `<button data-tier="${t.id}" class="filz ${t.id === team.tier ? 'aktiv' : ''} ${vergeben ? 'vergeben' : ''}" title="${vergeben ? t.name + ' (anderes Team)' : t.name}" ${vergeben ? 'disabled' : ''}>${tierHtml(t.id)}</button>`;
+    }).join('')}</div>`;
   karte.querySelector('.team-name').addEventListener('input', ev => { team.name = ev.target.value; merke(); });
-  karte.querySelector('[data-wuerfel]').addEventListener('click', () => { zufallsTeam(team); merke(); baueTeamKarte(i); });
-  karte.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => {
+  // Nach jeder Änderung beide Karten neu zeichnen, damit das andere Team das vergebene Tier gesperrt sieht
+  karte.querySelector('[data-wuerfel]').addEventListener('click', () => { zufallsTeam(team); merke(); baueTeamKarte(0); baueTeamKarte(1); });
+  karte.querySelectorAll('[data-tier]:not([disabled])').forEach(b => b.addEventListener('click', () => {
     const alt = tierVon(team.tier), neu = tierVon(b.dataset.tier);
     if (!team.name.trim() || team.name === alt.team) team.name = neu.team;
-    team.tier = neu.id; merke(); baueTeamKarte(i);
-  }));
-  karte.querySelectorAll('[data-farbe]').forEach(b => b.addEventListener('click', () => {
-    team.farbe = b.dataset.farbe; merke(); baueTeamKarte(i);
+    team.tier = neu.id; merke(); baueTeamKarte(0); baueTeamKarte(1);
   }));
 }
 
@@ -414,6 +430,15 @@ function baueSpielfeld() {
   setzeBild($('wolke-2'), BILDER.wolke2);
   setzeBild($('wolke-3'), BILDER.wolke1);
   $('ball').innerHTML = BILDER.ball ? `<img src="${BILDER.ball}" alt="Ball">` : '⚽';
+
+  // Weisse Punkte im Rasen: alle Stellen, an denen der Ball liegen kann (ohne die Tore)
+  feld.querySelectorAll('.ball-punkt').forEach(p => p.remove());
+  for (let pos = -(MAX_POS - 1); pos <= MAX_POS - 1; pos++) {
+    const p = document.createElement('div');
+    p.className = 'ball-punkt';
+    p.style.left = ballX(pos) + 'px';
+    feld.insertBefore(p, $('ball'));
+  }
 
   [0, 1].forEach(i => {
     const team = S.teams[i];
@@ -664,7 +689,10 @@ function schleife(jetzt) {
 /* ---------- Zeichnen ---------- */
 function zeichneBall(rollen) {
   const b = $('ball');
-  b.style.left = ballX(S.ball) + 'px';
+  // Bei einem Tor fliegt der Ball hinter dem Tier tief ins Netz (nicht vor seine Füsse)
+  const imTor = Math.abs(S.ball) >= MAX_POS;
+  b.classList.toggle('im-tor', imTor);
+  b.style.left = (imTor ? ballX(S.ball) + Math.sign(S.ball) * 85 : ballX(S.ball)) + 'px';
   if (rollen) { b.classList.remove('rollt'); void b.offsetWidth; b.classList.add('rollt'); }
 }
 function zeichneStand() {

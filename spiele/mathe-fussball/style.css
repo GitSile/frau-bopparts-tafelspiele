@@ -81,22 +81,20 @@ body { background: #e8f4fb; }
 .team-kopf h2 { margin: 0; flex: 1; }
 .wuerfel { border: 0; background: #fff; border-radius: var(--wackel-klein); font-size: 28px; padding: 2px 12px; }
 .unterzeile { font-size: 15px; color: #546e7a; margin: 10px 0 6px; font-weight: 700; }
-.tier-wahl { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+.tier-wahl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .tier-wahl button {
   aspect-ratio: 1; border: 0; border-radius: var(--wackel-klein); background: #f1f5f9;
-  display: grid; place-items: center; padding: 3px; --filz-farbe: transparent;
+  display: grid; place-items: center; padding: 6px; --filz-farbe: transparent;
 }
 .tier-wahl button.aktiv { background: var(--farbe-hell); --filz-farbe: var(--farbe); --filz-dicke: 4px; }
-.farb-wahl { display: flex; gap: 10px; flex-wrap: wrap; }
-.farb-wahl button { width: 46px; height: 46px; border-radius: 50% 46% 52% 48%; border: 0; --filz-farbe: rgba(0,0,0,.25); }
-.farb-wahl button.aktiv { --filz-farbe: var(--strich); --filz-dicke: 5px; transform: scale(1.1); }
-.team-karte.automatisch .tier-wahl, .team-karte.automatisch .farb-wahl { opacity: .45; pointer-events: none; }
+.tier-wahl button.vergeben { opacity: .25; filter: grayscale(1); cursor: not-allowed; }
+.team-karte.automatisch .tier-wahl { opacity: .45; pointer-events: none; }
 
 /* Tier-Darstellung (Bild oder Emoji-Platzhalter) */
 .tier { display: grid; place-items: center; width: 100%; height: 100%; }
 .tier img { width: 100%; height: 100%; object-fit: contain; }
 .tier .emoji { font-size: 0.8em; line-height: 1; }
-.tier-wahl .tier { font-size: 40px; }
+.tier-wahl .tier { font-size: 72px; }
 
 .fehler { color: var(--rot); font-weight: 800; font-size: 22px; min-height: 30px; text-align: center; margin: 20px 0 8px; }
 .anpfiff-zeile { text-align: center; }
@@ -176,7 +174,21 @@ body { background: #e8f4fb; }
   filter: drop-shadow(0 6px 3px rgba(0,0,0,.3));
 }
 #ball img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Mögliche Ballpositionen: kleine weisse Punkte im Rasen, direkt unter dem Ball */
+.ball-punkt {
+  position: absolute; top: 446px; width: 16px; height: 10px; margin-left: -8px;
+  border-radius: 50%; background: #fff; opacity: .9; z-index: 2;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
 #ball.rollt { animation: drehen .55s; }
+/* Tor: Ball fliegt hoch und hinter die Figur ins Netz */
+#ball.im-tor {
+  z-index: 1; top: 300px; transform: scale(.85);
+  transition: left .55s cubic-bezier(.3,1.1,.5,1), top .55s cubic-bezier(.2,-0.6,.6,1);
+}
+#ball.im-tor.rollt { animation: drehen-tor .55s; }
+@keyframes drehen-tor { from { transform: scale(.85) rotate(0); } to { transform: scale(.85) rotate(360deg); } }
 @keyframes drehen { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
 /* Figuren in den Toren */

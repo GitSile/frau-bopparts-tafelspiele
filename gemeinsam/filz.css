@@ -4,8 +4,21 @@
    Jede Seite braucht zusätzlich den SVG-Filter mit id="filz"
    (siehe index.html), damit die Ränder wackeln.
    ========================================================= */
+/* Deutschschweizer Basisschrift
+   Die Lizenz erlaubt keine Verbreitung der Schriftdatei. Darum:
+   1. zuerst die auf dem Computer installierte Schrift (local),
+   2. sonst die Datei in gemeinsam/schriften/ – diese ist in .gitignore
+      und wird NICHT auf GitHub hochgeladen (nur lokal vorhanden). */
+@font-face {
+  font-family: "Basisschrift";
+  src: local("DCH-Basisschrift"), local("DCHBasisschrift"), local("Deutschschweizer Basisschrift"),
+       url("schriften/DCH-Basisschrift.otf") format("opentype");
+  font-display: swap;
+}
+
 :root {
-  --strich: #263238;            /* Filzstift-Farbe */
+  --schrift: "Basisschrift", "Segoe UI Rounded", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --strich: #263238;           /* Filzstift-Farbe */
   --wackel: 22px 14px 24px 12px / 14px 24px 12px 22px;
   --wackel-klein: 14px 9px 16px 8px / 9px 15px 8px 14px;
   --gruen: #2e7d32;
@@ -17,11 +30,12 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body {
-  font-family: "Segoe UI Rounded", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-family: var(--schrift);
   color: #1d2733;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
+input, select, textarea { font-family: inherit; }
 button { font: inherit; cursor: pointer; touch-action: manipulation; color: inherit; }
 .versteckt { display: none !important; }
 
