@@ -43,6 +43,7 @@ Töne in `spiele/mathe-fussball/toene/` von Pixabay (Pixabay Content License, fr
 - `jubel.mp3` – "Crowd Cheering in Stadium" (vishiv), pixabay.com/sound-effects/people-crowd-cheering-in-stadium-435357/
 - `richtig.mp3` – "Glock – correct answer" (cartoon_music), pixabay.com/sound-effects/technology-glock-correct-answer-504462/
 - `falsch.mp3` – "Wrong Answer" (Universfield), pixabay.com/sound-effects/film-special-effects-wrong-answer-126515/
+- `tick.wav` – eine Sekunde aus "sec_mixdown" (freesound_community), verstärkt, pixabay.com/sound-effects/film-special-effects-sec-mixdown-62016/
 
 Bild `spiele/mathe-fussball/bilder/vogel.png` erstellt mit ChatGPT.
 

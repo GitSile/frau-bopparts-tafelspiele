@@ -121,7 +121,8 @@ const TON_DATEIEN = {
   schuss:  { von: 0.03, dauer: 0.4, laut: 1.1 },
   jubel:   { von: 1.0,  dauer: 3.8, laut: 0.5, ausblenden: 1.2 },
   richtig: { von: 0.3,  dauer: 1.8, laut: 0.9 },
-  falsch:  { von: 0.0,  dauer: 0.9, laut: 0.5 }
+  falsch:  { von: 0.0,  dauer: 0.9, laut: 0.5 },
+  tick:    { von: 0.0,  dauer: 0.95, laut: 1.0, datei: 'tick.wav' }   // eine Sekunde Ticken, schon zugeschnitten und laut gemacht
 };
 const tonPuffer = {};
 // Beim ersten Antippen der Seite Töne schon laden, damit der Anpfiff bereit ist
@@ -134,7 +135,7 @@ function ladeToene() {
   tonAusgang.threshold.value = -14; tonAusgang.ratio.value = 4;
   tonAusgang.connect(ac.destination);
   Object.keys(TON_DATEIEN).forEach(name => {
-    fetch(`toene/${name}.mp3`).then(r => r.arrayBuffer())
+    fetch(`toene/${TON_DATEIEN[name].datei || name + '.mp3'}`).then(r => r.arrayBuffer())
       .then(b => new Promise((ok, fehler) => ac.decodeAudioData(b, ok, fehler)))
       .then(puffer => { tonPuffer[name] = puffer; })
       .catch(() => {});   // ohne Datei bleibt der erzeugte Ersatzton
@@ -185,7 +186,7 @@ const TON = {
   // Jeweils zuerst die echte Tondatei, sonst der im Code erzeugte Ersatzton
   richtig() { if (!tonAn() || spieleDatei('richtig')) return; piep(880, 0.12, { laut: 0.25 }); piep(1320, 0.18, { start: 0.09, laut: 0.25 }); },
   falsch()  { if (!tonAn() || spieleDatei('falsch')) return; piep(150, 0.35, { typ: 'sawtooth', laut: 0.12, bis: 110 }); },
-  tick()    { if (!tonAn()) return; piep(1000, 0.04, { typ: 'square', laut: 0.06 }); },
+  tick()    { if (!tonAn() || spieleDatei('tick')) return; piep(1000, 0.04, { typ: 'square', laut: 0.06 }); },
   kick()    { if (!tonAn() || spieleDatei('schuss')) return; piep(180, 0.08, { typ: 'triangle', laut: 0.35, bis: 70 }); },
   tor()     {
     if (!tonAn() || spieleDatei('jubel')) return;
