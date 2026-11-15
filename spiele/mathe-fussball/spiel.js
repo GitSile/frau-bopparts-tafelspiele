@@ -69,7 +69,8 @@ const LOESUNG_MS = 2000;     // Lösung zeigen
 const MAX_POS = 3;           // Mitte = 0, Tor = ±3
 const POOL_GROESSE = 100;
 const VERLAUF_MAX = 100;
-const SPEICHER_EINST = 'tafelfussball.einstellungen.v2';
+// v3: neue Standardwerte (5 Tore, 5 s Wechselzeit) – alte gespeicherte Einstellungen werden einmalig verworfen
+const SPEICHER_EINST = 'tafelfussball.einstellungen.v3';
 const SPEICHER_VERLAUF = 'tafelfussball.verlauf';
 const OP_ZEICHEN = { plus: '+', minus: '−', mal: '×', geteilt: ':' };
 
