@@ -917,10 +917,13 @@ $('btn-weiter').addEventListener('click', () => pause(false));
 $('btn-neustart').addEventListener('click', () => abbrechenUnd(() => { neueTeamsWennAuto(); starteSpiel(); }));
 $('btn-zu-einst').addEventListener('click', () => abbrechenUnd(zeigeEinstellungen));
 $('btn-ton').addEventListener('click', () => { stumm = !stumm; $('btn-ton').textContent = stumm ? '🔇' : '🔊'; });
-$('btn-vollbild').addEventListener('click', () => {
+// Vollbild ein/aus – im Spiel und in den Einstellungen
+const vollbildUmschalten = () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-});
+};
+$('btn-vollbild').addEventListener('click', vollbildUmschalten);
+$('btn-vollbild-einst').addEventListener('click', vollbildUmschalten);
 
 // Ende
 $('btn-nochmal').addEventListener('click', () => { neueTeamsWennAuto(); S = null; starteSpiel(); });

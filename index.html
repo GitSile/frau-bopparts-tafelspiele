@@ -63,7 +63,7 @@
       {
         name: 'Mathe-Fussball',
         fach: 'Mathematik',
-        text: 'Kopfrechnen im Duell: Wer zuerst richtig rechnet, schiesst den Ball Richtung Tor.',
+        text: '',
         link: 'spiele/mathe-fussball/index.html',
         bild: 'spiele/mathe-fussball/bilder/figuren/loewe-jubel.png',
         farbe: '#2e7d32'
@@ -77,7 +77,7 @@
         <div class="kachel-bild"><img src="${esc(s.bild)}" alt=""></div>
         <h2>${esc(s.name)}</h2>
         <span class="fach">${esc(s.fach)}</span>
-        <p>${esc(s.text)}</p>
+        ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
       </a>`).join('') + `
       <div class="kachel bald filz" aria-hidden="true">
