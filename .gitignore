@@ -25,13 +25,6 @@ klassenlisten/
 *.xls
 *.docx
 
-# Lizenzierte Schriften (Basisschrift darf nicht verbreitet werden)
-gemeinsam/schriften/
-*.otf
-*.ttf
-*.woff
-*.woff2
-
 # Systemdateien
 Thumbs.db
 desktop.ini

@@ -36,3 +36,7 @@ Die Startseite `index.html` per Doppelklick im Browser öffnen. Alle Links funkt
 ---
 
 © 2026 Silvan Hunkeler. Alle Rechte vorbehalten. Nutzung nur mit Erlaubnis.
+
+Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
+Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
+darf nicht verändert und nicht ausserhalb dieser Spiele weitergegeben werden.

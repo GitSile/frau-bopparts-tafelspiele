@@ -4,11 +4,11 @@
    Jede Seite braucht zusätzlich den SVG-Filter mit id="filz"
    (siehe index.html), damit die Ränder wackeln.
    ========================================================= */
-/* Deutschschweizer Basisschrift
-   Die Lizenz erlaubt keine Verbreitung der Schriftdatei. Darum:
+/* Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ
+   Verwendung mit Erlaubnis der Rechteinhaber. Die Schrift darf nicht verändert
+   und nicht ausserhalb dieser Spiele weitergegeben werden.
    1. zuerst die auf dem Computer installierte Schrift (local),
-   2. sonst die Datei in gemeinsam/schriften/ – diese ist in .gitignore
-      und wird NICHT auf GitHub hochgeladen (nur lokal vorhanden). */
+   2. sonst die Datei in gemeinsam/schriften/ */
 @font-face {
   font-family: "Basisschrift";
   src: local("DCH-Basisschrift"), local("DCHBasisschrift"), local("Deutschschweizer Basisschrift"),
