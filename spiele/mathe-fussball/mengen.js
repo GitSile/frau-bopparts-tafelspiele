@@ -103,7 +103,7 @@ const ZEICHNER = {
   },
   raben(n) {
     // zwei Äste (Vektorgrafik) übereinander, je bis zu 10 Raben, Lücke nach 5, linker Fünferblock zuerst
-    let s = ast(112, false) + ast(254, true);
+    let s = ast(112) + ast(254);
     const xs = reihenX(10, 92, 58, 40);
     plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 262 : 120, 74, 74); });
     return s;
@@ -209,17 +209,12 @@ const ZEICHNER = {
   palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294); }
 };
 /** Waagrechter Ast als Vektorgrafik. y = Oberkante der Rinde (dort sitzen die Raben). */
-function ast(y, gespiegelt) {
-  const blatt = (x, yy, dreh, gr = 1) =>
-    `<g transform="translate(${x} ${yy}) rotate(${dreh}) scale(${gr})">` +
-    `<path d="M0 0 C 12 -18, 42 -20, 58 0 C 42 18, 12 18, 0 0 Z" fill="url(#blattGruen)" stroke="#1b5e20" stroke-width="2.2"/>` +
-    `<path d="M3 0 L 54 0" stroke="#a5d6a7" stroke-width="2" stroke-linecap="round"/>` +
-    `<path d="M18 0 L 26 -8 M30 0 L 38 -8 M18 0 L 26 8 M30 0 L 38 8" stroke="#a5d6a7" stroke-width="1.4" stroke-linecap="round"/></g>`;
+function ast(y) {
   const d = 30;   // Dicke der Rinde
   const rinde = `M14 ${y + 6} C 200 ${y - 4}, 420 ${y + 8}, 640 ${y + 2} S 770 ${y - 2}, 790 ${y + 4}` +
                 ` L 790 ${y + d - 4} C 700 ${y + d + 2}, 420 ${y + d + 6}, 200 ${y + d + 2} S 30 ${y + d + 4}, 14 ${y + d - 2} Z`;
   let s = `<g filter="url(#schatten)">`;
-  // (kein Seitenzweig: er würde die Raben verdecken)
+  // bewusst ohne Blätter und Zweige: nichts lenkt von den Raben ab
   s += `<path d="${rinde}" fill="url(#holzRinde)" stroke="#3e2723" stroke-width="3" stroke-linejoin="round"/>`;
   // Rindenstruktur
   for (let x = 60; x < 720; x += 70) {   // Maserung nur innerhalb der Rinde
@@ -229,7 +224,6 @@ function ast(y, gespiegelt) {
   }
   s += `<path d="M20 ${y + 9} C 200 ${y}, 420 ${y + 11}, 640 ${y + 5}" stroke="#d7a77d" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>`;
   s += `<ellipse cx="16" cy="${y + d / 2 + 1}" rx="6" ry="${d / 2 - 2}" fill="#d7ccc8" stroke="#3e2723" stroke-width="2.5"/>`;
-  if (!gespiegelt) s += blatt(360, y + d - 2, 70, 0.9);   // hängendes Blatt nur am oberen Ast
   return s + '</g>';
 }
 
@@ -548,7 +542,6 @@ const MENGEN_DEFS = `<defs>
   <linearGradient id="karton" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef2f4"/></linearGradient>
   <linearGradient id="holz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1887f"/><stop offset=".5" stop-color="#8d6e63"/><stop offset="1" stop-color="#5d4037"/></linearGradient>
   <linearGradient id="holzRinde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1704f"/><stop offset=".45" stop-color="#8d5b3c"/><stop offset="1" stop-color="#4e2f1e"/></linearGradient>
-  <linearGradient id="blattGruen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#388e3c"/></linearGradient>
   <linearGradient id="tortenSeite" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f48fb1"/><stop offset=".45" stop-color="#f8bbd0"/><stop offset="1" stop-color="#e57399"/></linearGradient>
   <radialGradient id="glasur" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fff0f5"/><stop offset=".7" stop-color="#fbc4d8"/><stop offset="1" stop-color="#f48fb1"/></radialGradient>
   <radialGradient id="creme" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3e5d0"/></radialGradient>
