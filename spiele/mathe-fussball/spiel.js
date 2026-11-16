@@ -468,8 +468,24 @@ function erzeugeKopfrechnenPool(f) {
   return [...set];
 }
 /** Pool aus allen gewählten Aufgabenarten, abwechselnd gemischt (jede Art kommt gleich oft dran) */
+/** Mengen-Aufgaben: zuerst wird das Thema gewählt (jedes gleich oft, die Hände 15 % öfter),
+    dann die Anzahl. Keine Aufgabe doppelt. */
+const MENGEN_GEWICHT = { finger: 1.15 };
+function erzeugeMengenPool() {
+  const themen = MENGEN_THEMEN.map(t => ({ ...t, g: MENGEN_GEWICHT[t.id] || 1, frei: mischen(Array.from({ length: t.max }, (_, i) => i + 1)) }));
+  const liste = [];
+  while (liste.length < POOL_GROESSE) {
+    const offen = themen.filter(t => t.frei.length);
+    if (!offen.length) break;
+    let r = Math.random() * offen.reduce((a, t) => a + t.g, 0);
+    const t = offen.find(x => (r -= x.g) < 0) || offen[offen.length - 1];
+    liste.push(`M ${t.id} ${t.frei.pop()}`);
+  }
+  return liste;
+}
 function erzeugePool(f) {
-  const listen = f.arten.map(art => mischen(art === 'kopfrechnen' ? erzeugeKopfrechnenPool(f) : FESTE_AUFGABEN[art] || []))
+  const listen = f.arten.map(art => mischen(art === 'kopfrechnen' ? erzeugeKopfrechnenPool(f)
+    : art === 'mengen' ? erzeugeMengenPool() : FESTE_AUFGABEN[art] || []))
     .filter(l => l.length);
   const pool = [];
   for (let i = 0; pool.length < POOL_GROESSE && listen.some(l => i < l.length); i++) {
