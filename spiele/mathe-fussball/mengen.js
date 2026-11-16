@@ -55,13 +55,13 @@ function plaetze(n) {
   }).sort((a, b) => a.zeile - b.zeile);
 }
 /** Dinge im Zwanzigerfeld-Muster (siehe plaetze), Lücke nach 5 */
-function zweiReihen(n, datei, groesse, yOben, yUnten, hintergrund = '') {
+function zweiReihen(n, datei, groesse, yOben, yUnten, hintergrund = '', bildGroesse = groesse) {
   const schritt = groesse * 0.95, luecke = groesse * 0.75;
   const breite = 9 * schritt + luecke;
   const start = (B - breite) / 2;
   let s = hintergrund;
   const xs = reihenX(10, start, schritt, luecke);
-  plaetze(n).forEach(p => { s += bild(datei, xs[p.spalte], p.zeile ? yUnten : yOben, groesse, groesse); });
+  plaetze(n).forEach(p => { s += bild(datei, xs[p.spalte], p.zeile ? yUnten : yOben, bildGroesse, bildGroesse); });
   return s;
 }
 
@@ -106,7 +106,7 @@ const ZEICHNER = {
     // zwei Äste (Vektorgrafik) übereinander, je bis zu 10 Raben, Lücke nach 5, linker Fünferblock zuerst
     let s = ast(112) + ast(254);
     const xs = reihenX(10, 92, 58, 40);
-    plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 262 : 120, 74, 74); });
+    plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 258 : 116, 54, 52); });
     return s;
   },
   punkte(n) {
@@ -137,7 +137,7 @@ const ZEICHNER = {
       const cx = start + k * kb, x0 = cx - kw / 2, drin = Math.max(0, Math.min(5, n - k * 5));
       const kiste = bild('harass.png', cx, unten, kw, kh);
       s += kiste;
-      for (let i = 0; i < drin; i++) s += bild('flasche.png', x0 + kw * (0.172 + i * 0.164), unten - 40, 40, 112, '');
+      for (let i = 0; i < drin; i++) s += bild('flasche.png', x0 + kw * (0.172 + i * 0.164), unten - 40, 33, 108, '');
       s += `<defs><clipPath id="harassfront${k}"><rect x="${x0 - 10}" y="${front}" width="${kw + 20}" height="${kh}"/></clipPath></defs><g clip-path="url(#harassfront${k})">${kiste}</g>`;
     }
     return s;
@@ -157,7 +157,7 @@ const ZEICHNER = {
     const strasse = y => `<path d="M20 ${y + 6} Q400 ${y + 16} 780 ${y + 6}" stroke="#c8a165" stroke-width="14" fill="none" stroke-linecap="round" opacity=".45"/>`;
     let s = strasse(130) + strasse(260);
     const xs = reihenX(10, 70, 66, 60);
-    plaetze(n).forEach(p => { s += bild('ameise.png', xs[p.spalte], p.zeile ? 260 : 130, 70, 56); });
+    plaetze(n).forEach(p => { s += bild('ameise.png', xs[p.spalte], p.zeile ? 260 : 130, 58, 48); });
     return s;
   },
   perlen(n) {
@@ -205,9 +205,9 @@ const ZEICHNER = {
     }
     return s;
   },
-  kamele(n) { return wueste() + zweiReihen(n, 'kamel.png', 72, 200, 294); },
+  kamele(n) { return wueste() + zweiReihen(n, 'kamel.png', 72, 200, 294, '', 62); },
   erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 200, 294); },
-  palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294); }
+  palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294, '', 64); }
 };
 /** Kinderhand als Vektorgrafik (Handfläche zum Betrachter, Daumen links), Mitte cx, Unterkante 292.
     Gestreckt werden der Reihe nach: Daumen, Zeige-, Mittel-, Ring-, kleiner Finger. */
@@ -341,55 +341,28 @@ function feldXY(n, start, schritt, luecke, yOben, yUnten) {
 }
 
 function ei(x, y, i) {
-  const f = BUNT[(i * 3) % BUNT.length];
-  const muster = i % 3 === 0
-    ? `<path d="M${x - 22} ${y - 4} q 11 -8 22 0 t 22 0" stroke="#fff" stroke-width="4" fill="none" opacity=".85"/>`
-    : i % 3 === 1
-      ? `<circle cx="${x - 9}" cy="${y + 6}" r="4" fill="#fff" opacity=".85"/><circle cx="${x + 8}" cy="${y - 2}" r="4" fill="#fff" opacity=".85"/><circle cx="${x}" cy="${y + 15}" r="3.5" fill="#fff" opacity=".85"/>`
-      : `<rect x="${x - 23}" y="${y + 2}" width="46" height="6" fill="#fff" opacity=".8"/>`;
-  return `<g class="ding" filter="url(#schattenKlein)"><ellipse cx="${x}" cy="${y}" rx="23" ry="29" fill="${f}" stroke="#263238" stroke-width="2.5"/>` +
-    `<clipPath id="ei${i}x${x | 0}"><ellipse cx="${x}" cy="${y}" rx="23" ry="29"/></clipPath><g clip-path="url(#ei${i}x${x | 0})">${muster}</g>` +
-    glanz(x - 8, y - 13, 7, 10) + `</g>`;
+  // Osterei von ChatGPT, Mitte (x, y), verschiedene Farben per Farbfilter
+  return `<g class="ding" filter="url(#schattenKlein)"><image href="${MB}osterei.png" x="${x - 23}" y="${y - 29}" width="46" height="58" preserveAspectRatio="xMidYMax meet" filter="url(#farbe${i % 6})"/></g>`;
 }
 
 function muffin(x, y, i) {
-  const glasur = ['#f8bbd0', '#8d6e63', '#bbdefb', '#fff59d'][Math.floor(i / 5) % 4];
-  const papier = ['#ef5350', '#42a5f5', '#66bb6a', '#ab47bc'][Math.floor(i / 5) % 4];
-  let s = `<g class="ding" filter="url(#schattenKlein)">`;
-  s += `<path d="M${x - 24} ${y - 20} L ${x - 17} ${y + 12} L ${x + 17} ${y + 12} L ${x + 24} ${y - 20} Z" fill="${papier}" stroke="#263238" stroke-width="2.2" stroke-linejoin="round"/>`;
-  for (let k = -2; k <= 2; k++) s += `<line x1="${x + k * 9}" y1="${y - 19}" x2="${x + k * 6.5}" y2="${y + 11}" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>`;
-  s += `<path d="M${x - 28} ${y - 18} Q ${x - 30} ${y - 46} ${x} ${y - 50} Q ${x + 30} ${y - 46} ${x + 28} ${y - 18} Q ${x} ${y - 10} ${x - 28} ${y - 18} Z" fill="${glasur}" stroke="#263238" stroke-width="2.2"/>`;
-  for (let k = 0; k < 6; k++) s += `<rect x="${x - 16 + k * 6}" y="${y - 38 + (k % 3) * 6}" width="6" height="2.4" rx="1.2" fill="${BUNT[(k + i) % BUNT.length]}" transform="rotate(${k * 40} ${x - 13 + k * 6} ${y - 37 + (k % 3) * 6})"/>`;
-  s += `<circle cx="${x}" cy="${y - 52}" r="7" fill="#d32f2f" stroke="#7f0000" stroke-width="1.5"/>` + glanz(x - 2, y - 54, 2.5, 2, 0.8);
-  s += glanz(x - 12, y - 38, 8, 4, 0.45);
-  return s + `</g>`;
+  // Muffin von ChatGPT, Unterkante bei y+12
+  return `<g class="ding">${bild('muffin.png', x, y + 12, 58, 72, 'filter="url(#schattenKlein)"')}</g>`;
 }
 
 function auto(x, y, i) {
-  const f = BUNT[(i * 7) % BUNT.length];
-  return `<g class="ding" filter="url(#schattenKlein)">` +
-    `<rect x="${x - 18}" y="${y - 34}" width="36" height="68" rx="12" fill="${f}" stroke="#263238" stroke-width="2.5"/>` +
-    `<rect x="${x - 13}" y="${y - 22}" width="26" height="14" rx="4" fill="#b3e5fc" stroke="#263238" stroke-width="1.8"/>` +
-    `<rect x="${x - 13}" y="${y + 12}" width="26" height="10" rx="3" fill="#b3e5fc" stroke="#263238" stroke-width="1.8"/>` +
-    `<rect x="${x - 12}" y="${y - 6}" width="24" height="16" rx="3" fill="#000" opacity=".12"/>` +
-    `<rect x="${x - 15}" y="${y - 33}" width="7" height="4" rx="2" fill="#fff59d"/><rect x="${x + 8}" y="${y - 33}" width="7" height="4" rx="2" fill="#fff59d"/>` +
-    glanz(x - 8, y - 28, 5, 3, 0.5) + `</g>`;
+  // Auto von oben (ChatGPT), Mitte (x, y), verschiedene Farben per Farbfilter
+  return `<g class="ding" filter="url(#schattenKlein)"><image href="${MB}auto.png" x="${x - 21}" y="${y - 34}" width="42" height="68" preserveAspectRatio="xMidYMid meet" filter="url(#farbe${(i * 7) % 6})"/></g>`;
 }
 
 function ballon(x, y, i) {
-  const f = BUNT[(i * 3 + 1) % BUNT.length];
-  return `<g class="ding"><ellipse cx="${x}" cy="${y}" rx="22" ry="27" fill="${f}" stroke="#263238" stroke-width="2.2" filter="url(#schattenKlein)"/>` +
-    `<path d="M${x - 4} ${y + 27} L ${x} ${y + 32} L ${x + 4} ${y + 27} Z" fill="${f}" stroke="#263238" stroke-width="1.6"/>` +
-    glanz(x - 8, y - 11, 6, 9, 0.55) + `</g>`;
+  // Ballon von ChatGPT (rot), andere Farben per Farbfilter; Knoten unten bei y+33
+  return `<g class="ding" filter="url(#schattenKlein)"><image href="${MB}ballon.png" x="${x - 24}" y="${y - 30}" width="48" height="63" preserveAspectRatio="xMidYMax meet" filter="url(#farbe${i % 6})"/></g>`;
 }
 
 function stern(x, y, r) {
-  let p = '';
-  for (let k = 0; k < 10; k++) {
-    const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r;
-    p += `${k ? 'L' : 'M'}${(x + Math.cos(a) * rr).toFixed(1)} ${(y + Math.sin(a) * rr).toFixed(1)} `;
-  }
-  return `<g class="ding"><path d="${p}Z" fill="url(#sternGold)" stroke="#f57f17" stroke-width="2" stroke-linejoin="round" filter="url(#leuchten)"/>` + glanz(x - r * 0.18, y - r * 0.2, r * 0.18, r * 0.12, 0.7) + `</g>`;
+  // Stern von ChatGPT, Mitte (x, y)
+  return `<g class="ding">${bild('stern.png', x, y + r, r * 2.1, r * 2, 'filter="url(#leuchten)"')}</g>`;
 }
 
 function fussballer(x, y, i) {
@@ -419,38 +392,18 @@ function fussballer(x, y, i) {
 }
 
 function ente(x, y, i) {
-  // y = Wasserlinie, Ente schwimmt nach rechts
-  return `<g class="ding" filter="url(#schattenKlein)">` +
-    `<path d="M${x - 28} ${y - 14} Q ${x - 34} ${y - 30} ${x - 24} ${y - 26} Q ${x - 10} ${y - 30} ${x + 8} ${y - 24} Q ${x + 26} ${y - 18} ${x + 22} ${y} Q ${x} ${y + 6} ${x - 20} ${y} Q ${x - 30} ${y - 4} ${x - 28} ${y - 14} Z" fill="url(#entenGelb)" stroke="#263238" stroke-width="2"/>` +
-    `<path d="M${x - 14} ${y - 16} Q ${x - 2} ${y - 24} ${x + 8} ${y - 12} Q ${x - 2} ${y - 6} ${x - 14} ${y - 16} Z" fill="#fbc02d" stroke="#263238" stroke-width="1.4"/>` +
-    `<circle cx="${x + 14}" cy="${y - 36}" r="13" fill="url(#entenGelb)" stroke="#263238" stroke-width="2"/>` +
-    `<path d="M${x + 24} ${y - 38} Q ${x + 38} ${y - 36} ${x + 26} ${y - 30} Z" fill="#ff9800" stroke="#263238" stroke-width="1.6"/>` +
-    `<circle cx="${x + 18}" cy="${y - 39}" r="2.4" fill="#263238"/>` + glanz(x + 9, y - 42, 4, 3, 0.6) +
-    `</g>`;
+  // Ente von ChatGPT, y = Wasserlinie
+  return `<g class="ding">${bild('ente.png', x + 2, y + 6, 58, 54, 'filter="url(#schattenKlein)"')}</g>`;
 }
 
 function fisch(x, y, i) {
-  const f = ['#ff7043', '#ffca28', '#42a5f5', '#ec407a', '#66bb6a'][i % 5];
-  return `<g class="ding" filter="url(#schattenKlein)">` +
-    `<path d="M${x - 16} ${y} L ${x - 28} ${y - 11} L ${x - 27} ${y + 11} Z" fill="${f}" stroke="#263238" stroke-width="1.8" stroke-linejoin="round"/>` +
-    `<ellipse cx="${x}" cy="${y}" rx="20" ry="12" fill="${f}" stroke="#263238" stroke-width="2"/>` +
-    `<path d="M${x - 4} ${y - 11} Q ${x + 2} ${y - 20} ${x + 8} ${y - 10}" fill="${f}" stroke="#263238" stroke-width="1.6"/>` +
-    `<path d="M${x - 6} ${y - 6} Q ${x - 2} ${y} ${x - 6} ${y + 6}" stroke="#fff" stroke-opacity=".7" stroke-width="2" fill="none"/>` +
-    `<circle cx="${x + 10}" cy="${y - 3}" r="3.2" fill="#fff" stroke="#263238" stroke-width="1"/><circle cx="${x + 11}" cy="${y - 3}" r="1.6" fill="#263238"/>` +
-    glanz(x - 2, y - 6, 7, 2.5, 0.5) + `</g>`;
+  // Fisch von ChatGPT, Mitte (x, y)
+  return `<g class="ding">${bild('fisch.png', x, y + 17, 46, 34, 'filter="url(#schattenKlein)"')}</g>`;
 }
 
 function biene(x, y) {
-  return `<g class="ding" filter="url(#schattenKlein)">` +
-    `<ellipse cx="${x - 5}" cy="${y - 13}" rx="9" ry="6" fill="#e3f2fd" stroke="#263238" stroke-width="1.4" opacity=".9" transform="rotate(-25 ${x - 5} ${y - 13})"/>` +
-    `<ellipse cx="${x + 5}" cy="${y - 14}" rx="9" ry="6" fill="#e3f2fd" stroke="#263238" stroke-width="1.4" opacity=".9" transform="rotate(25 ${x + 5} ${y - 14})"/>` +
-    `<clipPath id="bk${x | 0}x${y | 0}"><ellipse cx="${x}" cy="${y}" rx="17" ry="12"/></clipPath>` +
-    `<ellipse cx="${x}" cy="${y}" rx="17" ry="12" fill="#ffca28"/>` +
-    `<g clip-path="url(#bk${x | 0}x${y | 0})"><rect x="${x - 6}" y="${y - 13}" width="5" height="26" fill="#212121"/><rect x="${x + 3}" y="${y - 13}" width="5" height="26" fill="#212121"/></g>` +
-    `<ellipse cx="${x}" cy="${y}" rx="17" ry="12" fill="none" stroke="#263238" stroke-width="2"/>` +
-    `<circle cx="${x + 16}" cy="${y - 2}" r="7" fill="#212121"/><circle cx="${x + 18}" cy="${y - 4}" r="1.8" fill="#fff"/>` +
-    `<path d="M${x - 17} ${y} L ${x - 23} ${y + 1} L ${x - 17} ${y + 3}" fill="#212121"/>` +
-    glanz(x - 4, y - 6, 6, 2.5, 0.5) + `</g>`;
+  // Biene von ChatGPT, Mitte (x, y)
+  return `<g class="ding">${bild('biene.png', x, y + 17, 40, 35, 'filter="url(#schattenKlein)"')}</g>`;
 }
 
 Object.assign(ZEICHNER, {
@@ -482,7 +435,12 @@ Object.assign(ZEICHNER, {
     let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="#66bb6a"/>`;
     for (let k = 0; k < 8; k++) s += `<rect x="${k * 100}" y="0" width="50" height="${H}" fill="#5cad60"/>`;
     s += `<g stroke="#fff" stroke-width="5" fill="none" opacity=".9"><rect x="14" y="14" width="772" height="272"/><line x1="400" y1="14" x2="400" y2="286"/><circle cx="400" cy="150" r="52"/></g>`;
-    feldXY(n, 92, 60, 48, 150, 284).forEach(p => { s += fussballer(p.x, p.y, p.zeile * 10 + p.spalte); });
+    // Spieler von ChatGPT (bilder/mengen/fussballer-*.png), jede Fünfergruppe in einer Trikotfarbe
+    const farbe = ['rot', 'blau', 'gelb', 'gruen'];
+    feldXY(n, 92, 60, 48, 146, 286).forEach(p => {
+      const gruppe = p.zeile * 2 + (p.spalte >= 5 ? 1 : 0);
+      s += `<g class="ding">${bild(`fussballer-${farbe[gruppe]}.png`, p.x, p.y, 54, 128)}</g>`;
+    });
     return s;
   },
   autos(n) {
@@ -522,7 +480,7 @@ Object.assign(ZEICHNER, {
   sterne(n) {
     let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#nacht)"/>`;
     for (let k = 0; k < 40; k++) s += `<circle cx="${(k * 97) % 800}" cy="${(k * 53) % 300}" r="${(k % 3) * 0.6 + 0.6}" fill="#fff" opacity=".5"/>`;
-    feldXY(n, 80, 64, 44, 95, 215).forEach(p => { s += stern(p.x, p.y, 30); });
+    feldXY(n, 80, 64, 44, 95, 215).forEach(p => { s += stern(p.x, p.y, 27); });
     return s;
   },
   enten(n) {
@@ -594,6 +552,12 @@ const MENGEN_DEFS = `<defs>
   <linearGradient id="elfenbein" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#fbf7ee"/><stop offset="1" stop-color="#e8e0cc"/></linearGradient>
   <linearGradient id="karton" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef2f4"/></linearGradient>
   <linearGradient id="holz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1887f"/><stop offset=".5" stop-color="#8d6e63"/><stop offset="1" stop-color="#5d4037"/></linearGradient>
+  <filter id="farbe0"><feColorMatrix type="hueRotate" values="0"/></filter>
+  <filter id="farbe1"><feColorMatrix type="hueRotate" values="165"/></filter>
+  <filter id="farbe2"><feColorMatrix type="hueRotate" values="120"/></filter>
+  <filter id="farbe3"><feColorMatrix type="hueRotate" values="200"/></filter>
+  <filter id="farbe4"><feColorMatrix type="hueRotate" values="260"/></filter>
+  <filter id="farbe5"><feColorMatrix type="hueRotate" values="310"/></filter>
   <linearGradient id="haut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9b8"/><stop offset=".6" stop-color="#f7b98e"/><stop offset="1" stop-color="#e99a6c"/></linearGradient>
   <linearGradient id="holzRinde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1704f"/><stop offset=".45" stop-color="#8d5b3c"/><stop offset="1" stop-color="#4e2f1e"/></linearGradient>
   <linearGradient id="tortenSeite" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f48fb1"/><stop offset=".45" stop-color="#f8bbd0"/><stop offset="1" stop-color="#e57399"/></linearGradient>
