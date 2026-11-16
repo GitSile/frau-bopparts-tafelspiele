@@ -989,6 +989,14 @@ $('btn-pause').addEventListener('click', () => pause(true));
 $('wechsel-box').addEventListener('pointerdown', () => {
   if (S && !S.pausiert && S.phase === 'wechsel') { S.phaseRestMs = 0; zeichneWechselKreis(0); }
 });
+// Doppelklick bzw. Doppeltippen auf die Frage: Aufgabe überspringen (ohne Punkt, ohne Countdown)
+let letzterTipp = 0;
+$('aufgabe-box').addEventListener('pointerdown', () => {
+  const jetzt = performance.now();
+  const doppelt = jetzt - letzterTipp < 400;
+  letzterTipp = doppelt ? 0 : jetzt;
+  if (doppelt && S && !S.pausiert && S.phase === 'spiel') naechsteAufgabe();
+});
 $('btn-weiter').addEventListener('click', () => pause(false));
 $('btn-neustart').addEventListener('click', () => abbrechenUnd(() => { neueTeamsWennAuto(); starteSpiel(); }));
 $('btn-zu-einst').addEventListener('click', () => abbrechenUnd(zeigeEinstellungen));
