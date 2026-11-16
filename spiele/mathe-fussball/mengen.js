@@ -18,7 +18,16 @@ const MENGEN_THEMEN = [
   { id: 'wuerfel',      max: 20 },   // Würfel
   { id: 'kamele',       max: 20 },   // Kamele in der Wüste
   { id: 'erdmaennchen', max: 20 },   // Erdmännchen in der Wüste
-  { id: 'palmen',       max: 20 }    // Palmen am Strand
+  { id: 'palmen',       max: 20 },   // Palmen am Strand
+  { id: 'eier',         max: 20 },   // zwei Eierkartons à 2×5
+  { id: 'muffins',      max: 20 },   // Muffinblech 2×10
+  { id: 'fussballer',   max: 20 },   // Fussballer auf dem Platz
+  { id: 'autos',        max: 20 },   // Parkplatz 2×10
+  { id: 'ballone',      max: 20 },   // 4 Bündel à 5 Luftballone
+  { id: 'sterne',       max: 20 },   // Sterne am Nachthimmel
+  { id: 'enten',        max: 20 },   // Enten auf dem Teich
+  { id: 'fische',       max: 20 },   // 4 Aquarien à 5 Fische
+  { id: 'bienen',       max: 20 }    // 4 Blumen à 5 Bienen
 ];
 
 /** Alle Mengen-Aufgaben, z. B. "M kerzen 13" */
@@ -210,13 +219,10 @@ function ast(y, gespiegelt) {
   const rinde = `M14 ${y + 6} C 200 ${y - 4}, 420 ${y + 8}, 640 ${y + 2} S 770 ${y - 2}, 790 ${y + 4}` +
                 ` L 790 ${y + d - 4} C 700 ${y + d + 2}, 420 ${y + d + 6}, 200 ${y + d + 2} S 30 ${y + d + 4}, 14 ${y + d - 2} Z`;
   let s = `<g filter="url(#schatten)">`;
-  // kleiner Seitenzweig mit Blättern
-  const zx = gespiegelt ? 690 : 600;
-  s += `<path d="M${zx} ${y + 10} C ${zx + 25} ${y - 10}, ${zx + 50} ${y - 22}, ${zx + 80} ${y - 34}" stroke="#6d4c41" stroke-width="9" fill="none" stroke-linecap="round"/>`;
-  s += blatt(zx + 78, y - 34, -30) + blatt(zx + 40, y - 18, -110, 0.8);
+  // (kein Seitenzweig: er würde die Raben verdecken)
   s += `<path d="${rinde}" fill="url(#holzRinde)" stroke="#3e2723" stroke-width="3" stroke-linejoin="round"/>`;
   // Rindenstruktur
-  for (let x = 60; x < 780; x += 70) {
+  for (let x = 60; x < 720; x += 70) {   // Maserung nur innerhalb der Rinde
     const o = (x * 7) % 9;
     s += `<path d="M${x} ${y + 12 + (o % 3)} q 18 -3 34 1" stroke="#4e342e" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>`;
     s += `<path d="M${x + 30} ${y + 21 + (o % 2)} q 14 2 26 -1" stroke="#4e342e" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".4"/>`;
@@ -231,7 +237,7 @@ function ast(y, gespiegelt) {
 function torte(cx) {
   let s = `<g filter="url(#schatten)">`;
   // Teller
-  s += `<ellipse cx="${cx}" cy="282" rx="178" ry="17" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
+  s += `<ellipse cx="${cx}" cy="282" rx="168" ry="17" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
   // Tortenkörper
   s += `<path d="M${cx - 150} 172 L ${cx - 150} 262 Q ${cx} 300 ${cx + 150} 262 L ${cx + 150} 172 Z" fill="url(#tortenSeite)" stroke="#ad1457" stroke-width="3"/>`;
   // Cremeschicht in der Mitte
@@ -281,6 +287,243 @@ function kerze(x, y) {
     `</g>`;
 }
 
+/* =========================================================
+   Weitere Themen – alles Vektorgrafik (gestochen scharf)
+   ========================================================= */
+const BUNT = ['#ef5350', '#42a5f5', '#66bb6a', '#ffca28', '#ab47bc', '#ff7043', '#26c6da', '#ec407a', '#8d6e63', '#7e57c2'];
+/** Glanzlicht oben links (für runde Dinge) */
+function glanz(cx, cy, rx, ry, op = 0.55) {
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${op}"/>`;
+}
+/** Zwanzigerfeld-Positionen: x-Spalten mit Lücke nach 5, zwei Zeilen */
+function feldXY(n, start, schritt, luecke, yOben, yUnten) {
+  const xs = reihenX(10, start, schritt, luecke);
+  return plaetze(n).map(p => ({ x: xs[p.spalte], y: p.zeile ? yUnten : yOben, zeile: p.zeile, spalte: p.spalte }));
+}
+
+function ei(x, y, i) {
+  const f = BUNT[(i * 3) % BUNT.length];
+  const muster = i % 3 === 0
+    ? `<path d="M${x - 22} ${y - 4} q 11 -8 22 0 t 22 0" stroke="#fff" stroke-width="4" fill="none" opacity=".85"/>`
+    : i % 3 === 1
+      ? `<circle cx="${x - 9}" cy="${y + 6}" r="4" fill="#fff" opacity=".85"/><circle cx="${x + 8}" cy="${y - 2}" r="4" fill="#fff" opacity=".85"/><circle cx="${x}" cy="${y + 15}" r="3.5" fill="#fff" opacity=".85"/>`
+      : `<rect x="${x - 23}" y="${y + 2}" width="46" height="6" fill="#fff" opacity=".8"/>`;
+  return `<g class="ding" filter="url(#schattenKlein)"><ellipse cx="${x}" cy="${y}" rx="23" ry="29" fill="${f}" stroke="#263238" stroke-width="2.5"/>` +
+    `<clipPath id="ei${i}x${x | 0}"><ellipse cx="${x}" cy="${y}" rx="23" ry="29"/></clipPath><g clip-path="url(#ei${i}x${x | 0})">${muster}</g>` +
+    glanz(x - 8, y - 13, 7, 10) + `</g>`;
+}
+
+function muffin(x, y, i) {
+  const glasur = ['#f8bbd0', '#8d6e63', '#bbdefb', '#fff59d'][Math.floor(i / 5) % 4];
+  const papier = ['#ef5350', '#42a5f5', '#66bb6a', '#ab47bc'][Math.floor(i / 5) % 4];
+  let s = `<g class="ding" filter="url(#schattenKlein)">`;
+  s += `<path d="M${x - 24} ${y - 20} L ${x - 17} ${y + 12} L ${x + 17} ${y + 12} L ${x + 24} ${y - 20} Z" fill="${papier}" stroke="#263238" stroke-width="2.2" stroke-linejoin="round"/>`;
+  for (let k = -2; k <= 2; k++) s += `<line x1="${x + k * 9}" y1="${y - 19}" x2="${x + k * 6.5}" y2="${y + 11}" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>`;
+  s += `<path d="M${x - 28} ${y - 18} Q ${x - 30} ${y - 46} ${x} ${y - 50} Q ${x + 30} ${y - 46} ${x + 28} ${y - 18} Q ${x} ${y - 10} ${x - 28} ${y - 18} Z" fill="${glasur}" stroke="#263238" stroke-width="2.2"/>`;
+  for (let k = 0; k < 6; k++) s += `<rect x="${x - 16 + k * 6}" y="${y - 38 + (k % 3) * 6}" width="6" height="2.4" rx="1.2" fill="${BUNT[(k + i) % BUNT.length]}" transform="rotate(${k * 40} ${x - 13 + k * 6} ${y - 37 + (k % 3) * 6})"/>`;
+  s += `<circle cx="${x}" cy="${y - 52}" r="7" fill="#d32f2f" stroke="#7f0000" stroke-width="1.5"/>` + glanz(x - 2, y - 54, 2.5, 2, 0.8);
+  s += glanz(x - 12, y - 38, 8, 4, 0.45);
+  return s + `</g>`;
+}
+
+function auto(x, y, i) {
+  const f = BUNT[(i * 7) % BUNT.length];
+  return `<g class="ding" filter="url(#schattenKlein)">` +
+    `<rect x="${x - 18}" y="${y - 34}" width="36" height="68" rx="12" fill="${f}" stroke="#263238" stroke-width="2.5"/>` +
+    `<rect x="${x - 13}" y="${y - 22}" width="26" height="14" rx="4" fill="#b3e5fc" stroke="#263238" stroke-width="1.8"/>` +
+    `<rect x="${x - 13}" y="${y + 12}" width="26" height="10" rx="3" fill="#b3e5fc" stroke="#263238" stroke-width="1.8"/>` +
+    `<rect x="${x - 12}" y="${y - 6}" width="24" height="16" rx="3" fill="#000" opacity=".12"/>` +
+    `<rect x="${x - 15}" y="${y - 33}" width="7" height="4" rx="2" fill="#fff59d"/><rect x="${x + 8}" y="${y - 33}" width="7" height="4" rx="2" fill="#fff59d"/>` +
+    glanz(x - 8, y - 28, 5, 3, 0.5) + `</g>`;
+}
+
+function ballon(x, y, i) {
+  const f = BUNT[(i * 3 + 1) % BUNT.length];
+  return `<g class="ding"><ellipse cx="${x}" cy="${y}" rx="22" ry="27" fill="${f}" stroke="#263238" stroke-width="2.2" filter="url(#schattenKlein)"/>` +
+    `<path d="M${x - 4} ${y + 27} L ${x} ${y + 32} L ${x + 4} ${y + 27} Z" fill="${f}" stroke="#263238" stroke-width="1.6"/>` +
+    glanz(x - 8, y - 11, 6, 9, 0.55) + `</g>`;
+}
+
+function stern(x, y, r) {
+  let p = '';
+  for (let k = 0; k < 10; k++) {
+    const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r;
+    p += `${k ? 'L' : 'M'}${(x + Math.cos(a) * rr).toFixed(1)} ${(y + Math.sin(a) * rr).toFixed(1)} `;
+  }
+  return `<g class="ding"><path d="${p}Z" fill="url(#sternGold)" stroke="#f57f17" stroke-width="2" stroke-linejoin="round" filter="url(#leuchten)"/>` + glanz(x - r * 0.18, y - r * 0.2, r * 0.18, r * 0.12, 0.7) + `</g>`;
+}
+
+function fussballer(x, y, i) {
+  // y = Fusspunkt
+  const trikot = ['#e53935', '#1e88e5', '#fdd835', '#43a047'][Math.floor(i / 5) % 4];
+  const haar = ['#4e342e', '#212121', '#f9a825', '#8d6e63', '#d84315'][i % 5];
+  const haut = ['#ffcc99', '#e0ac69', '#c68642', '#ffdbac', '#8d5524'][(i * 2) % 5];
+  return `<g class="ding" filter="url(#schattenKlein)">` +
+    `<rect x="${x - 10}" y="${y - 22}" width="7" height="18" rx="3" fill="${haut}" stroke="#263238" stroke-width="1.5"/>` +
+    `<rect x="${x + 3}" y="${y - 22}" width="7" height="18" rx="3" fill="${haut}" stroke="#263238" stroke-width="1.5"/>` +
+    `<rect x="${x - 11}" y="${y - 12}" width="9" height="9" rx="2" fill="#fff" stroke="#263238" stroke-width="1.5"/><rect x="${x + 2}" y="${y - 12}" width="9" height="9" rx="2" fill="#fff" stroke="#263238" stroke-width="1.5"/>` +
+    `<ellipse cx="${x - 7}" cy="${y - 2}" rx="7" ry="4" fill="#212121"/><ellipse cx="${x + 8}" cy="${y - 2}" rx="7" ry="4" fill="#212121"/>` +
+    `<path d="M${x - 13} ${y - 34} L ${x + 13} ${y - 34} L ${x + 12} ${y - 20} L ${x - 12} ${y - 20} Z" fill="#fff" stroke="#263238" stroke-width="1.8"/>` +
+    `<path d="M${x - 15} ${y - 58} Q ${x} ${y - 64} ${x + 15} ${y - 58} L ${x + 22} ${y - 46} L ${x + 15} ${y - 42} L ${x + 14} ${y - 33} L ${x - 14} ${y - 33} L ${x - 15} ${y - 42} L ${x - 22} ${y - 46} Z" fill="${trikot}" stroke="#263238" stroke-width="2" stroke-linejoin="round"/>` +
+    `<path d="M${x - 8} ${y - 46} L ${x + 8} ${y - 46}" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>` +   // Streifen statt Nummer (keine Zahlen beim Zählen!)
+    `<circle cx="${x}" cy="${y - 73}" r="13" fill="${haut}" stroke="#263238" stroke-width="2"/>` +
+    `<path d="M${x - 13} ${y - 75} Q ${x - 12} ${y - 90} ${x} ${y - 88} Q ${x + 13} ${y - 90} ${x + 13} ${y - 75} Q ${x + 5} ${y - 82} ${x - 13} ${y - 75} Z" fill="${haar}"/>` +
+    `<circle cx="${x - 5}" cy="${y - 73}" r="1.8" fill="#263238"/><circle cx="${x + 5}" cy="${y - 73}" r="1.8" fill="#263238"/>` +
+    `<path d="M${x - 5} ${y - 67} Q ${x} ${y - 63} ${x + 5} ${y - 67}" stroke="#263238" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+    `</g>`;
+}
+
+function ente(x, y, i) {
+  // y = Wasserlinie, Ente schwimmt nach rechts
+  return `<g class="ding" filter="url(#schattenKlein)">` +
+    `<path d="M${x - 28} ${y - 14} Q ${x - 34} ${y - 30} ${x - 24} ${y - 26} Q ${x - 10} ${y - 30} ${x + 8} ${y - 24} Q ${x + 26} ${y - 18} ${x + 22} ${y} Q ${x} ${y + 6} ${x - 20} ${y} Q ${x - 30} ${y - 4} ${x - 28} ${y - 14} Z" fill="url(#entenGelb)" stroke="#263238" stroke-width="2"/>` +
+    `<path d="M${x - 14} ${y - 16} Q ${x - 2} ${y - 24} ${x + 8} ${y - 12} Q ${x - 2} ${y - 6} ${x - 14} ${y - 16} Z" fill="#fbc02d" stroke="#263238" stroke-width="1.4"/>` +
+    `<circle cx="${x + 14}" cy="${y - 36}" r="13" fill="url(#entenGelb)" stroke="#263238" stroke-width="2"/>` +
+    `<path d="M${x + 24} ${y - 38} Q ${x + 38} ${y - 36} ${x + 26} ${y - 30} Z" fill="#ff9800" stroke="#263238" stroke-width="1.6"/>` +
+    `<circle cx="${x + 18}" cy="${y - 39}" r="2.4" fill="#263238"/>` + glanz(x + 9, y - 42, 4, 3, 0.6) +
+    `</g>`;
+}
+
+function fisch(x, y, i) {
+  const f = ['#ff7043', '#ffca28', '#42a5f5', '#ec407a', '#66bb6a'][i % 5];
+  return `<g class="ding" filter="url(#schattenKlein)">` +
+    `<path d="M${x - 16} ${y} L ${x - 28} ${y - 11} L ${x - 27} ${y + 11} Z" fill="${f}" stroke="#263238" stroke-width="1.8" stroke-linejoin="round"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="20" ry="12" fill="${f}" stroke="#263238" stroke-width="2"/>` +
+    `<path d="M${x - 4} ${y - 11} Q ${x + 2} ${y - 20} ${x + 8} ${y - 10}" fill="${f}" stroke="#263238" stroke-width="1.6"/>` +
+    `<path d="M${x - 6} ${y - 6} Q ${x - 2} ${y} ${x - 6} ${y + 6}" stroke="#fff" stroke-opacity=".7" stroke-width="2" fill="none"/>` +
+    `<circle cx="${x + 10}" cy="${y - 3}" r="3.2" fill="#fff" stroke="#263238" stroke-width="1"/><circle cx="${x + 11}" cy="${y - 3}" r="1.6" fill="#263238"/>` +
+    glanz(x - 2, y - 6, 7, 2.5, 0.5) + `</g>`;
+}
+
+function biene(x, y) {
+  return `<g class="ding" filter="url(#schattenKlein)">` +
+    `<ellipse cx="${x - 5}" cy="${y - 13}" rx="9" ry="6" fill="#e3f2fd" stroke="#263238" stroke-width="1.4" opacity=".9" transform="rotate(-25 ${x - 5} ${y - 13})"/>` +
+    `<ellipse cx="${x + 5}" cy="${y - 14}" rx="9" ry="6" fill="#e3f2fd" stroke="#263238" stroke-width="1.4" opacity=".9" transform="rotate(25 ${x + 5} ${y - 14})"/>` +
+    `<clipPath id="bk${x | 0}x${y | 0}"><ellipse cx="${x}" cy="${y}" rx="17" ry="12"/></clipPath>` +
+    `<ellipse cx="${x}" cy="${y}" rx="17" ry="12" fill="#ffca28"/>` +
+    `<g clip-path="url(#bk${x | 0}x${y | 0})"><rect x="${x - 6}" y="${y - 13}" width="5" height="26" fill="#212121"/><rect x="${x + 3}" y="${y - 13}" width="5" height="26" fill="#212121"/></g>` +
+    `<ellipse cx="${x}" cy="${y}" rx="17" ry="12" fill="none" stroke="#263238" stroke-width="2"/>` +
+    `<circle cx="${x + 16}" cy="${y - 2}" r="7" fill="#212121"/><circle cx="${x + 18}" cy="${y - 4}" r="1.8" fill="#fff"/>` +
+    `<path d="M${x - 17} ${y} L ${x - 23} ${y + 1} L ${x - 17} ${y + 3}" fill="#212121"/>` +
+    glanz(x - 4, y - 6, 6, 2.5, 0.5) + `</g>`;
+}
+
+Object.assign(ZEICHNER, {
+  eier(n) {
+    // zwei Eierkartons à 2×5, zuerst der linke Karton (hinten 5, vorne 5)
+    let s = '';
+    [205, 595].forEach((cx, k) => {
+      s += `<g filter="url(#schatten)"><rect x="${cx - 175}" y="95" width="350" height="180" rx="22" fill="url(#karton2)" stroke="#8d6e63" stroke-width="3"/></g>`;
+      for (let z = 0; z < 2; z++) for (let sp = 0; sp < 5; sp++)
+        s += `<ellipse cx="${cx - 128 + sp * 64}" cy="${z ? 238 : 160}" rx="27" ry="20" fill="url(#mulde2)" stroke="#a1887f" stroke-width="2"/>`;
+    });
+    plaetze(n).forEach((p, j) => {
+      const cx = p.spalte < 5 ? 205 : 595, sp = p.spalte % 5;
+      s += ei(cx - 128 + sp * 64, p.zeile ? 226 : 148, p.zeile * 10 + p.spalte);
+    });
+    return s;
+  },
+  muffins(n) {
+    // Muffinblech mit 2 Reihen à 10 (Lücke nach 5), linker Fünferblock zuerst
+    let s = `<rect x="22" y="70" width="756" height="222" rx="20" fill="url(#blech)" stroke="#546e7a" stroke-width="4" filter="url(#schatten)"/>`;
+    const xs = reihenX(10, 70, 68, 32);
+    for (let z = 0; z < 2; z++) for (let sp = 0; sp < 10; sp++)
+      s += `<ellipse cx="${xs[sp]}" cy="${z ? 262 : 162}" rx="29" ry="12" fill="#78909c" stroke="#455a64" stroke-width="2"/>`;
+    feldXY(n, 70, 68, 32, 166, 266).forEach(p => { s += muffin(p.x, p.y - 6, p.zeile * 10 + p.spalte); });
+    return s;
+  },
+  fussballer(n) {
+    // Fussballplatz, Spieler in 2 Reihen à 10 (Lücke nach 5), linker Fünferblock zuerst
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="#66bb6a"/>`;
+    for (let k = 0; k < 8; k++) s += `<rect x="${k * 100}" y="0" width="50" height="${H}" fill="#5cad60"/>`;
+    s += `<g stroke="#fff" stroke-width="5" fill="none" opacity=".9"><rect x="14" y="14" width="772" height="272"/><line x1="400" y1="14" x2="400" y2="286"/><circle cx="400" cy="150" r="52"/></g>`;
+    feldXY(n, 92, 60, 48, 150, 284).forEach(p => { s += fussballer(p.x, p.y, p.zeile * 10 + p.spalte); });
+    return s;
+  },
+  autos(n) {
+    // Parkplatz: 2 Reihen à 10 Parkfelder, Grünstreifen nach 5
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#asphalt)"/>`;
+    const xs = reihenX(10, 97, 62, 48);
+    s += `<rect x="${xs[4] + 31}" y="0" width="${xs[5] - xs[4] - 62}" height="${H}" fill="#7cb342"/>`;
+    for (let k = 0; k < 6; k++) s += `<circle cx="${xs[4] + 55}" cy="${30 + k * 48}" r="12" fill="#558b2f"/>`;
+    for (let z = 0; z < 2; z++) {
+      const y0 = z ? 160 : 14, h = 126;
+      for (let sp = 0; sp <= 10; sp++) {
+        if (sp === 5) continue;
+        const x = sp < 5 ? xs[0] - 31 + sp * 62 : xs[5] - 31 + (sp - 5) * 62;
+        s += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}" stroke="#fff" stroke-width="4"/>`;
+      }
+      s += `<line x1="${xs[0] - 31}" y1="${z ? y0 : y0 + h}" x2="${xs[4] + 31}" y2="${z ? y0 : y0 + h}" stroke="#fff" stroke-width="4"/>`;
+      s += `<line x1="${xs[5] - 31}" y1="${z ? y0 : y0 + h}" x2="${xs[9] + 31}" y2="${z ? y0 : y0 + h}" stroke="#fff" stroke-width="4"/>`;
+    }
+    feldXY(n, 97, 62, 48, 77, 223).forEach(p => { s += auto(p.x, p.y, p.zeile * 10 + p.spalte); });
+    return s;
+  },
+  ballone(n) {
+    // 4 Bündel à 5 Luftballone, Schnüre laufen unten zusammen
+    let s = '';
+    const pos = [[-70, 128], [-36, 88], [0, 62], [36, 88], [70, 128]];
+    for (let k = 0; k < 4; k++) {
+      const cx = 103 + k * 198, drin = Math.max(0, Math.min(5, n - k * 5));
+      for (let i = 0; i < drin; i++) {
+        const [dx, y] = pos[i];
+        s += `<path d="M${cx + dx} ${y + 32} Q ${cx + dx * 0.6} ${y + 110} ${cx} 270" stroke="#546e7a" stroke-width="2" fill="none"/>`;
+      }
+      if (drin) s += `<circle cx="${cx}" cy="272" r="5" fill="#546e7a"/>`;
+      for (let i = 0; i < drin; i++) s += ballon(cx + pos[i][0], pos[i][1], k * 5 + i);
+    }
+    return s;
+  },
+  sterne(n) {
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#nacht)"/>`;
+    for (let k = 0; k < 40; k++) s += `<circle cx="${(k * 97) % 800}" cy="${(k * 53) % 300}" r="${(k % 3) * 0.6 + 0.6}" fill="#fff" opacity=".5"/>`;
+    s += `<circle cx="740" cy="52" r="30" fill="#fff9c4"/><circle cx="752" cy="44" r="27" fill="#1a237e"/>`;
+    feldXY(n, 80, 64, 44, 95, 215).forEach(p => { s += stern(p.x, p.y, 30); });
+    return s;
+  },
+  enten(n) {
+    // Teich, Enten schwimmen in 2 Reihen à 10 (Lücke nach 5)
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#teich)"/>`;
+    for (let k = 0; k < 12; k++) s += `<path d="M${(k * 131) % 760} ${40 + (k * 67) % 240} q 12 -6 24 0 t 24 0" stroke="#fff" stroke-opacity=".45" stroke-width="2.5" fill="none"/>`;
+    feldXY(n, 70, 66, 46, 132, 272).forEach(p => {
+      s += `<ellipse cx="${p.x - 2}" cy="${p.y + 2}" rx="32" ry="6" fill="#fff" opacity=".35"/>` + ente(p.x - 6, p.y, p.zeile * 10 + p.spalte);
+    });
+    return s;
+  },
+  fische(n) {
+    // 4 Aquarien à 5 Fische (zickzack), linkes Aquarium zuerst
+    let s = '';
+    for (let k = 0; k < 4; k++) {
+      const x0 = 14 + k * 196, w = 180, drin = Math.max(0, Math.min(5, n - k * 5));
+      s += `<g filter="url(#schatten)"><rect x="${x0}" y="60" width="${w}" height="215" rx="14" fill="url(#wasser)" stroke="#455a64" stroke-width="4"/></g>`;
+      s += `<path d="M${x0 + 2} 250 Q ${x0 + w / 2} 236 ${x0 + w - 2} 250 L ${x0 + w - 2} 272 L ${x0 + 2} 272 Z" fill="#ffe082"/>`;
+      s += `<path d="M${x0 + 26} 252 q -8 -30 0 -60 M${x0 + 34} 252 q 8 -26 2 -46" stroke="#2e7d32" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+      s += `<rect x="${x0 + 6}" y="66" width="10" height="200" rx="5" fill="#fff" opacity=".25"/>`;
+      for (let i = 0; i < drin; i++) {
+        // Zickzack von links nach rechts: oben, unten, oben, unten, oben – nichts überlappt
+        const fx = x0 + 42 + i * 26, fy = i % 2 ? 196 : 116;
+        s += `<g transform="translate(${fx} ${fy}) scale(0.98) translate(${-fx} ${-fy})">${fisch(fx, fy, k * 5 + i)}</g>`;
+      }
+    }
+    return s;
+  },
+  bienen(n) {
+    // 4 Blumen, um jede Blume höchstens 5 Bienen (von links nach rechts)
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#himmel)"/><rect x="0" y="230" width="${B}" height="70" fill="#9ccc65"/>`;
+    const pos = [[-58, 118], [-32, 70], [0, 52], [32, 70], [58, 118]];
+    for (let k = 0; k < 4; k++) {
+      const cx = 103 + k * 198, cy = 160, drin = Math.max(0, Math.min(5, n - k * 5));
+      s += `<path d="M${cx} ${cy + 20} Q ${cx - 6} 230 ${cx} 290" stroke="#388e3c" stroke-width="8" fill="none"/>`;
+      s += `<path d="M${cx - 2} 250 q -30 -14 -40 -2 q 18 14 40 2 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="2"/>`;
+      let blume = '';
+      for (let b = 0; b < 10; b++) blume += `<ellipse cx="${cx}" cy="${cy - 30}" rx="12" ry="24" fill="${['#fff176', '#f48fb1', '#ce93d8', '#ffffff'][k]}" stroke="#263238" stroke-width="1.6" transform="rotate(${b * 36} ${cx} ${cy})"/>`;
+      s += `<g filter="url(#schatten)">${blume}<circle cx="${cx}" cy="${cy}" r="20" fill="#8d6e63" stroke="#263238" stroke-width="2"/></g>`;
+      for (let i = 0; i < drin; i++) s += biene(cx + pos[i][0], pos[i][1]);
+    }
+    return s;
+  }
+});
+
 function wueste() { return `<image href="${MB}wueste.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>`; }
 
 /** Würfel-/Domino-Augen (0–5) um einen Mittelpunkt */
@@ -311,6 +554,17 @@ const MENGEN_DEFS = `<defs>
   <radialGradient id="creme" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3e5d0"/></radialGradient>
   <linearGradient id="teller" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd8dc"/></linearGradient>
   <pattern id="kerzeStreifen" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="14" height="14" fill="#e3f2fd"/><rect width="14" height="6" fill="#42a5f5"/></pattern>
+  <linearGradient id="karton2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe3cf"/><stop offset="1" stop-color="#cdb898"/></linearGradient>
+  <radialGradient id="mulde2" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#bfa98a"/><stop offset="1" stop-color="#e6d6bd"/></radialGradient>
+  <linearGradient id="blech" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd8dc"/><stop offset="1" stop-color="#90a4ae"/></linearGradient>
+  <linearGradient id="asphalt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78909c"/><stop offset="1" stop-color="#546e7a"/></linearGradient>
+  <linearGradient id="nacht" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a237e"/><stop offset="1" stop-color="#3949ab"/></linearGradient>
+  <radialGradient id="sternGold" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fffde7"/><stop offset=".5" stop-color="#ffd54f"/><stop offset="1" stop-color="#ffa000"/></radialGradient>
+  <filter id="leuchten" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ffeb3b" flood-opacity=".7"/></filter>
+  <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3e5fc"/><stop offset="1" stop-color="#e1f5fe"/></linearGradient>
+  <linearGradient id="teich" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#81d4fa"/><stop offset="1" stop-color="#29b6f6"/></linearGradient>
+  <radialGradient id="entenGelb" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#fff9c4"/><stop offset=".5" stop-color="#ffee58"/><stop offset="1" stop-color="#fbc02d"/></radialGradient>
+  <linearGradient id="wasser" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3e5fc"/><stop offset="1" stop-color="#4fc3f7"/></linearGradient>
   <radialGradient id="flamme" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#fffde7"/><stop offset=".45" stop-color="#ffeb3b"/><stop offset="1" stop-color="#ff7043"/></radialGradient>
 </defs>`;
 

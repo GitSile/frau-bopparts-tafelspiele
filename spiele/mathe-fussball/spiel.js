@@ -477,6 +477,15 @@ function erzeugePool(f) {
   }
   return pool;
 }
+/** Start-Stapel: Bei "Mengen erkennen" kommt zuerst jede Darstellungsform einmal
+    der Reihe nach (zufällige Anzahl), danach geht es gemischt weiter.
+    Der Stapel wird von hinten abgearbeitet (pop). */
+function startStapel(f, pool) {
+  const rest = mischen(pool);
+  if (!f.arten.includes('mengen')) return rest;
+  const vorschau = MENGEN_THEMEN.map(t => `M ${t.id} ${zufall(1, t.max)}`);
+  return rest.concat(vorschau.reverse());
+}
 
 /* =========================================================
    Spiel
@@ -498,10 +507,11 @@ function starteSpiel() {
   timerStopp();
 
   const filter = aktuelleFilter();
+  const pool = erzeugePool(filter);
   S = {
     filter,
-    pool: erzeugePool(filter),
-    stapel: [],
+    pool,
+    stapel: startStapel(filter, pool),
     aufgabe: null,
     ergebnis: 0,
     ball: 0,
