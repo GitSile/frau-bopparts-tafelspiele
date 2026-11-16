@@ -31,3 +31,6 @@ desktop.ini
 .DS_Store
 *.log
 *.tmp
+
+# Arbeitsdateien (nicht hochladen)
+_tmp/

@@ -41,6 +41,11 @@ body { background: #e8f4fb; }
   --filz-farbe: #b0bec5;
 }
 .wahl.an { background: var(--gruen-hell); color: #1b5e20; --filz-farbe: var(--gruen); }
+/* Aufgabenart: breitere Knöpfe für längere Namen */
+.arten-raster { grid-template-columns: repeat(auto-fill, 210px); }
+.arten-raster .wahl { width: 210px; font-size: 21px; }
+#kopfrechnen-optionen.versteckt { display: none; }
+#kopfrechnen-optionen > .abschnitt:first-child { border-top: 2px dashed #b0bec5; padding-top: 14px; }
 .wahl.rot { background: var(--rot-hell); color: #8e1b1b; --filz-farbe: var(--rot); }
 .wahl:active { transform: translateY(2px) rotate(-1deg); }
 
@@ -80,6 +85,11 @@ body { background: #e8f4fb; }
 /* Team-Karte */
 .team-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .team-kopf h2 { margin: 0; flex: 1; }
+/* "Team links / Team rechts" klar grösser und fetter als der Teamname darunter */
+.team-karte .team-kopf h2 {
+  font-size: 38px; font-weight: 900; color: var(--farbe-dunkel);
+  -webkit-text-stroke: 1px currentColor;   /* die Basisschrift hat nur eine Strichstärke */
+}
 .wuerfel { border: 0; background: #fff; border-radius: var(--wackel-klein); font-size: 28px; padding: 2px 12px; }
 .unterzeile { font-size: 15px; color: #546e7a; margin: 10px 0 6px; font-weight: 700; }
 .tier-wahl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
@@ -281,6 +291,12 @@ body { background: #e8f4fb; }
 }
 #aufgabe-text { font-size: 120px; font-weight: 900; line-height: 1.1; white-space: nowrap; }
 #aufgabe-text.loesung { color: var(--gruen); }
+#aufgabe-text.lang { font-size: 68px; }   /* z. B. "Das Doppelte von: 4" */
+/* Mengen erkennen: Bild oben, darunter "Wie viele?" bzw. die Lösung */
+#mengen-bild { width: 100%; height: 240px; }
+#mengen-bild svg { width: 100%; height: 100%; display: block; }
+#aufgabe-box.menge { justify-content: flex-start; padding-top: 10px; }
+#aufgabe-box.menge #aufgabe-text { font-size: 56px; margin-top: 4px; }
 #zeitbalken { width: 80%; height: 18px; border-radius: 99px; background: #e3eaf0; overflow: hidden; margin-top: 12px; }
 #zeitbalken-fuellung { height: 100%; width: 100%; background: #1e88e5; border-radius: 99px; }
 #zeitbalken.knapp #zeitbalken-fuellung { background: var(--rot); }

@@ -44,6 +44,8 @@ const FARBEN = [
 const ALLE_REIHEN = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 const STANDARD = {
   zahlenraum: '100',
+  // Aufgabenarten (mehrere wählbar). Bisher programmiert ist nur "kopfrechnen".
+  arten: { verliebt: false, doppelt: false, haelfte: false, mengen: false, kopfrechnen: true },
   ops: { plus: true, minus: true, mal: false, geteilt: false },
   zueb: true,              // true = mit Zehnerübergang (gemischt), false = ohne
   stellen: 'ZE',           // 2. Zahl: 'ZE' zweistellig, 'E' einstellig
@@ -220,6 +222,7 @@ const TON = {
 let E = Object.assign(structuredClone(STANDARD), laden(SPEICHER_EINST, {}));
 if (!Array.isArray(E.teams) || E.teams.length !== 2) E.teams = structuredClone(STANDARD.teams);
 if (!E.ops) E.ops = structuredClone(STANDARD.ops);
+E.arten = Object.assign(structuredClone(STANDARD.arten), E.arten || {});
 if (!Array.isArray(E.reihen)) E.reihen = ALLE_REIHEN.slice();
 // Ist weder Tore noch Minuten gesetzt, gilt der Standard (5 Tore)
 if (!String(E.tore).trim() && !String(E.minuten).trim()) E.tore = STANDARD.tore;
@@ -279,6 +282,9 @@ function zeichneAufgabenKnoepfe() {
   document.querySelectorAll('[data-zr]').forEach(b => b.classList.toggle('an', b.dataset.zr === zr));
   if (document.activeElement !== $('e-zahlenraum')) $('e-zahlenraum').value = zr;
   document.querySelector('.eigene').classList.toggle('an', !['10', '20', '100', '1000'].includes(zr) && zr !== '');
+  document.querySelectorAll('[data-art]').forEach(b => b.classList.toggle('an', !!E.arten[b.dataset.art]));
+  // Rechenarten, Plus/Minus und Einmaleins gehören zum Kopfrechnen
+  $('kopfrechnen-optionen').classList.toggle('versteckt', !E.arten.kopfrechnen);
   document.querySelectorAll('[data-op]').forEach(b => b.classList.toggle('an', !!E.ops[b.dataset.op]));
   // Unter-Einstellungen nur wählbar, wenn die passende Rechenart an ist
   $('abschnitt-plusminus').classList.toggle('aus', !(E.ops.plus || E.ops.minus));
@@ -322,10 +328,14 @@ function leseFormular() {
 
 /** Prüft die Einstellungen. Gibt eine Fehlermeldung zurück oder null. */
 function pruefeEinstellungen() {
-  if (ganzzahlIn(E.zahlenraum, 10, 1000) === null) return 'Der Zahlenraum muss eine Zahl von 10 bis 1000 sein.';
-  const ops = Object.keys(E.ops).filter(k => E.ops[k]);
-  if (!ops.length) return 'Bitte mindestens eine Rechenart einschalten.';
-  if ((E.ops.mal || E.ops.geteilt) && !E.reihen.length) return 'Für Mal und Geteilt bitte mindestens eine Einmaleins-Reihe einschalten.';
+  const arten = Object.keys(E.arten).filter(k => E.arten[k]);
+  if (!arten.length) return 'Bitte mindestens eine Aufgabenart einschalten.';
+  if (E.arten.kopfrechnen) {
+    if (ganzzahlIn(E.zahlenraum, 10, 1000) === null) return 'Der Zahlenraum muss eine Zahl von 10 bis 1000 sein.';
+    const ops = Object.keys(E.ops).filter(k => E.ops[k]);
+    if (!ops.length) return 'Bitte mindestens eine Rechenart einschalten.';
+    if ((E.ops.mal || E.ops.geteilt) && !E.reihen.length) return 'Für Mal und Geteilt bitte mindestens eine Einmaleins-Reihe einschalten.';
+  }
   const hatTore = E.tore !== '', hatMin = E.minuten !== '';
   if (hatTore && hatMin) return 'Bitte nur Tore oder Minuten ausfüllen.';
   if (!hatTore && !hatMin) return 'Bitte Tore oder Minuten ausfüllen.';
@@ -339,15 +349,59 @@ function pruefeEinstellungen() {
 /* =========================================================
    Aufgaben – werden passend zu den Filtern erzeugt
    ========================================================= */
+/* Aufgaben sind kurze Texte:
+   Kopfrechnen:      "47 + 38", "85 - 27", "3 * 7", "21 / 3"
+   Verliebte Zahlen: "VL 2" (? + 2 = 10), "VR 4" (4 + ? = 10), "VS 3" (3 + 7 = ?)
+   Das Doppelte:     "D 4"  (Das Doppelte von: 4)
+   Die Hälfte:       "H 10" (Die Hälfte von: 10) */
 function rechne(aufgabe) {
   const [a, op, b] = aufgabe.split(' ');
   const x = Number(a), y = Number(b);
+  switch (a) {
+    case 'M': return Number(b);                     // "M aepfel 13"
+    case 'VL': case 'VR': return 10 - Number(op);
+    case 'VS': return 10;
+    case 'D': return 2 * Number(op);
+    case 'H': return Number(op) / 2;
+  }
   switch (op) { case '+': return x + y; case '-': return x - y; case '*': return x * y; case '/': return x / y; }
   return NaN;
 }
 function anzeige(aufgabe) {
   const [a, op, b] = aufgabe.split(' ');
   return `${a} ${{ '+': '+', '-': '−', '*': '×', '/': ':' }[op]} ${b}`;
+}
+/** Text an der Tafel. Mit loesung: die Lösung steht anstelle des Fragezeichens. */
+function aufgabeText(aufgabe, loesung) {
+  const [art, z] = aufgabe.split(' ');
+  const l = loesung === undefined ? '?' : loesung;
+  switch (art) {
+    case 'M':  return loesung === undefined ? 'Wie viele?' : `Es sind ${l}.`;
+    case 'VL': return `${l} + ${z} = 10`;
+    case 'VR': return `${z} + ${l} = 10`;
+    case 'VS': return `${z} + ${10 - Number(z)} = ${l}`;
+    case 'D':  return loesung === undefined ? `Das Doppelte von: ${z}` : `Das Doppelte von ${z} = ${l}`;
+    case 'H':  return loesung === undefined ? `Die Hälfte von: ${z}` : `Die Hälfte von ${z} = ${l}`;
+  }
+  return `${anzeige(aufgabe)} = ${l}`;
+}
+/** Alle möglichen Aufgaben der festen Aufgabenarten */
+const FESTE_AUFGABEN = {
+  verliebt: [1, 2, 3, 4, 5, 6, 7, 8, 9].flatMap(z => [`VL ${z}`, `VR ${z}`, `VS ${z}`]),   // ergibt immer 10
+  doppelt:  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(z => `D ${z}`),                          // Ergebnis bis 20
+  haelfte:  [2, 4, 6, 8, 10, 12, 14, 16, 18, 20].map(z => `H ${z}`),                      // Zahl bis 20
+  mengen:   MENGEN_AUFGABEN                                                               // aus mengen.js
+};
+/** Zeigt die Aufgabe an der Tafel (Text, bei Mengen zusätzlich das Bild) */
+function zeigeAufgabe(loesung) {
+  const t = $('aufgabe-text'), box = $('aufgabe-box'), bildEl = $('mengen-bild');
+  const [art, thema, zahl] = S.aufgabe.split(' ');
+  const menge = art === 'M';
+  box.classList.toggle('menge', menge);
+  bildEl.classList.toggle('versteckt', !menge);
+  if (menge && loesung === undefined) bildEl.innerHTML = mengenSvg(thema, Number(zahl));
+  t.textContent = aufgabeText(S.aufgabe, loesung);
+  t.classList.toggle('lang', !menge && t.textContent.length > 14);
 }
 /** Bereich der 2. Zahl (Summand 2 bzw. Subtrahend) */
 function bereichZweiteZahl(f) {
@@ -401,16 +455,27 @@ function aktuelleFilter() {
   return {
     n: Number(E.zahlenraum),
     ops: Object.keys(E.ops).filter(k => E.ops[k]),
-    zueb: E.zueb, stellen: E.stellen, reihen: E.reihen.slice()
+    zueb: E.zueb, stellen: E.stellen, reihen: E.reihen.slice(),
+    arten: Object.keys(E.arten).filter(k => E.arten[k])
   };
 }
-function erzeugePool(f) {
+function erzeugeKopfrechnenPool(f) {
   const set = new Set();
   for (let i = 0; set.size < POOL_GROESSE && i < 5000; i++) {
     const a = erzeugeAufgabe(f);
     if (a) set.add(a);
   }
   return [...set];
+}
+/** Pool aus allen gewählten Aufgabenarten, abwechselnd gemischt (jede Art kommt gleich oft dran) */
+function erzeugePool(f) {
+  const listen = f.arten.map(art => mischen(art === 'kopfrechnen' ? erzeugeKopfrechnenPool(f) : FESTE_AUFGABEN[art] || []))
+    .filter(l => l.length);
+  const pool = [];
+  for (let i = 0; pool.length < POOL_GROESSE && listen.some(l => i < l.length); i++) {
+    listen.forEach(l => { if (i < l.length && pool.length < POOL_GROESSE) pool.push(l[i]); });
+  }
+  return pool;
 }
 
 /* =========================================================
@@ -564,7 +629,7 @@ function naechsteAufgabe() {
   setzePhase('spiel', 0, null);
   letzterTick = -1;
   const t = $('aufgabe-text');
-  t.textContent = `${anzeige(S.aufgabe)} = ?`;
+  zeigeAufgabe();
   t.classList.remove('loesung');
   $('zeitbalken').classList.toggle('versteckt', !S.zeitlimitMs);
   $('wechsel-box').classList.add('versteckt');
@@ -623,7 +688,7 @@ function richtig(i) {
   TON.richtig();
   blinke($(`panel-${i}`), 'richtig');
   const t = $('aufgabe-text');
-  t.textContent = `${anzeige(S.aufgabe)} = ${S.ergebnis}`;
+  zeigeAufgabe(S.ergebnis);
   t.classList.add('loesung');
   S.eingabe = ['', ''];
   zeichneEingaben();
@@ -688,7 +753,7 @@ function zeigeLoesung() {
   S.eingabe = ['', ''];
   zeichneEingaben();
   const t = $('aufgabe-text');
-  t.textContent = `${anzeige(S.aufgabe)} = ${S.ergebnis}`;
+  zeigeAufgabe(S.ergebnis);
   t.classList.add('loesung');
   setzePhase('loesung', LOESUNG_MS, () => wechsel(naechsteAufgabe));
 }
@@ -891,6 +956,7 @@ function neueTeamsWennAuto() { if (E.auto) { zufallsTeam(E.teams[0]); zufallsTea
 $('reihen').innerHTML = ALLE_REIHEN.map(r => `<button class="wahl filz" data-reihe="${r}">${r}er</button>`).join('');
 document.querySelectorAll('[data-zr]').forEach(b => b.addEventListener('click', () => { E.zahlenraum = b.dataset.zr; $('e-zahlenraum').value = b.dataset.zr; merke(); zeichneAufgabenKnoepfe(); }));
 $('e-zahlenraum').addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); E.zahlenraum = ev.target.value; merke(); zeichneAufgabenKnoepfe(); });
+document.querySelectorAll('[data-art]').forEach(b => b.addEventListener('click', () => { E.arten[b.dataset.art] = !E.arten[b.dataset.art]; merke(); zeichneAufgabenKnoepfe(); }));
 document.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => { E.ops[b.dataset.op] = !E.ops[b.dataset.op]; merke(); zeichneAufgabenKnoepfe(); }));
 $('e-zueb').addEventListener('click', () => { E.zueb = !E.zueb; merke(); zeichneAufgabenKnoepfe(); });
 document.querySelectorAll('[data-stellen]').forEach(b => b.addEventListener('click', () => { E.stellen = b.dataset.stellen; merke(); zeichneAufgabenKnoepfe(); }));

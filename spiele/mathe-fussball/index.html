@@ -46,6 +46,19 @@
         <h2>Aufgaben</h2>
 
         <div class="abschnitt">
+          <div class="abschnitt-titel">Aufgabenart</div>
+          <div class="knopf-raster arten-raster">
+            <button class="wahl filz" data-art="verliebt">Verliebte Zahlen</button>
+            <button class="wahl filz" data-art="doppelt">Das Doppelte</button>
+            <button class="wahl filz" data-art="haelfte">Die Hälfte</button>
+            <button class="wahl filz" data-art="mengen">Mengen erkennen</button>
+            <button class="wahl filz" data-art="kopfrechnen">Kopfrechnen</button>
+          </div>
+        </div>
+
+        <!-- Nur sichtbar, wenn "Kopfrechnen" gewählt ist -->
+        <div id="kopfrechnen-optionen">
+        <div class="abschnitt">
           <div class="abschnitt-titel">Zahlenraum bis</div>
           <div class="knopf-raster">
             <button class="wahl filz" data-zr="10">10</button>
@@ -83,6 +96,7 @@
           <div class="abschnitt-titel">Einmaleins-Reihen</div>
           <div class="knopf-raster" id="reihen"></div>
         </div>
+        </div><!-- /kopfrechnen-optionen -->
       </div>
 
       <div class="karte filz">
@@ -162,6 +176,7 @@
 
       <div id="mitte">
         <div id="aufgabe-box" class="filz">
+          <div id="mengen-bild" class="versteckt"></div>
           <div id="aufgabe-text"></div>
           <div id="zeitbalken"><div id="zeitbalken-fuellung"></div></div>
         </div>
@@ -228,6 +243,7 @@
   </section>
 
   <script src="../../gemeinsam/hilfen.js"></script>
+  <script src="mengen.js"></script>
   <script src="spiel.js"></script>
 </body>
 </html>
