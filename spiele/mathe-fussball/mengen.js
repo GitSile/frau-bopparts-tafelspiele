@@ -28,25 +28,31 @@ const MENGEN_AUFGABEN = MENGEN_THEMEN.flatMap(t =>
 const MB = 'bilder/mengen/';
 const B = 800, H = 300;          // Zeichenfläche (viewBox)
 
-/** Bild an Position (Mitte x, Unterkante y) */
-function bild(datei, x, yUnten, breite, hoehe, extra = '') {
+/** Bild an Position (Mitte x, Unterkante y), mit Schatten für den 3D-Eindruck */
+function bild(datei, x, yUnten, breite, hoehe, extra = 'filter="url(#schatten)"') {
   return `<image href="${MB}${datei}" x="${x - breite / 2}" y="${yUnten - hoehe}" width="${breite}" height="${hoehe}" preserveAspectRatio="xMidYMax meet" ${extra}/>`;
 }
 /** x-Positionen für bis zu 10 Dinge in einer Reihe, Lücke nach 5 */
 function reihenX(anzahl, start, schritt, luecke) {
   return Array.from({ length: anzahl }, (_, i) => start + i * schritt + (i >= 5 ? luecke : 0));
 }
-/** Dinge in zwei Reihen à 10 (oben 1–10, unten 11–20), Lücke nach 5 */
+/** Plätze 1–n im Zwanzigerfeld (2 Reihen à 10, Trennung nach 5), von links aufgefüllt:
+    zuerst der linke Fünferblock (oben 5, dann unten 5), danach der rechte Fünferblock.
+    Gibt {zeile, spalte} zurück, sortiert so, dass die vordere (untere) Reihe zuletzt gezeichnet wird. */
+function plaetze(n) {
+  return Array.from({ length: n }, (_, i) => {
+    const block = Math.floor(i / 10), w = i % 10;
+    return { zeile: Math.floor(w / 5), spalte: block * 5 + (w % 5) };
+  }).sort((a, b) => a.zeile - b.zeile);
+}
+/** Dinge im Zwanzigerfeld-Muster (siehe plaetze), Lücke nach 5 */
 function zweiReihen(n, datei, groesse, yOben, yUnten, hintergrund = '') {
   const schritt = groesse * 0.95, luecke = groesse * 0.75;
   const breite = 9 * schritt + luecke;
   const start = (B - breite) / 2;
   let s = hintergrund;
   const xs = reihenX(10, start, schritt, luecke);
-  for (let i = 0; i < n; i++) {
-    const y = i < 10 ? yOben : yUnten;
-    s += bild(datei, xs[i % 10], y, groesse, groesse);
-  }
+  plaetze(n).forEach(p => { s += bild(datei, xs[p.spalte], p.zeile ? yUnten : yOben, groesse, groesse); });
   return s;
 }
 
@@ -58,63 +64,87 @@ const ZEICHNER = {
       bild(`hand-${rechts}.png`, 520, 290, 230, 270);
   },
   aepfel(n) {
+    // Äpfel liegen IM Korb: hinten der ganze Korb, dann die Äpfel (hintere Reihe 1–5,
+    // vordere Reihe 6–10, leicht versetzt), vorne nochmals die Korbwand, die die Äpfel unten verdeckt.
     let s = '';
     [0, 1].forEach(k => {
       const cx = k === 0 ? 205 : 595;
       const inKorb = Math.max(0, Math.min(10, n - k * 10));
-      // grosser Korb, darin zwei Reihen à 5 Äpfel (obere Reihe zuerst)
-      s += bild('korb.png', cx, 298, 330, 300);
-      for (let i = 0; i < inKorb; i++) s += bild('apfel.png', cx - 124 + (i % 5) * 62, i < 5 ? 222 : 284, 60, 64);
+      const korb = bild('korb.png', cx, 298, 340, 300);
+      // vordere Korbwand: alles unterhalb des gebogenen Korbrands
+      s += `<defs><clipPath id="korbwand${k}"><path d="M${cx - 170} 150 Q${cx} 196 ${cx + 170} 150 L${cx + 170} 300 L${cx - 170} 300 Z"/></clipPath></defs>`;
+      s += korb;
+      for (let i = 0; i < inKorb; i++) {
+        const vorne = i >= 5;
+        s += bild('apfel.png', cx - 117 + (i % 5) * 52 + (vorne ? 26 : 0), vorne ? 182 : 158, 60, 64);
+      }
+      s += `<g clip-path="url(#korbwand${k})">${korb}</g>`;
     });
     return s;
   },
   striche(n) {
-    let s = '<g stroke="#263238" stroke-width="9" stroke-linecap="round">';
+    // Holzstäbchen-Look: runde Enden, Glanzlinie, Schatten
+    let s = '<g filter="url(#schatten)" stroke-linecap="round">';
     const gruppen = Math.ceil(n / 5);
     const gb = 150, start = (B - gruppen * gb + 40) / 2;
+    const strich = (x1, y1, x2, y2, farbe) =>
+      `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${farbe}" stroke-width="12"/>` +
+      `<line x1="${x1 - 2}" y1="${y1 + 4}" x2="${x2 - 2}" y2="${y2 - 4}" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>`;
     for (let g = 0; g < gruppen; g++) {
       const anz = Math.min(5, n - g * 5), x0 = start + g * gb;
-      for (let i = 0; i < Math.min(4, anz); i++) s += `<line x1="${x0 + i * 26}" y1="80" x2="${x0 + i * 26}" y2="220"/>`;
-      if (anz === 5) s += `<line x1="${x0 - 16}" y1="200" x2="${x0 + 94}" y2="100" stroke="#c62828"/>`;
+      for (let i = 0; i < Math.min(4, anz); i++) s += strich(x0 + i * 26, 80, x0 + i * 26, 220, '#37474f');
+      if (anz === 5) s += strich(x0 - 16, 200, x0 + 94, 100, '#c62828');
     }
     return s + '</g>';
   },
   raben(n) {
-    // zwei Äste übereinander, je bis zu 10 Raben, Lücke nach 5
-    const ast = (y) => `<image href="${MB}ast.png" x="10" y="${y}" width="780" height="150" preserveAspectRatio="none"/>`;
+    // zwei Äste übereinander, je bis zu 10 Raben, Lücke nach 5, linker Fünferblock zuerst
+    const ast = (y) => `<image href="${MB}ast.png" x="10" y="${y}" width="780" height="150" preserveAspectRatio="none" filter="url(#schatten)"/>`;
     let s = ast(10) + ast(150);
     const xs = reihenX(10, 92, 58, 40);
-    for (let i = 0; i < n; i++) s += bild('rabe.png', xs[i % 10], i < 10 ? 76 : 216, 68, 68);
+    plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 238 : 98, 74, 74); });
     return s;
   },
   punkte(n) {
+    // Zwanzigerfeld: linker Fünferblock (oben, unten) zuerst, dann rechts
     let s = '';
     const r = 26, schritt = 64, luecke = 30, start = (B - (9 * schritt + luecke)) / 2;
     const xs = reihenX(10, start, schritt, luecke);
-    s += `<rect x="${start - 40}" y="60" width="${9 * schritt + luecke + 80}" height="180" rx="16" fill="#fff" stroke="#263238" stroke-width="4"/>`;
-    s += `<line x1="${xs[4] + (xs[5] - xs[4]) / 2}" y1="60" x2="${xs[4] + (xs[5] - xs[4]) / 2}" y2="240" stroke="#263238" stroke-width="4"/>`;
-    for (let i = 0; i < 20; i++) {
-      const voll = i < n;
-      s += `<circle cx="${xs[i % 10]}" cy="${i < 10 ? 110 : 190}" r="${r}" fill="${voll ? '#d32f2f' : '#fff'}" stroke="#263238" stroke-width="3"/>`;
+    const mitte = xs[4] + (xs[5] - xs[4]) / 2;
+    s += `<rect x="${start - 40}" y="60" width="${9 * schritt + luecke + 80}" height="180" rx="16" fill="url(#karton)" stroke="#263238" stroke-width="4" filter="url(#schatten)"/>`;
+    s += `<line x1="${mitte}" y1="60" x2="${mitte}" y2="240" stroke="#263238" stroke-width="4"/>`;
+    const voll = new Set(plaetze(n).map(p => p.zeile * 10 + p.spalte));
+    for (let z = 0; z < 2; z++) for (let sp = 0; sp < 10; sp++) {
+      const cx = xs[sp], cy = z ? 190 : 110;
+      if (voll.has(z * 10 + sp)) {
+        s += `<circle class="voll" cx="${cx}" cy="${cy}" r="${r}" fill="url(#kugelRot)" stroke="#5d1010" stroke-width="2.5" filter="url(#schattenKlein)"/>`;
+      } else {
+        s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#mulde)" stroke="#90a4ae" stroke-width="2.5"/>`;
+      }
     }
     return s;
   },
   flaschen(n) {
+    // offener Harass: hinten die Kiste, dann die Flaschen in den 5 Fächern, vorne die Frontwand darüber
     let s = '';
-    const kb = 180, start = (B - 4 * kb) / 2 + kb / 2;
+    const kb = 186, kw = 180, kh = Math.round(kw * 394 / 662), unten = 270, start = (B - 4 * kb) / 2 + kb / 2;
+    const oben = unten - kh, front = oben + kh * 0.40;
     for (let k = 0; k < 4; k++) {
-      const cx = start + k * kb, drin = Math.max(0, Math.min(5, n - k * 5));
-      for (let i = 0; i < drin; i++) s += bild('flasche.png', cx - 62 + i * 31, 235, 34, 120);
-      s += bild('harass.png', cx, 290, 172, 114);
+      const cx = start + k * kb, x0 = cx - kw / 2, drin = Math.max(0, Math.min(5, n - k * 5));
+      const kiste = bild('harass.png', cx, unten, kw, kh);
+      s += kiste;
+      for (let i = 0; i < drin; i++) s += bild('flasche.png', x0 + kw * (0.172 + i * 0.164), unten - 40, 40, 112, '');
+      s += `<defs><clipPath id="harassfront${k}"><rect x="${x0 - 10}" y="${front}" width="${kw + 20}" height="${kh}"/></clipPath></defs><g clip-path="url(#harassfront${k})">${kiste}</g>`;
     }
     return s;
   },
   marienkaefer(n) {
+    // Käfer sitzen ganz auf dem Blatt: 2 Reihen à 5 in der Blattmitte
     let s = '';
     [0, 1].forEach(k => {
-      const cx = k === 0 ? 210 : 590, drin = Math.max(0, Math.min(10, n - k * 10));
-      s += bild('blatt.png', cx, 290, 380, 260);
-      for (let i = 0; i < drin; i++) s += bild('marienkaefer.png', cx - 140 + (i % 5) * 62, i < 5 ? 150 : 222, 60, 62);
+      const cx = k === 0 ? 205 : 595, drin = Math.max(0, Math.min(10, n - k * 10));
+      s += bild('blatt.png', cx, 292, 384, 260);
+      for (let i = 0; i < drin; i++) s += bild('marienkaefer.png', cx - 100 + (i % 5) * 56, i < 5 ? 158 : 222, 52, 54, 'filter="url(#schattenKlein)"');
     });
     return s;
   },
@@ -123,21 +153,20 @@ const ZEICHNER = {
     const strasse = y => `<path d="M20 ${y + 6} Q400 ${y + 16} 780 ${y + 6}" stroke="#c8a165" stroke-width="14" fill="none" stroke-linecap="round" opacity=".45"/>`;
     let s = strasse(130) + strasse(260);
     const xs = reihenX(10, 70, 66, 60);
-    for (let i = 0; i < n; i++) s += bild('ameise.png', xs[i % 10], i < 10 ? 130 : 260, 70, 56);
+    plaetze(n).forEach(p => { s += bild('ameise.png', xs[p.spalte], p.zeile ? 260 : 130, 70, 56); });
     return s;
   },
   perlen(n) {
-    // Rechenschieber: 2 Stangen à 10 Perlen (5 rot, 5 weiss). Gezählte Perlen links, Rest rechts.
-    let s = `<rect x="40" y="40" width="720" height="220" rx="14" fill="none" stroke="#8d6e63" stroke-width="12"/>`;
+    // Rechenschieber mit 2 Stangen. Nur die gezählten Perlen sind drauf, von links,
+    // je 5 Perlen in derselben Farbe (5 rot, 5 weiss, …), kleiner Abstand nach 5.
+    let s = `<rect x="40" y="40" width="720" height="220" rx="16" fill="#fffaf0" stroke="url(#holz)" stroke-width="16" filter="url(#schatten)"/>`;
     [0, 1].forEach(st => {
       const y = st === 0 ? 110 : 190;
-      s += `<line x1="46" y1="${y}" x2="754" y2="${y}" stroke="#8d6e63" stroke-width="6"/>`;
-      const gezaehlt = Math.max(0, Math.min(10, n - st * 10));
-      for (let i = 0; i < 10; i++) {
-        const links = i < gezaehlt;
-        const x = links ? 80 + i * 40 + (i >= 5 ? 6 : 0) : 760 - 40 - (9 - i) * 40 - (i < 5 ? 6 : 0);
-        const farbe = i < 5 ? '#d32f2f' : '#fafafa';
-        s += `<ellipse class="${links ? 'gezaehlt' : 'rest'}" cx="${x}" cy="${y}" rx="19" ry="26" fill="${farbe}" stroke="#263238" stroke-width="3"/>`;
+      s += `<line x1="48" y1="${y}" x2="752" y2="${y}" stroke="#8d6e63" stroke-width="8"/><line x1="48" y1="${y - 2}" x2="752" y2="${y - 2}" stroke="#fff" stroke-opacity=".4" stroke-width="2"/>`;
+      const anz = Math.max(0, Math.min(10, n - st * 10));
+      for (let i = 0; i < anz; i++) {
+        const x = 92 + i * 52 + (i >= 5 ? 22 : 0);
+        s += `<ellipse class="gezaehlt" cx="${x}" cy="${y}" rx="25" ry="31" fill="url(#${i < 5 ? 'kugelRot' : 'kugelWeiss'})" stroke="#263238" stroke-width="2.5" filter="url(#schattenKlein)"/>`;
       }
     });
     return s;
@@ -150,7 +179,9 @@ const ZEICHNER = {
     let rest = n;
     for (let k = 0; k < steine; k++) {
       const x = start + k * sb;
-      s += `<rect x="${x}" y="70" width="260" height="140" rx="18" fill="#fffdf5" stroke="#263238" stroke-width="5"/><line x1="${x + 130}" y1="80" x2="${x + 130}" y2="200" stroke="#263238" stroke-width="4"/>`;
+      s += `<rect x="${x}" y="70" width="260" height="140" rx="18" fill="url(#elfenbein)" stroke="#263238" stroke-width="5" filter="url(#schatten)"/>` +
+           `<rect x="${x + 8}" y="76" width="244" height="20" rx="10" fill="#fff" opacity=".6"/>` +
+           `<line x1="${x + 130}" y1="82" x2="${x + 130}" y2="198" stroke="#263238" stroke-width="4"/>`;
       for (let f = 0; f < 2; f++) { const a = Math.min(5, rest); rest -= a; s += augen(x + f * 130 + 65, 140, a, 44, 10); }
     }
     return s;
@@ -162,7 +193,10 @@ const ZEICHNER = {
     for (let k = 0; k < w; k++) {
       const a = Math.min(5, rest); rest -= a;
       const cx = start + k * ab;
-      s += `<rect x="${cx - groesse / 2}" y="${150 - groesse / 2}" width="${groesse}" height="${groesse}" rx="24" fill="#fff" stroke="#263238" stroke-width="5"/>`;
+      // gewölbter Würfel: Verlauf, Glanzkante oben, Schatten
+      const x0 = cx - groesse / 2, y0 = 150 - groesse / 2;
+      s += `<rect x="${x0}" y="${y0}" width="${groesse}" height="${groesse}" rx="26" fill="url(#elfenbein)" stroke="#263238" stroke-width="5" filter="url(#schatten)"/>` +
+           `<rect x="${x0 + 10}" y="${y0 + 8}" width="${groesse - 20}" height="22" rx="11" fill="#fff" opacity=".7"/>`;
       s += augen(cx, 150, a, 38, 13);
     }
     return s;
@@ -179,11 +213,25 @@ function augen(cx, cy, anzahl, abstand, r) {
     1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]],
     4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]
   }[anzahl] || [];
-  return p.map(([dx, dy]) => `<circle cx="${cx + dx * abstand}" cy="${cy + dy * abstand}" r="${r}" fill="#263238"/>`).join('');
+  // eingelassene Augen: dunkle Mulde mit hellem Rand unten rechts
+  return p.map(([dx, dy]) => `<circle class="auge" cx="${cx + dx * abstand}" cy="${cy + dy * abstand}" r="${r}" fill="url(#auge)"/>`).join('');
 }
+
+/* Gemeinsame Effekte für den 3D-Eindruck: Schatten, Kugel-Glanz, Mulden */
+const MENGEN_DEFS = `<defs>
+  <filter id="schatten" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="3" dy="6" stdDeviation="3.5" flood-color="#3e2723" flood-opacity=".35"/></filter>
+  <filter id="schattenKlein" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="2" dy="4" stdDeviation="2" flood-color="#3e2723" flood-opacity=".4"/></filter>
+  <radialGradient id="kugelRot" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ff8a80"/><stop offset=".35" stop-color="#e53935"/><stop offset="1" stop-color="#8e1414"/></radialGradient>
+  <radialGradient id="kugelWeiss" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#f1f1f1"/><stop offset="1" stop-color="#a7a7a7"/></radialGradient>
+  <radialGradient id="mulde" cx="50%" cy="60%" r="65%"><stop offset="0" stop-color="#fafafa"/><stop offset=".8" stop-color="#e3e8eb"/><stop offset="1" stop-color="#b0bec5"/></radialGradient>
+  <radialGradient id="auge" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#546e7a"/><stop offset=".6" stop-color="#263238"/><stop offset="1" stop-color="#111"/></radialGradient>
+  <linearGradient id="elfenbein" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#fbf7ee"/><stop offset="1" stop-color="#e8e0cc"/></linearGradient>
+  <linearGradient id="karton" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef2f4"/></linearGradient>
+  <linearGradient id="holz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1887f"/><stop offset=".5" stop-color="#8d6e63"/><stop offset="1" stop-color="#5d4037"/></linearGradient>
+</defs>`;
 
 /** Gibt das fertige SVG für eine Mengen-Aufgabe zurück */
 function mengenSvg(thema, n) {
   const inhalt = (ZEICHNER[thema] || ZEICHNER.punkte)(n);
-  return `<svg viewBox="0 0 ${B} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wie viele?">${inhalt}</svg>`;
+  return `<svg viewBox="0 0 ${B} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wie viele?">${MENGEN_DEFS}${inhalt}</svg>`;
 }

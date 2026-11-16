@@ -44,15 +44,15 @@ const FARBEN = [
 const ALLE_REIHEN = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 const STANDARD = {
   zahlenraum: '100',
-  // Aufgabenarten (mehrere wählbar). Bisher programmiert ist nur "kopfrechnen".
-  arten: { verliebt: false, doppelt: false, haelfte: false, mengen: false, kopfrechnen: true },
+  // Aufgabenarten (mehrere wählbar)
+  arten: { verliebt: false, doppelt: false, haelfte: false, mengen: false, kopfrechnen: false },   // standardmässig nichts gewählt
   ops: { plus: true, minus: true, mal: false, geteilt: false },
   zueb: true,              // true = mit Zehnerübergang (gemischt), false = ohne
   stellen: 'ZE',           // 2. Zahl: 'ZE' zweistellig, 'E' einstellig
   reihen: ALLE_REIHEN.slice(),
   tore: '5',               // Standard: 5 Tore bis zum Sieg
   minuten: '',
-  wechselSek: '5',         // Standard: 5 Sekunden Kreis-Countdown zum Platzwechseln
+  wechselSek: '3',         // Standard: 3 Sekunden Kreis-Countdown zwischen den Aufgaben
   zeitlimitAn: false,
   zeitlimitSek: '20',
   rueckrollen: false,
@@ -71,8 +71,8 @@ const LOESUNG_MS = 2000;     // Lösung zeigen
 const MAX_POS = 3;           // Mitte = 0, Tor = ±3
 const POOL_GROESSE = 100;
 const VERLAUF_MAX = 100;
-// v3: neue Standardwerte (5 Tore, 5 s Wechselzeit) – alte gespeicherte Einstellungen werden einmalig verworfen
-const SPEICHER_EINST = 'tafelfussball.einstellungen.v3';
+// v4: neue Standardwerte (5 Tore, 3 s Wechselzeit) – alte gespeicherte Einstellungen werden einmalig verworfen
+const SPEICHER_EINST = 'tafelfussball.einstellungen.v4';
 const SPEICHER_VERLAUF = 'tafelfussball.verlauf';
 const OP_ZEICHEN = { plus: '+', minus: '−', mal: '×', geteilt: ':' };
 
@@ -376,7 +376,7 @@ function aufgabeText(aufgabe, loesung) {
   const [art, z] = aufgabe.split(' ');
   const l = loesung === undefined ? '?' : loesung;
   switch (art) {
-    case 'M':  return loesung === undefined ? 'Wie viele?' : `Es sind ${l}.`;
+    case 'M':  return loesung === undefined ? 'Wie viele sind es?' : `Es sind ${l}.`;
     case 'VL': return `${l} + ${z} = 10`;
     case 'VR': return `${z} + ${l} = 10`;
     case 'VS': return `${z} + ${10 - Number(z)} = ${l}`;
