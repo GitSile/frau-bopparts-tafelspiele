@@ -352,8 +352,8 @@ function pruefeEinstellungen() {
 /* Aufgaben sind kurze Texte:
    Kopfrechnen:      "47 + 38", "85 - 27", "3 * 7", "21 / 3"
    Verliebte Zahlen: "VL 2" (? + 2 = 10), "VR 4" (4 + ? = 10), "VS 3" (3 + 7 = ?)
-   Das Doppelte:     "D 4"  (Das Doppelte von: 4)
-   Die Hälfte:       "H 10" (Die Hälfte von: 10) */
+   Verdoppeln:       "D 4"  (Das Doppelte von: 4)
+   Halbieren:        "H 10" (Die Hälfte von: 10) */
 function rechne(aufgabe) {
   const [a, op, b] = aufgabe.split(' ');
   const x = Number(a), y = Number(b);
