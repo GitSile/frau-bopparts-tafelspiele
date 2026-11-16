@@ -471,7 +471,6 @@ Object.assign(ZEICHNER, {
   sterne(n) {
     let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#nacht)"/>`;
     for (let k = 0; k < 40; k++) s += `<circle cx="${(k * 97) % 800}" cy="${(k * 53) % 300}" r="${(k % 3) * 0.6 + 0.6}" fill="#fff" opacity=".5"/>`;
-    s += `<circle cx="740" cy="52" r="30" fill="#fff9c4"/><circle cx="752" cy="44" r="27" fill="#1a237e"/>`;
     feldXY(n, 80, 64, 44, 95, 215).forEach(p => { s += stern(p.x, p.y, 30); });
     return s;
   },
