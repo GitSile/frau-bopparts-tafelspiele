@@ -501,17 +501,20 @@ Object.assign(ZEICHNER, {
     return s;
   },
   bienen(n) {
-    // 4 Blumen, um jede Blume höchstens 5 Bienen (von links nach rechts)
-    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#himmel)"/><rect x="0" y="230" width="${B}" height="70" fill="#9ccc65"/>`;
-    const pos = [[-58, 118], [-32, 70], [0, 52], [32, 70], [58, 118]];
+    // Gezählt werden nur die Bienen: Sie sind gross, kräftig und mit Schatten im Vordergrund.
+    // Die Blumen sind klein, blass und ohne Kontur – nur Hintergrund, der die Fünfergruppen trennt.
+    let s = `<rect x="0" y="0" width="${B}" height="${H}" fill="url(#himmel)"/><rect x="0" y="250" width="${B}" height="50" fill="#c5e1a5"/>`;
+    // Zickzack von links nach rechts (oben, unten, oben, unten, oben), mit Abstand zwischen den Gruppen
+    const pos = [[-56, 92], [-28, 156], [0, 92], [28, 156], [56, 92]];
     for (let k = 0; k < 4; k++) {
-      const cx = 103 + k * 198, cy = 160, drin = Math.max(0, Math.min(5, n - k * 5));
-      s += `<path d="M${cx} ${cy + 20} Q ${cx - 6} 230 ${cx} 290" stroke="#388e3c" stroke-width="8" fill="none"/>`;
-      s += `<path d="M${cx - 2} 250 q -30 -14 -40 -2 q 18 14 40 2 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="2"/>`;
-      let blume = '';
-      for (let b = 0; b < 10; b++) blume += `<ellipse cx="${cx}" cy="${cy - 30}" rx="12" ry="24" fill="${['#fff176', '#f48fb1', '#ce93d8', '#ffffff'][k]}" stroke="#263238" stroke-width="1.6" transform="rotate(${b * 36} ${cx} ${cy})"/>`;
-      s += `<g filter="url(#schatten)">${blume}<circle cx="${cx}" cy="${cy}" r="20" fill="#8d6e63" stroke="#263238" stroke-width="2"/></g>`;
-      for (let i = 0; i < drin; i++) s += biene(cx + pos[i][0], pos[i][1]);
+      const cx = 103 + k * 198, cy = 236, drin = Math.max(0, Math.min(5, n - k * 5));
+      let blume = `<path d="M${cx} ${cy + 10} Q ${cx - 4} 270 ${cx} 300" stroke="#a5d6a7" stroke-width="6" fill="none"/>`;
+      for (let b = 0; b < 8; b++) blume += `<ellipse cx="${cx}" cy="${cy - 16}" rx="7" ry="13" fill="${['#fff59d', '#f8bbd0', '#e1bee7', '#ffffff'][k]}" transform="rotate(${b * 45} ${cx} ${cy})"/>`;
+      s += `<g opacity=".55">${blume}<circle cx="${cx}" cy="${cy}" r="10" fill="#d7ccc8"/></g>`;
+      for (let i = 0; i < drin; i++) {
+        const [dx, y] = pos[i], bx = cx + dx;
+        s += `<g transform="translate(${bx} ${y}) scale(1.25) translate(${-bx} ${-y})">${biene(bx, y)}</g>`;
+      }
     }
     return s;
   }
