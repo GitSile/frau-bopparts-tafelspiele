@@ -358,7 +358,7 @@ function rechne(aufgabe) {
   const [a, op, b] = aufgabe.split(' ');
   const x = Number(a), y = Number(b);
   switch (a) {
-    case 'M': return Number(b);                     // "M aepfel 13"
+    case 'M': return Number(b);                     // "M kerzen 13"
     case 'VL': case 'VR': return 10 - Number(op);
     case 'VS': return 10;
     case 'D': return 2 * Number(op);

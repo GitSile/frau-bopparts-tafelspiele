@@ -45,7 +45,7 @@ Töne in `spiele/mathe-fussball/toene/` von Pixabay (Pixabay Content License, fr
 - `falsch.mp3` – "Wrong Answer" (Universfield), pixabay.com/sound-effects/film-special-effects-wrong-answer-126515/
 - `tick.wav` – eine Sekunde aus "sec_mixdown" (freesound_community), verstärkt, pixabay.com/sound-effects/film-special-effects-sec-mixdown-62016/
 
-Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fussball/bilder/mengen/` (Icons, Hände, Wüste, Strand) erstellt mit ChatGPT.
+Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fussball/bilder/mengen/` (Icons, Hände, Wüste, Strand) erstellt mit ChatGPT. Torte, Kerzen und Ast sind als Vektorgrafik im Code gezeichnet (`mengen.js`).
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`

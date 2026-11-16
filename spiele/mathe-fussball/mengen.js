@@ -1,12 +1,12 @@
 /* =========================================================
    Mengen erkennen – zeichnet eine Menge als Bild (SVG).
    Regeln: immer von links nach rechts auffüllen, nach jeweils
-   5 Dingen eine klare Trennung (Abstand, neuer Korb, neuer Würfel …).
-   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT).
+   5 Dingen eine klare Trennung (Abstand, neue Torte, neuer Würfel …).
+   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT), Ast und Torte als Vektorgrafik.
    ========================================================= */
 const MENGEN_THEMEN = [
   { id: 'finger',       max: 10 },   // zwei Hände
-  { id: 'aepfel',       max: 20 },   // zwei Körbe à 10
+  { id: 'kerzen',       max: 20 },   // zwei Torten à 10 Kerzen
   { id: 'striche',      max: 20 },   // Strichliste, 5. Strich quer
   { id: 'raben',        max: 20 },   // Raben auf dem Ast
   { id: 'punkte',       max: 20 },   // Zwanzigerfeld
@@ -21,7 +21,7 @@ const MENGEN_THEMEN = [
   { id: 'palmen',       max: 20 }    // Palmen am Strand
 ];
 
-/** Alle Mengen-Aufgaben, z. B. "M aepfel 13" */
+/** Alle Mengen-Aufgaben, z. B. "M kerzen 13" */
 const MENGEN_AUFGABEN = MENGEN_THEMEN.flatMap(t =>
   Array.from({ length: t.max }, (_, i) => `M ${t.id} ${i + 1}`));
 
@@ -63,23 +63,18 @@ const ZEICHNER = {
     return `<g transform="translate(560 0) scale(-1 1)">${bild(`hand-${links}.png`, 280, 290, 230, 270)}</g>` +
       bild(`hand-${rechts}.png`, 520, 290, 230, 270);
   },
-  aepfel(n) {
-    // Äpfel liegen IM Korb: hinten der ganze Korb, dann die Äpfel (hintere Reihe 1–5,
-    // vordere Reihe 6–10, leicht versetzt), vorne nochmals die Korbwand, die die Äpfel unten verdeckt.
+  kerzen(n) {
+    // Vier verzierte Torten (Vektorgrafik, gestochen scharf) nebeneinander,
+    // je höchstens 5 Kerzen in einer Reihe – jede Fünfergruppe ist eine eigene Torte.
     let s = '';
-    [0, 1].forEach(k => {
-      const cx = k === 0 ? 205 : 595;
-      const inKorb = Math.max(0, Math.min(10, n - k * 10));
-      const korb = bild('korb.png', cx, 298, 340, 300);
-      // vordere Korbwand: alles unterhalb des gebogenen Korbrands
-      s += `<defs><clipPath id="korbwand${k}"><path d="M${cx - 170} 150 Q${cx} 196 ${cx + 170} 150 L${cx + 170} 300 L${cx - 170} 300 Z"/></clipPath></defs>`;
-      s += korb;
-      for (let i = 0; i < inKorb; i++) {
-        const vorne = i >= 5;
-        s += bild('apfel.png', cx - 117 + (i % 5) * 52 + (vorne ? 26 : 0), vorne ? 182 : 158, 60, 64);
-      }
-      s += `<g clip-path="url(#korbwand${k})">${korb}</g>`;
-    });
+    const gr = 0.6, ab = 199, start = B / 2 - 1.5 * ab;
+    for (let k = 0; k < 4; k++) {
+      const cx = start + k * ab;
+      const drauf = Math.max(0, Math.min(5, n - k * 5));
+      let t = torte(cx);
+      for (let i = 0; i < drauf; i++) t += kerze(cx - 100 + i * 50, 182);
+      s += `<g transform="translate(${cx} 296) scale(${gr} 0.95) translate(${-cx} -296)">${t}</g>`;   // etwas höher gezogen, damit die Torten den Platz füllen
+    }
     return s;
   },
   striche(n) {
@@ -98,11 +93,10 @@ const ZEICHNER = {
     return s + '</g>';
   },
   raben(n) {
-    // zwei Äste übereinander, je bis zu 10 Raben, Lücke nach 5, linker Fünferblock zuerst
-    const ast = (y) => `<image href="${MB}ast.png" x="10" y="${y}" width="780" height="150" preserveAspectRatio="none" filter="url(#schatten)"/>`;
-    let s = ast(10) + ast(150);
+    // zwei Äste (Vektorgrafik) übereinander, je bis zu 10 Raben, Lücke nach 5, linker Fünferblock zuerst
+    let s = ast(112, false) + ast(254, true);
     const xs = reihenX(10, 92, 58, 40);
-    plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 238 : 98, 74, 74); });
+    plaetze(n).forEach(p => { s += bild('rabe.png', xs[p.spalte], p.zeile ? 262 : 120, 74, 74); });
     return s;
   },
   punkte(n) {
@@ -158,7 +152,7 @@ const ZEICHNER = {
   },
   perlen(n) {
     // Rechenschieber mit 2 Stangen. Nur die gezählten Perlen sind drauf, von links,
-    // je 5 Perlen in derselben Farbe (5 rot, 5 weiss, …), kleiner Abstand nach 5.
+    // je 5 Perlen in derselben kräftigen Farbe (5 rot, 5 blau), runde Kugeln, kleiner Abstand nach 5.
     let s = `<rect x="40" y="40" width="720" height="220" rx="16" fill="#fffaf0" stroke="url(#holz)" stroke-width="16" filter="url(#schatten)"/>`;
     [0, 1].forEach(st => {
       const y = st === 0 ? 110 : 190;
@@ -166,7 +160,7 @@ const ZEICHNER = {
       const anz = Math.max(0, Math.min(10, n - st * 10));
       for (let i = 0; i < anz; i++) {
         const x = 92 + i * 52 + (i >= 5 ? 22 : 0);
-        s += `<ellipse class="gezaehlt" cx="${x}" cy="${y}" rx="25" ry="31" fill="url(#${i < 5 ? 'kugelRot' : 'kugelWeiss'})" stroke="#263238" stroke-width="2.5" filter="url(#schattenKlein)"/>`;
+        s += `<circle class="gezaehlt" cx="${x}" cy="${y}" r="25" fill="url(#${i < 5 ? 'kugelRot' : 'kugelBlau'})" stroke="#263238" stroke-width="2.5" filter="url(#schattenKlein)"/>`;
       }
     });
     return s;
@@ -205,6 +199,88 @@ const ZEICHNER = {
   erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 200, 294); },
   palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294); }
 };
+/** Waagrechter Ast als Vektorgrafik. y = Oberkante der Rinde (dort sitzen die Raben). */
+function ast(y, gespiegelt) {
+  const blatt = (x, yy, dreh, gr = 1) =>
+    `<g transform="translate(${x} ${yy}) rotate(${dreh}) scale(${gr})">` +
+    `<path d="M0 0 C 12 -18, 42 -20, 58 0 C 42 18, 12 18, 0 0 Z" fill="url(#blattGruen)" stroke="#1b5e20" stroke-width="2.2"/>` +
+    `<path d="M3 0 L 54 0" stroke="#a5d6a7" stroke-width="2" stroke-linecap="round"/>` +
+    `<path d="M18 0 L 26 -8 M30 0 L 38 -8 M18 0 L 26 8 M30 0 L 38 8" stroke="#a5d6a7" stroke-width="1.4" stroke-linecap="round"/></g>`;
+  const d = 30;   // Dicke der Rinde
+  const rinde = `M14 ${y + 6} C 200 ${y - 4}, 420 ${y + 8}, 640 ${y + 2} S 770 ${y - 2}, 790 ${y + 4}` +
+                ` L 790 ${y + d - 4} C 700 ${y + d + 2}, 420 ${y + d + 6}, 200 ${y + d + 2} S 30 ${y + d + 4}, 14 ${y + d - 2} Z`;
+  let s = `<g filter="url(#schatten)">`;
+  // kleiner Seitenzweig mit Blättern
+  const zx = gespiegelt ? 690 : 600;
+  s += `<path d="M${zx} ${y + 10} C ${zx + 25} ${y - 10}, ${zx + 50} ${y - 22}, ${zx + 80} ${y - 34}" stroke="#6d4c41" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+  s += blatt(zx + 78, y - 34, -30) + blatt(zx + 40, y - 18, -110, 0.8);
+  s += `<path d="${rinde}" fill="url(#holzRinde)" stroke="#3e2723" stroke-width="3" stroke-linejoin="round"/>`;
+  // Rindenstruktur
+  for (let x = 60; x < 780; x += 70) {
+    const o = (x * 7) % 9;
+    s += `<path d="M${x} ${y + 12 + (o % 3)} q 18 -3 34 1" stroke="#4e342e" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>`;
+    s += `<path d="M${x + 30} ${y + 21 + (o % 2)} q 14 2 26 -1" stroke="#4e342e" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".4"/>`;
+  }
+  s += `<path d="M20 ${y + 9} C 200 ${y}, 420 ${y + 11}, 640 ${y + 5}" stroke="#d7a77d" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  s += `<ellipse cx="16" cy="${y + d / 2 + 1}" rx="6" ry="${d / 2 - 2}" fill="#d7ccc8" stroke="#3e2723" stroke-width="2.5"/>`;
+  if (!gespiegelt) s += blatt(360, y + d - 2, 70, 0.9);   // hängendes Blatt nur am oberen Ast
+  return s + '</g>';
+}
+
+/** Verzierte Torte (Vektorgrafik), Mitte cx. Die Oberfläche liegt bei y≈130–190. */
+function torte(cx) {
+  let s = `<g filter="url(#schatten)">`;
+  // Teller
+  s += `<ellipse cx="${cx}" cy="282" rx="178" ry="17" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
+  // Tortenkörper
+  s += `<path d="M${cx - 150} 172 L ${cx - 150} 262 Q ${cx} 300 ${cx + 150} 262 L ${cx + 150} 172 Z" fill="url(#tortenSeite)" stroke="#ad1457" stroke-width="3"/>`;
+  // Cremeschicht in der Mitte
+  s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#fff3e0" stroke-width="9" fill="none"/>`;
+  s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#ffcc80" stroke-width="2" fill="none" transform="translate(0 5)"/>`;
+  // Cremetupfen unten am Rand
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12, x = cx - 146 + t * 292, yy = 262 + Math.sin(t * Math.PI) * 19;
+    s += `<circle cx="${x}" cy="${yy}" r="9" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>`;
+  }
+  // Oberfläche mit Glasur
+  s += `<ellipse cx="${cx}" cy="172" rx="150" ry="40" fill="url(#glasur)" stroke="#ad1457" stroke-width="3"/>`;
+  // Glasur-Tropfen am Rand
+  for (let i = 0; i < 10; i++) {
+    const t = (i + 0.5) / 10, x = cx - 150 + t * 300, yy = 172 + Math.sin(t * Math.PI) * 40 - 2, lang = 12 + ((i * 37) % 4) * 6;
+    s += `<path d="M${x - 9} ${yy - 2} Q ${x - 9} ${yy + lang} ${x} ${yy + lang + 4} Q ${x + 9} ${yy + lang} ${x + 9} ${yy - 2} Z" fill="#ec407a" stroke="#ad1457" stroke-width="1.5"/>`;
+  }
+  s += `<ellipse cx="${cx}" cy="170" rx="146" ry="37" fill="url(#glasur)"/>`;
+  // Glanz
+  s += `<ellipse cx="${cx - 50}" cy="158" rx="60" ry="10" fill="#fff" opacity=".35"/>`;
+  // Streusel
+  const farben = ['#ffeb3b', '#4fc3f7', '#81c784', '#ffffff', '#ba68c8', '#ff8a65'];
+  for (let i = 0; i < 34; i++) {
+    const a = (i * 137.5) * Math.PI / 180, r = 0.25 + ((i * 53) % 70) / 100;
+    const x = cx + Math.cos(a) * 128 * r, yy = 170 + Math.sin(a) * 30 * r;
+    s += `<rect x="${x - 4}" y="${yy - 1.5}" width="8" height="3" rx="1.5" fill="${farben[i % farben.length]}" transform="rotate(${(i * 47) % 180} ${x} ${yy})"/>`;
+  }
+  // Sahnetupfen mit Erdbeeren am hinteren Rand
+  for (let i = 0; i < 7; i++) {
+    const t = (i + 0.5) / 7, x = cx - 130 + t * 260, yy = 170 - Math.sin(t * Math.PI) * 33;
+    s += `<circle cx="${x}" cy="${yy}" r="10" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>` +
+         `<path d="M${x - 6} ${yy - 6} Q ${x} ${yy + 8} ${x + 6} ${yy - 6} Q ${x} ${yy - 11} ${x - 6} ${yy - 6} Z" fill="#e53935" stroke="#8e1414" stroke-width="1"/>` +
+         `<path d="M${x - 4} ${yy - 9} L ${x} ${yy - 13} L ${x + 4} ${yy - 9}" stroke="#2e7d32" stroke-width="2" fill="none"/>`;
+  }
+  return s + '</g>';
+}
+
+/** Kerze mit Flamme, Fuss bei (x, y) auf der Tortenoberfläche */
+function kerze(x, y) {
+  const h = 62, w = 14;
+  return `<g class="kerze" filter="url(#schattenKlein)">` +
+    `<ellipse cx="${x}" cy="${y - h - 26}" rx="16" ry="20" fill="#ffeb3b" opacity=".25"/>` +
+    `<rect x="${x - w / 2}" y="${y - h}" width="${w}" height="${h}" rx="3" fill="url(#kerzeStreifen)" stroke="#1565c0" stroke-width="1.6"/>` +
+    `<rect x="${x - w / 2 + 2}" y="${y - h + 2}" width="3" height="${h - 4}" rx="1.5" fill="#fff" opacity=".5"/>` +
+    `<line x1="${x}" y1="${y - h}" x2="${x}" y2="${y - h - 7}" stroke="#37474f" stroke-width="2"/>` +
+    `<path d="M${x} ${y - h - 30} C ${x + 9} ${y - h - 18}, ${x + 7} ${y - h - 6}, ${x} ${y - h - 5} C ${x - 7} ${y - h - 6}, ${x - 9} ${y - h - 18}, ${x} ${y - h - 30} Z" fill="url(#flamme)"/>` +
+    `</g>`;
+}
+
 function wueste() { return `<image href="${MB}wueste.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>`; }
 
 /** Würfel-/Domino-Augen (0–5) um einen Mittelpunkt */
@@ -222,12 +298,20 @@ const MENGEN_DEFS = `<defs>
   <filter id="schatten" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="3" dy="6" stdDeviation="3.5" flood-color="#3e2723" flood-opacity=".35"/></filter>
   <filter id="schattenKlein" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="2" dy="4" stdDeviation="2" flood-color="#3e2723" flood-opacity=".4"/></filter>
   <radialGradient id="kugelRot" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ff8a80"/><stop offset=".35" stop-color="#e53935"/><stop offset="1" stop-color="#8e1414"/></radialGradient>
-  <radialGradient id="kugelWeiss" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#f1f1f1"/><stop offset="1" stop-color="#a7a7a7"/></radialGradient>
+  <radialGradient id="kugelBlau" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#90caf9"/><stop offset=".35" stop-color="#1e88e5"/><stop offset="1" stop-color="#0d3c7a"/></radialGradient>
   <radialGradient id="mulde" cx="50%" cy="60%" r="65%"><stop offset="0" stop-color="#fafafa"/><stop offset=".8" stop-color="#e3e8eb"/><stop offset="1" stop-color="#b0bec5"/></radialGradient>
   <radialGradient id="auge" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#546e7a"/><stop offset=".6" stop-color="#263238"/><stop offset="1" stop-color="#111"/></radialGradient>
   <linearGradient id="elfenbein" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#fbf7ee"/><stop offset="1" stop-color="#e8e0cc"/></linearGradient>
   <linearGradient id="karton" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef2f4"/></linearGradient>
   <linearGradient id="holz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1887f"/><stop offset=".5" stop-color="#8d6e63"/><stop offset="1" stop-color="#5d4037"/></linearGradient>
+  <linearGradient id="holzRinde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1704f"/><stop offset=".45" stop-color="#8d5b3c"/><stop offset="1" stop-color="#4e2f1e"/></linearGradient>
+  <linearGradient id="blattGruen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#388e3c"/></linearGradient>
+  <linearGradient id="tortenSeite" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f48fb1"/><stop offset=".45" stop-color="#f8bbd0"/><stop offset="1" stop-color="#e57399"/></linearGradient>
+  <radialGradient id="glasur" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fff0f5"/><stop offset=".7" stop-color="#fbc4d8"/><stop offset="1" stop-color="#f48fb1"/></radialGradient>
+  <radialGradient id="creme" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3e5d0"/></radialGradient>
+  <linearGradient id="teller" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd8dc"/></linearGradient>
+  <pattern id="kerzeStreifen" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="14" height="14" fill="#e3f2fd"/><rect width="14" height="6" fill="#42a5f5"/></pattern>
+  <radialGradient id="flamme" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#fffde7"/><stop offset=".45" stop-color="#ffeb3b"/><stop offset="1" stop-color="#ff7043"/></radialGradient>
 </defs>`;
 
 /** Gibt das fertige SVG für eine Mengen-Aufgabe zurück */
