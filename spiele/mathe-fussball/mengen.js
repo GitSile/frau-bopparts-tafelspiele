@@ -2,7 +2,7 @@
    Mengen erkennen – zeichnet eine Menge als Bild (SVG).
    Regeln: immer von links nach rechts auffüllen, nach jeweils
    5 Dingen eine klare Trennung (Abstand, neue Torte, neuer Würfel …).
-   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT, auch die Hände), Ast und Torte als Vektorgrafik.
+   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT, auch Hände und Torte), Ast und Kerzen als Vektorgrafik.
    ========================================================= */
 const MENGEN_THEMEN = [
   { id: 'finger',       max: 10 },   // zwei Hände
@@ -74,16 +74,20 @@ const ZEICHNER = {
     return handBild(235, links, true) + handBild(565, rechts, false);
   },
   kerzen(n) {
-    // Vier verzierte Torten (Vektorgrafik, gestochen scharf) nebeneinander,
-    // je höchstens 5 Kerzen in einer Reihe – jede Fünfergruppe ist eine eigene Torte.
+    // Vier Torten von ChatGPT nebeneinander, darauf je höchstens 5 Kerzen in einer Reihe
+    // (Kerzen als Vektorgrafik, damit die Anzahl immer exakt stimmt).
     let s = '';
-    const gr = 0.6, ab = 199, start = B / 2 - 1.5 * ab;
+    const ab = 199, start = B / 2 - 1.5 * ab;
+    const tb = 192, th = tb * 465 / 700, ty = 292 - th;   // Tortenbild 700×465 px
+    const kerzenY = ty + th * 0.31;                      // Mitte der Tortenoberfläche
     for (let k = 0; k < 4; k++) {
       const cx = start + k * ab;
       const drauf = Math.max(0, Math.min(5, n - k * 5));
-      let t = torte(cx);
-      for (let i = 0; i < drauf; i++) t += kerze(cx - 100 + i * 50, 182);
-      s += `<g transform="translate(${cx} 286) scale(${gr} 0.92) translate(${-cx} -296)">${t}</g>`;   // etwas höher gezogen, damit die Torten den Platz füllen
+      s += `<image href="${MB}torte.png" x="${cx - tb / 2}" y="${ty}" width="${tb}" height="${th}" filter="url(#schattenKlein)"/>`;
+      for (let i = 0; i < drauf; i++) {
+        const x = cx + (i - 2) * 23;
+        s += `<g transform="translate(${x} ${kerzenY}) scale(0.85) translate(${-x} ${-kerzenY})">${kerze(x, kerzenY)}</g>`;
+      }
     }
     return s;
   },
@@ -207,7 +211,7 @@ const ZEICHNER = {
   },
   kamele(n) { return wueste() + zweiReihen(n, 'kamel.png', 72, 184, 272, '', 62); },
   erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 182, 272); },
-  palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294, '', 64); }
+  palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 180, 274, '', 64); }
 };
 /** Kinderhand von ChatGPT (hand0–5.png = 0–5 gestreckte Finger, Daumen zuerst).
     Alle Hände gleich gross ausgerichtet am blauen Bündchen; Mitte des Bündchens bei cx, Unterkante 296. */
@@ -249,49 +253,6 @@ function ast(y) {
   return s + '</g>';
 }
 
-/** Verzierte Torte (Vektorgrafik), Mitte cx. Die Oberfläche liegt bei y≈130–190. */
-function torte(cx) {
-  let s = `<g filter="url(#schatten)">`;
-  // Teller
-  s += `<ellipse cx="${cx}" cy="280" rx="166" ry="20" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
-  // Tortenkörper
-  s += `<path d="M${cx - 150} 172 L ${cx - 150} 278 Q ${cx} 302 ${cx + 150} 278 L ${cx + 150} 172 Z" fill="url(#tortenSeite)" stroke="#ad1457" stroke-width="3"/>`;
-  // Cremeschicht in der Mitte
-  s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#fff3e0" stroke-width="9" fill="none"/>`;
-  s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#ffcc80" stroke-width="2" fill="none" transform="translate(0 5)"/>`;
-  // Cremetupfen unten am Rand
-  for (let i = 0; i <= 12; i++) {
-    const t = i / 12, x = cx - 146 + t * 292, yy = 276 + Math.sin(t * Math.PI) * 11;
-    s += `<circle cx="${x}" cy="${yy}" r="8" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>`;
-  }
-  // Oberfläche mit Glasur
-  s += `<ellipse cx="${cx}" cy="172" rx="150" ry="40" fill="url(#glasur)" stroke="#ad1457" stroke-width="3"/>`;
-  // Glasur-Tropfen am Rand
-  for (let i = 0; i < 10; i++) {
-    const t = (i + 0.5) / 10, x = cx - 150 + t * 300, yy = 172 + Math.sin(t * Math.PI) * 40 - 2, lang = 12 + ((i * 37) % 4) * 6;
-    s += `<path d="M${x - 9} ${yy - 2} Q ${x - 9} ${yy + lang} ${x} ${yy + lang + 4} Q ${x + 9} ${yy + lang} ${x + 9} ${yy - 2} Z" fill="#ec407a" stroke="#ad1457" stroke-width="1.5"/>`;
-  }
-  s += `<ellipse cx="${cx}" cy="170" rx="146" ry="37" fill="url(#glasur)"/>`;
-  // Glanz
-  s += `<ellipse cx="${cx - 50}" cy="158" rx="60" ry="10" fill="#fff" opacity=".35"/>`;
-  // Streusel
-  const farben = ['#ffeb3b', '#4fc3f7', '#81c784', '#ffffff', '#ba68c8', '#ff8a65'];
-  for (let i = 0; i < 34; i++) {
-    const a = (i * 137.5) * Math.PI / 180, r = 0.25 + ((i * 53) % 70) / 100;
-    const x = cx + Math.cos(a) * 128 * r, yy = 170 + Math.sin(a) * 30 * r;
-    s += `<rect x="${x - 4}" y="${yy - 1.5}" width="8" height="3" rx="1.5" fill="${farben[i % farben.length]}" transform="rotate(${(i * 47) % 180} ${x} ${yy})"/>`;
-  }
-  // Sahnetupfen mit Erdbeeren am hinteren Rand
-  for (let i = 0; i < 7; i++) {
-    const t = (i + 0.5) / 7, x = cx - 130 + t * 260, yy = 170 - Math.sin(t * Math.PI) * 33;
-    s += `<circle cx="${x}" cy="${yy}" r="10" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>` +
-         `<path d="M${x - 6} ${yy - 6} Q ${x} ${yy + 8} ${x + 6} ${yy - 6} Q ${x} ${yy - 11} ${x - 6} ${yy - 6} Z" fill="#e53935" stroke="#8e1414" stroke-width="1"/>` +
-         `<path d="M${x - 4} ${yy - 9} L ${x} ${yy - 13} L ${x + 4} ${yy - 9}" stroke="#2e7d32" stroke-width="2" fill="none"/>`;
-  }
-  return s + '</g>';
-}
-
-/** Kerze mit Flamme, Fuss bei (x, y) auf der Tortenoberfläche */
 function kerze(x, y) {
   const h = 62, w = 14;
   return `<g class="kerze" filter="url(#schattenKlein)">` +
@@ -537,10 +498,6 @@ const MENGEN_DEFS = `<defs>
   <filter id="farbe5"><feColorMatrix type="hueRotate" values="310"/></filter>
   <linearGradient id="holzRinde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1704f"/><stop offset=".45" stop-color="#8d5b3c"/><stop offset="1" stop-color="#4e2f1e"/></linearGradient>
   <linearGradient id="blattGruen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#388e3c"/></linearGradient>
-  <linearGradient id="tortenSeite" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f48fb1"/><stop offset=".45" stop-color="#f8bbd0"/><stop offset="1" stop-color="#e57399"/></linearGradient>
-  <radialGradient id="glasur" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fff0f5"/><stop offset=".7" stop-color="#fbc4d8"/><stop offset="1" stop-color="#f48fb1"/></radialGradient>
-  <radialGradient id="creme" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3e5d0"/></radialGradient>
-  <linearGradient id="teller" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd8dc"/></linearGradient>
   <pattern id="kerzeStreifen" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="14" height="14" fill="#e3f2fd"/><rect width="14" height="6" fill="#42a5f5"/></pattern>
   <linearGradient id="karton2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe3cf"/><stop offset="1" stop-color="#cdb898"/></linearGradient>
   <radialGradient id="mulde2" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#bfa98a"/><stop offset="1" stop-color="#e6d6bd"/></radialGradient>
