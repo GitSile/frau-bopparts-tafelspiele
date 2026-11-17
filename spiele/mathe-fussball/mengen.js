@@ -205,8 +205,8 @@ const ZEICHNER = {
     }
     return s;
   },
-  kamele(n) { return wueste() + zweiReihen(n, 'kamel.png', 72, 200, 294, '', 62); },
-  erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 200, 294); },
+  kamele(n) { return wueste() + zweiReihen(n, 'kamel.png', 72, 184, 272, '', 62); },
+  erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 182, 272); },
   palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294, '', 64); }
 };
 /** Kinderhand von ChatGPT (hand0–5.png = 0–5 gestreckte Finger, Daumen zuerst).
