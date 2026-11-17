@@ -500,7 +500,39 @@ function startStapel(f, pool) {
   const rest = mischen(pool);
   if (!f.arten.includes('mengen')) return rest;
   const vorschau = MENGEN_THEMEN.map(t => `M ${t.id} ${zufall(1, t.max)}`);
-  return rest.concat(vorschau.reverse());
+  return entzerren(rest.concat(vorschau.reverse()), null);
+}
+/** Mengen-Thema einer Aufgabe ("M thema n") oder null */
+function mengenThema(a) { return a && a.startsWith('M ') ? a.split(' ')[1] : null; }
+function zuAehnlich(a, b) {
+  return !!a && !!b && MENGEN_AEHNLICH.some(([x, y]) => (a === x && b === y) || (a === y && b === x));
+}
+/** Sortiert den Stapel so um, dass zwei ähnliche Mengen-Bilder (z. B. Würfel und Domino)
+    nie direkt nacheinander drankommen – auch wenn eine andere Aufgabenart dazwischen liegt.
+    Der Stapel wird von hinten abgearbeitet; vorher = die zuletzt gezeigte Aufgabe. */
+function entzerren(stapel, vorher) {
+  const folge = stapel.slice().reverse();   // in Spielreihenfolge
+  // Positionen, an denen ein Mengen-Bild dem vorherigen Mengen-Bild zu ähnlich ist
+  const konflikte = () => {
+    const k = []; let letztes = mengenThema(vorher);
+    folge.forEach((a, i) => { const t = mengenThema(a); if (!t) return; if (zuAehnlich(letztes, t)) k.push(i); letztes = t; });
+    return k;
+  };
+  let k = konflikte();
+  for (let runde = 0; k.length && runde < 50; runde++) {
+    const i = k[0];
+    let besser = false;
+    // mit einer anderen Aufgabe tauschen, sodass es insgesamt weniger Konflikte gibt
+    for (let j = 0; j < folge.length && !besser; j++) {
+      if (j === i) continue;
+      [folge[i], folge[j]] = [folge[j], folge[i]];
+      const neu = konflikte();
+      if (neu.length < k.length) { k = neu; besser = true; }
+      else [folge[i], folge[j]] = [folge[j], folge[i]];
+    }
+    if (!besser) break;
+  }
+  return folge.reverse();
 }
 
 /* =========================================================
@@ -646,8 +678,10 @@ function naechsteAufgabe() {
   if (S.stapel.length === 0) {
     S.stapel = mischen(S.pool);
     if (S.aufgabe && S.stapel.length > 1 && S.stapel[S.stapel.length - 1] === S.aufgabe) S.stapel.unshift(S.stapel.pop());
+    S.stapel = entzerren(S.stapel, S.letzteMenge);
   }
   S.aufgabe = S.stapel.pop();
+  if (mengenThema(S.aufgabe)) S.letzteMenge = S.aufgabe;
   S.ergebnis = rechne(S.aufgabe);
   S.eingabe = ['', ''];
   S.sperre = [0, 0];

@@ -2,7 +2,7 @@
    Mengen erkennen – zeichnet eine Menge als Bild (SVG).
    Regeln: immer von links nach rechts auffüllen, nach jeweils
    5 Dingen eine klare Trennung (Abstand, neue Torte, neuer Würfel …).
-   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT), Ast und Torte als Vektorgrafik.
+   Bilder der Dinge: bilder/mengen/*.png (erstellt mit ChatGPT, auch die Hände), Ast und Torte als Vektorgrafik.
    ========================================================= */
 const MENGEN_THEMEN = [
   { id: 'finger',       max: 10 },   // zwei Hände
@@ -15,10 +15,10 @@ const MENGEN_THEMEN = [
   { id: 'ameisen',      max: 20 },   // Ameisenschlange
   { id: 'perlen',       max: 20 },   // Rechenschieber
   { id: 'domino',       max: 20 },   // Dominosteine
-  { id: 'wuerfel',      max: 20 },   // Würfel
   { id: 'kamele',       max: 20 },   // Kamele in der Wüste
-  { id: 'erdmaennchen', max: 20 },   // Erdmännchen in der Wüste
+  { id: 'wuerfel',      max: 20 },   // Würfel
   { id: 'palmen',       max: 20 },   // Palmen am Strand
+  { id: 'erdmaennchen', max: 20 },   // Erdmännchen in der Wüste
   { id: 'eier',         max: 20 },   // zwei Eierkartons à 2×5
   { id: 'muffins',      max: 20 },   // Muffinblech 2×10
   { id: 'fussballer',   max: 20 },   // Fussballer auf dem Platz
@@ -29,6 +29,8 @@ const MENGEN_THEMEN = [
   { id: 'fische',       max: 20 },   // 4 Aquarien à 5 Fische
   { id: 'bienen',       max: 20 }    // 4 Blumen à 5 Bienen
 ];
+/** Themen, die sich zu ähnlich sehen: sie kommen nie direkt nacheinander dran */
+const MENGEN_AEHNLICH = [['domino', 'wuerfel'], ['kamele', 'erdmaennchen']];
 
 /** Alle Mengen-Aufgaben, z. B. "M kerzen 13" */
 const MENGEN_AUFGABEN = MENGEN_THEMEN.flatMap(t =>
@@ -67,11 +69,9 @@ function zweiReihen(n, datei, groesse, yOben, yUnten, hintergrund = '', bildGroe
 
 const ZEICHNER = {
   finger(n) {
-    const links = Math.min(5, n), rechts = Math.max(0, n - 5);
     // zuerst die linke Hand voll, dann die rechte. Linke Hand gespiegelt, damit beide Daumen zur Mitte zeigen.
-    // Hände weiter auseinander (die Daumen berühren sich nicht) und etwas grösser
-    const gross = (x, inhalt) => `<g transform="translate(${x} 296) scale(1.05) translate(${-x} -296)">${inhalt}</g>`;
-    return gross(235, `<g transform="translate(470 0) scale(-1 1)">${hand(235, links)}</g>`) + gross(565, hand(565, rechts));
+    const links = Math.min(5, n), rechts = Math.max(0, n - 5);
+    return handBild(235, links, true) + handBild(565, rechts, false);
   },
   kerzen(n) {
     // Vier verzierte Torten (Vektorgrafik, gestochen scharf) nebeneinander,
@@ -83,7 +83,7 @@ const ZEICHNER = {
       const drauf = Math.max(0, Math.min(5, n - k * 5));
       let t = torte(cx);
       for (let i = 0; i < drauf; i++) t += kerze(cx - 100 + i * 50, 182);
-      s += `<g transform="translate(${cx} 296) scale(${gr} 0.95) translate(${-cx} -296)">${t}</g>`;   // etwas höher gezogen, damit die Torten den Platz füllen
+      s += `<g transform="translate(${cx} 286) scale(${gr} 0.92) translate(${-cx} -296)">${t}</g>`;   // etwas höher gezogen, damit die Torten den Platz füllen
     }
     return s;
   },
@@ -209,58 +209,35 @@ const ZEICHNER = {
   erdmaennchen(n) { return wueste() + zweiReihen(n, 'erdmaennchen.png', 72, 200, 294); },
   palmen(n) { return `<image href="${MB}strand.jpg" x="0" y="0" width="${B}" height="${H}" preserveAspectRatio="xMidYMax slice"/>` + zweiReihen(n, 'palme.png', 74, 196, 294, '', 64); }
 };
-/** Kinderhand als Vektorgrafik (Handfläche zum Betrachter, Daumen links), Mitte cx, Unterkante 292.
-    Gestreckt werden der Reihe nach: Daumen, Zeige-, Mittel-, Ring-, kleiner Finger. */
-function hand(cx, anzahl) {
-  const rand = 'stroke="#6d3b1f" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
-  const haut = 'fill="url(#haut)"';
-  let s = `<g filter="url(#schatten)">`;
-  // Ärmel / Handgelenk
-  s += `<path d="M${cx - 48} 292 L ${cx - 44} 236 Q ${cx} 228 ${cx + 44} 236 L ${cx + 48} 292 Z" ${haut} ${rand}/>`;
-  s += `<rect x="${cx - 58}" y="268" width="116" height="26" rx="10" fill="#42a5f5" stroke="#1565c0" stroke-width="4"/>`;
-  // vier Finger (Zeige-, Mittel-, Ring-, kleiner Finger): [x-Mitte, Breite, Länge, Neigung]
-  const f = [[cx - 44, 31, 104, -6], [cx - 12, 32, 116, -1], [cx + 20, 31, 106, 4], [cx + 50, 27, 84, 11]];
-  const gestreckt = i => anzahl >= i + 2;   // Finger i ist gestreckt, wenn mehr als (i+1) Finger gezeigt werden
-  // gestreckte Finger hinter der Handfläche zeichnen
-  f.forEach(([x, w, l, dreh], i) => {
-    if (!gestreckt(i)) return;
-    s += `<g class="finger" transform="rotate(${dreh} ${x} 150)">` +
-      `<rect x="${x - w / 2}" y="${150 - l}" width="${w}" height="${l + 20}" rx="${w / 2}" ${haut} ${rand}/>` +
-      `<rect x="${x - w / 2 + 6}" y="${150 - l + 5}" width="${w - 12}" height="${w * 0.55}" rx="${(w - 12) / 2}" fill="#ffe0cc" stroke="#c98b68" stroke-width="1.6"/>` +
-      `<path d="M${x - w / 2 + 6} ${150 - l * 0.45} q ${w / 2 - 6} 4 ${w - 12} 0 M${x - w / 2 + 6} ${150 - l * 0.12} q ${w / 2 - 6} 4 ${w - 12} 0" stroke="#c98b68" stroke-width="2" fill="none" stroke-linecap="round"/>` +
-      `</g>`;
-  });
-  // Handfläche
-  s += `<path d="M${cx - 68} 150 Q ${cx - 72} 128 ${cx - 50} 126 L ${cx + 58} 126 Q ${cx + 74} 128 ${cx + 70} 152 L ${cx + 62} 220 Q ${cx + 52} 246 ${cx} 246 Q ${cx - 52} 246 ${cx - 62} 220 Z" ${haut} ${rand}/>`;
-  s += `<path d="M${cx - 40} 196 Q ${cx} 182 ${cx + 44} 200" stroke="#d9946c" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-  s += `<path d="M${cx - 30} 168 Q ${cx + 4} 158 ${cx + 40} 166" stroke="#d9946c" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
-  // eingeklappte Finger: kleine Knöchelbögen oben auf der Handfläche
-  f.forEach(([x, w], i) => {
-    if (gestreckt(i)) return;
-    s += `<rect x="${x - w / 2 + 1}" y="122" width="${w - 2}" height="40" rx="${(w - 2) / 2}" ${haut} ${rand}/>` +
-         `<path d="M${x - w / 2 + 7} 146 q ${w / 2 - 6} 5 ${w - 14} 0" stroke="#c98b68" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-  });
-  // Daumen (links): gestreckt schräg nach aussen, sonst quer über die Handfläche gelegt
-  if (anzahl >= 1) {
-    s += `<g class="finger" transform="rotate(-42 ${cx - 58} 206)">` +
-      `<rect x="${cx - 75}" y="${206 - 92}" width="34" height="110" rx="17" ${haut} ${rand}/>` +
-      `<rect x="${cx - 69}" y="${206 - 87}" width="22" height="18" rx="9" fill="#ffe0cc" stroke="#c98b68" stroke-width="1.6"/>` +
-      `<path d="M${cx - 69} ${206 - 46} q 11 4 22 0" stroke="#c98b68" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
-  } else {
-    s += `<g transform="rotate(-12 ${cx - 20} 196)"><rect x="${cx - 66}" y="180" width="96" height="34" rx="17" ${haut} ${rand}/>` +
-         `<rect x="${cx + 6}" y="186" width="18" height="22" rx="8" fill="#ffe0cc" stroke="#c98b68" stroke-width="1.6"/></g>`;
-  }
-  return s + '</g>';
+/** Kinderhand von ChatGPT (hand0–5.png = 0–5 gestreckte Finger, Daumen zuerst).
+    Alle Hände gleich gross ausgerichtet am blauen Bündchen; Mitte des Bündchens bei cx, Unterkante 296. */
+const HAENDE = [   // Bildgrösse und Bündchen (links, rechts) in Pixeln
+  { w: 258, h: 362, l: 63, r: 212 }, { w: 414, h: 520, l: 135, r: 323 }, { w: 327, h: 422, l: 112, r: 266 },
+  { w: 311, h: 460, l: 118, r: 262 }, { w: 313, h: 456, l: 121, r: 267 }, { w: 368, h: 468, l: 124, r: 272 }
+];
+function handBild(cx, anzahl, gespiegelt) {
+  const m = HAENDE[anzahl], s = 88 / (m.r - m.l);   // Bündchen immer 88 breit
+  const w = m.w * s, h = m.h * s, x = cx - ((m.l + m.r) / 2) * s;
+  const bild = `<image href="${MB}hand${anzahl}.png" x="${x}" y="${296 - h}" width="${w}" height="${h}"/>`;
+  return `<g class="hand" data-finger="${anzahl}" filter="url(#schattenKlein)">` +
+    (gespiegelt ? `<g transform="translate(${2 * cx} 0) scale(-1 1)">${bild}</g>` : bild) + '</g>';
 }
-
 /** Waagrechter Ast als Vektorgrafik. y = Oberkante der Rinde (dort sitzen die Raben). */
 function ast(y) {
   const d = 30;   // Dicke der Rinde
   const rinde = `M14 ${y + 6} C 200 ${y - 4}, 420 ${y + 8}, 640 ${y + 2} S 770 ${y - 2}, 790 ${y + 4}` +
                 ` L 790 ${y + d - 4} C 700 ${y + d + 2}, 420 ${y + d + 6}, 200 ${y + d + 2} S 30 ${y + d + 4}, 14 ${y + d - 2} Z`;
+  const blatt = (x, yy, dreh, gr = 1) =>
+    `<g transform="translate(${x} ${yy}) rotate(${dreh}) scale(${gr})">` +
+    `<path d="M0 0 C 10 -15, 34 -17, 48 0 C 34 15, 10 15, 0 0 Z" fill="url(#blattGruen)" stroke="#1b5e20" stroke-width="2.2"/>` +
+    `<path d="M3 0 L 44 0" stroke="#a5d6a7" stroke-width="2" stroke-linecap="round"/>` +
+    `<path d="M15 0 L 22 -7 M26 0 L 33 -7 M15 0 L 22 7 M26 0 L 33 7" stroke="#a5d6a7" stroke-width="1.4" stroke-linecap="round"/></g>`;
   let s = `<g filter="url(#schatten)">`;
-  // bewusst ohne Blätter und Zweige: nichts lenkt von den Raben ab
+  // grüne Blättchen nur am rechten Astende (rechts von allen Raben, x > 700)
+  s += `<path d="M735 ${y + 8} Q 752 ${y - 10} 768 ${y - 26}" stroke="#4e2f1e" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  s += blatt(766, y - 24, -80, 0.8) + blatt(762, y - 22, -30, 0.7) + blatt(748, y - 8, -130, 0.7);
   s += `<path d="${rinde}" fill="url(#holzRinde)" stroke="#3e2723" stroke-width="3" stroke-linejoin="round"/>`;
+  s += blatt(764, y + 13, 62, 0.62) + blatt(748, y + 15, 105, 0.6) + blatt(772, y + 12, 28, 0.55);
   // Rindenstruktur
   for (let x = 60; x < 720; x += 70) {   // Maserung nur innerhalb der Rinde
     const o = (x * 7) % 9;
@@ -276,16 +253,16 @@ function ast(y) {
 function torte(cx) {
   let s = `<g filter="url(#schatten)">`;
   // Teller
-  s += `<ellipse cx="${cx}" cy="282" rx="168" ry="17" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
+  s += `<ellipse cx="${cx}" cy="280" rx="166" ry="20" fill="url(#teller)" stroke="#90a4ae" stroke-width="2.5"/>`;
   // Tortenkörper
-  s += `<path d="M${cx - 150} 172 L ${cx - 150} 262 Q ${cx} 300 ${cx + 150} 262 L ${cx + 150} 172 Z" fill="url(#tortenSeite)" stroke="#ad1457" stroke-width="3"/>`;
+  s += `<path d="M${cx - 150} 172 L ${cx - 150} 278 Q ${cx} 302 ${cx + 150} 278 L ${cx + 150} 172 Z" fill="url(#tortenSeite)" stroke="#ad1457" stroke-width="3"/>`;
   // Cremeschicht in der Mitte
   s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#fff3e0" stroke-width="9" fill="none"/>`;
   s += `<path d="M${cx - 150} 220 Q ${cx} 254 ${cx + 150} 220" stroke="#ffcc80" stroke-width="2" fill="none" transform="translate(0 5)"/>`;
   // Cremetupfen unten am Rand
   for (let i = 0; i <= 12; i++) {
-    const t = i / 12, x = cx - 146 + t * 292, yy = 262 + Math.sin(t * Math.PI) * 19;
-    s += `<circle cx="${x}" cy="${yy}" r="9" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>`;
+    const t = i / 12, x = cx - 146 + t * 292, yy = 276 + Math.sin(t * Math.PI) * 11;
+    s += `<circle cx="${x}" cy="${yy}" r="8" fill="url(#creme)" stroke="#e0c9b0" stroke-width="1.2"/>`;
   }
   // Oberfläche mit Glasur
   s += `<ellipse cx="${cx}" cy="172" rx="150" ry="40" fill="url(#glasur)" stroke="#ad1457" stroke-width="3"/>`;
@@ -558,8 +535,8 @@ const MENGEN_DEFS = `<defs>
   <filter id="farbe3"><feColorMatrix type="hueRotate" values="200"/></filter>
   <filter id="farbe4"><feColorMatrix type="hueRotate" values="260"/></filter>
   <filter id="farbe5"><feColorMatrix type="hueRotate" values="310"/></filter>
-  <linearGradient id="haut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9b8"/><stop offset=".6" stop-color="#f7b98e"/><stop offset="1" stop-color="#e99a6c"/></linearGradient>
   <linearGradient id="holzRinde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1704f"/><stop offset=".45" stop-color="#8d5b3c"/><stop offset="1" stop-color="#4e2f1e"/></linearGradient>
+  <linearGradient id="blattGruen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#388e3c"/></linearGradient>
   <linearGradient id="tortenSeite" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f48fb1"/><stop offset=".45" stop-color="#f8bbd0"/><stop offset="1" stop-color="#e57399"/></linearGradient>
   <radialGradient id="glasur" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fff0f5"/><stop offset=".7" stop-color="#fbc4d8"/><stop offset="1" stop-color="#f48fb1"/></radialGradient>
   <radialGradient id="creme" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3e5d0"/></radialGradient>
