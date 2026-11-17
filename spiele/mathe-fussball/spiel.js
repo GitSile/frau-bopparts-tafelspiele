@@ -468,11 +468,16 @@ function erzeugeKopfrechnenPool(f) {
   return [...set];
 }
 /** Pool aus allen gewählten Aufgabenarten, abwechselnd gemischt (jede Art kommt gleich oft dran) */
-/** Mengen-Aufgaben: zuerst wird das Thema gewählt (jedes gleich oft, die Hände 15 % öfter),
-    dann die Anzahl. Keine Aufgabe doppelt. */
-const MENGEN_GEWICHT = { finger: 1.15 };
+/** Mengen-Aufgaben: zuerst wird das Thema gewählt, dann die Anzahl.
+    Die Hände kommen bei etwa jeder 5. Aufgabe dran (20 %), die anderen Themen gleich oft.
+    Weil es nur 10 Hand-Bilder gibt, darf jedes Hand-Bild bis zu dreimal im Pool sein,
+    alle anderen Aufgaben nur einmal. */
+const MENGEN_HAND_ANTEIL = 0.2;
+const MENGEN_GEWICHT = { finger: MENGEN_HAND_ANTEIL / (1 - MENGEN_HAND_ANTEIL) * (MENGEN_THEMEN.length - 1) };
+const MENGEN_WIEDERHOLUNG = { finger: 3 };
 function erzeugeMengenPool() {
-  const themen = MENGEN_THEMEN.map(t => ({ ...t, g: MENGEN_GEWICHT[t.id] || 1, frei: mischen(Array.from({ length: t.max }, (_, i) => i + 1)) }));
+  const themen = MENGEN_THEMEN.map(t => ({ ...t, g: MENGEN_GEWICHT[t.id] || 1,
+    frei: mischen(Array.from({ length: t.max * (MENGEN_WIEDERHOLUNG[t.id] || 1) }, (_, i) => i % t.max + 1)) }));
   const liste = [];
   while (liste.length < POOL_GROESSE) {
     const offen = themen.filter(t => t.frei.length);
@@ -508,14 +513,18 @@ function zuAehnlich(a, b) {
   return !!a && !!b && MENGEN_AEHNLICH.some(([x, y]) => (a === x && b === y) || (a === y && b === x));
 }
 /** Sortiert den Stapel so um, dass zwei ähnliche Mengen-Bilder (z. B. Würfel und Domino)
-    nie direkt nacheinander drankommen – auch wenn eine andere Aufgabenart dazwischen liegt.
+    oder zweimal dasselbe Bild nie direkt nacheinander drankommen – auch wenn eine andere Aufgabenart dazwischen liegt.
     Der Stapel wird von hinten abgearbeitet; vorher = die zuletzt gezeigte Aufgabe. */
 function entzerren(stapel, vorher) {
   const folge = stapel.slice().reverse();   // in Spielreihenfolge
   // Positionen, an denen ein Mengen-Bild dem vorherigen Mengen-Bild zu ähnlich ist
   const konflikte = () => {
-    const k = []; let letztes = mengenThema(vorher);
-    folge.forEach((a, i) => { const t = mengenThema(a); if (!t) return; if (zuAehnlich(letztes, t)) k.push(i); letztes = t; });
+    const k = []; let letztes = mengenThema(vorher), letzteAufgabe = vorher;
+    folge.forEach((a, i) => {
+      const t = mengenThema(a); if (!t) return;
+      if (zuAehnlich(letztes, t) || a === letzteAufgabe) k.push(i);   // ähnlich oder genau gleiches Bild
+      letztes = t; letzteAufgabe = a;
+    });
     return k;
   };
   let k = konflikte();
