@@ -255,7 +255,12 @@ function baueEbenen(id, sichtbar) {
     div.className = 'welt-ebene' + (sichtbar ? '' : ' unsichtbar');
     div.innerHTML = fn ? `<svg viewBox="0 0 1600 520" width="1600" height="520">${fn.call(welt)}</svg>` : '';
     // hinten: die oberste Himmelsfarbe füllt den Platz über der Welt (bei höheren Bildschirmen)
-    if (ebene === 'hinten') { const stop = div.querySelector('stop'); if (stop) div.style.background = stop.getAttribute('stop-color'); }
+    if (ebene === 'hinten') {
+      if (welt.bild) {
+        // gemaltes Bild (ChatGPT): unten bündig, 1600 breit; bei höheren Bildschirmen sieht man oben mehr Himmel
+        div.style.background = `url("${welt.bild}") center bottom / 1600px auto no-repeat, ${welt.himmelOben || '#9fd3f5'}`;
+      } else { const stop = div.querySelector('stop'); if (stop) div.style.background = stop.getAttribute('stop-color'); }
+    }
     $(ebene).appendChild(div);
     neu[ebene] = div;
   });

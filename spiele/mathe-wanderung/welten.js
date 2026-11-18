@@ -95,8 +95,8 @@ function ortsschild(x, y, name, s = 1) {
     <text x="0" y="-226" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="50" fill="#fff" letter-spacing="1">${name}</text></g>`;
 }
 /** gelbe Wanderweg-Raute auf einem Pfosten (Stufen-Zeichen) */
-function raute(x, y) {
-  return `<g class="marke" transform="translate(${x} ${y})" stroke="${K}" stroke-width="3" stroke-linejoin="round">
+function raute(x, y, s = 0.7) {
+  return `<g class="marke" transform="translate(${x} ${y}) scale(${s})" stroke="${K}" stroke-width="3" stroke-linejoin="round">
     <rect x="-4" y="-46" width="8" height="46" fill="#a1887f"/>
     <path d="M0 -70 L14 -54 L0 -38 L-14 -54 Z" fill="#fdd835"/></g>`;
 }
@@ -152,17 +152,11 @@ const WELTEN = {};
 /* ---------- 1. Dorf Zuzwil (kommt immer zuerst) ---------- */
 WELTEN.zuzwil = {
   name: 'Zuzwil', titel: 'Wanderung durchs Dorf', art: 'laufen',
-  wege: strecke(330, 470, 1340, 470),
+  bild: 'bilder/welten/zuzwil.jpg', himmelOben: '#1e88e5',
+  wege: strecke(330, 456, 1330, 456),
   hinten() {
-    return himmel('w-zu-h', '#7cc8f5', '#e1f5fe') + sonne(720, 80, 44) + wolke(470, 110, 0.9) + wolke(1000, 60, 0.8) + wolke(1340, 120, 0.7)
-      + `<path d="M0 360 Q260 250 560 330 T1100 300 T1600 320 V520 H0Z" fill="#a5d6a7" stroke="${K}" stroke-width="4"/>`
-      + kirche(980, 395) + baum(140, 410, 0.9) + haus(360, 410, 170, 140, '#fff3e0', '#c62828') + haus(620, 405, 150, 120, '#ffe0b2', '#6d4c41', '#c62828')
-      + baum(770, 405, 0.8) + haus(1180, 410, 160, 130, '#fffde7', '#b71c1c', '#1565c0') + tanne(1290, 405, 0.8)
-      + `<rect x="0" y="405" width="1600" height="115" fill="#8bc34a"/><path d="M0 405 H1600" stroke="${K}" stroke-width="4"/>
-         <path d="M0 438 Q400 430 800 440 T1600 436 V492 Q1200 500 800 494 T0 496 Z" fill="#e8d5a6" stroke="${K}" stroke-width="4"/>
-         <g fill="#7cb342">${[60, 330, 700, 1050, 1420].map(x => `<path d="M${x} 515 l6 -16 l6 16 M${x + 14} 515 l5 -12 l5 12" stroke="#558b2f" stroke-width="3"/>`).join('')}</g>`
-      + this.wege.slice(1, STUFEN).map(([x]) => raute(x, 438)).join('')
-      + ortsschild(1480, 445, 'Zuzwil', 0.95);
+    return this.wege.slice(1, STUFEN).map(([x]) => raute(x + 40, 404)).join('')
+      + ortsschild(1478, 408, 'Zuzwil', 0.9);
   }
 };
 
@@ -170,10 +164,10 @@ WELTEN.zuzwil = {
 const PRESSE = { amboss: 400, mitte: 950, doseH: 200, doseB: 120 };
 WELTEN.presse = {
   name: 'Die Presse', titel: 'Die Dose wird platt', art: 'fest',
+  bild: 'bilder/welten/presse.jpg', himmelOben: '#7d8a96',
   wege: strecke(380, 452, 380, 452),
   hinten() {
     const { amboss, mitte } = PRESSE;
-    const fenster = [140, 520, 1300].map(x => `<rect x="${x}" y="50" width="180" height="110" fill="#b3e5fc" stroke="${K}" stroke-width="4"/><path d="M${x + 60} 50V160M${x + 120} 50V160M${x} 105H${x + 180}" stroke="${K}" stroke-width="3"/>`).join('');
     let skala = '';
     for (let s = 1; s <= STUFEN; s++) {
       const y = amboss - (PRESSE.doseH - s * 20);
@@ -198,11 +192,7 @@ WELTEN.presse = {
           <path d="M-42 -150 L-26 -140 L-38 -125 L-22 -112 L-40 -95 L-24 -80 L-42 -60"/>
           <path d="M42 -160 L28 -146 L40 -130 L26 -118 L42 -100 L30 -84 L42 -66"/>
           <path d="M-12 -150 L0 -138 L-10 -120 M8 -100 L18 -88 L10 -72"/></g></g>`;
-    return himmel('w-pr-h', '#cfd8dc', '#eceff1') + fenster
-      + `<g stroke="${K}" stroke-width="2" opacity=".25">${[300, 700, 1000, 1500].map(x => `<path d="M${x} 0V420"/>`).join('')}</g>
-         <rect x="0" y="420" width="1600" height="100" fill="#78909c" stroke="${K}" stroke-width="4"/>
-         <g opacity=".9">${Array.from({ length: 12 }, (_, i) => `<path d="M${700 + i * 40} 420 l20 0 l-20 28 l-20 0Z" fill="#fbc02d"/>`).join('')}</g>
-         <rect x="660" y="420" width="580" height="28" fill="none" stroke="${K}" stroke-width="3"/>
+    return `
          <g class="stempel" style="transform:translateY(0px)">
           <rect x="${mitte - 22}" y="-40" width="44" height="234" fill="#eceff1" stroke="${K}" stroke-width="4" class="stange"/>
           <rect x="${mitte - 135}" y="170" width="270" height="30" rx="5" fill="#ffb300" stroke="${K}" stroke-width="4"/>
