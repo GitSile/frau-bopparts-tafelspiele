@@ -88,38 +88,23 @@ body { background: #f3f7ee; }
 
 /* =========================================================
    Spiel – Bühne 1600 breit, 900 bis 1400 hoch (siehe skaliere())
+   Der Laden (1600 × 900) ist unten bündig; darüber mehr Hintergrund.
+   Die Eingabefelder liegen unten links (und rechts) und verdecken nichts vom Laden.
    ========================================================= */
 #spiel { position: fixed; inset: 0; background: #1d2b1f; overflow: hidden; }
-#buehne { --h: 900px; position: absolute; left: 50%; top: 50%; width: 1600px; height: var(--h); overflow: hidden; background: #f4efe4; }
+#buehne { --h: 900px; position: absolute; left: 50%; top: 50%; width: 1600px; height: var(--h); overflow: hidden; background: #efe6d6; }
 
-/* ---------- Laden oben ---------- */
 #szene {
-  position: absolute; left: 0; top: 0; width: 1600px; height: calc(var(--h) - 450px); overflow: hidden;
-  /* Wand mit hellen Kacheln */
-  background:
-    linear-gradient(rgba(255,255,255,.0), rgba(255,255,255,.0)),
-    repeating-linear-gradient(90deg, transparent 0 79px, rgba(120,140,120,.12) 79px 80px),
-    repeating-linear-gradient(0deg, transparent 0 79px, rgba(120,140,120,.12) 79px 80px),
-    linear-gradient(#e8f1e2, #dfeadb);
+  position: absolute; inset: 0;
+  background: #e9dcc6 url("bilder/laden.jpg") 50% 100% / cover no-repeat;
 }
-#laden { position: absolute; left: 0; bottom: 0; width: 1600px; height: 450px; }
-/* Boden */
-#laden::before {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px;
-  background: repeating-linear-gradient(90deg, #cfc6b4 0 58px, #bfb5a1 58px 60px);
-  border-top: 3px solid #a99f8a;
-}
-#schild {
-  position: absolute; left: 640px; top: 8px; width: 260px; height: 48px; z-index: 1;
-  background: #2e7d32; color: #fff; font-size: 34px; font-weight: 900; text-align: center; line-height: 46px;
-  border-radius: 10px; border: 3px solid #1b5e20; box-shadow: 0 4px 0 rgba(0,0,0,.15); letter-spacing: 2px;
-}
+#laden { position: absolute; left: 0; bottom: 0; width: 1600px; height: 900px; }
 
 /* Regal */
 #regal {
-  position: absolute; left: 20px; top: 70px; width: 580px; height: 355px;
-  background: linear-gradient(90deg, #8d6e63, #a1887f 6%, #f5f0e6 6.5%, #efe7da 93.5%, #a1887f 94%, #8d6e63);
-  border: 3px solid #4e342e; border-bottom: 0; border-radius: 8px 8px 0 0;
+  position: absolute; left: 20px; top: 108px; width: 524px; height: 346px;
+  background: linear-gradient(90deg, #8d6e63, #a1887f 4%, #f5f0e6 4.5%, #efe7da 95.5%, #a1887f 96%, #8d6e63);
+  border: 3px solid #4e342e; border-radius: 8px 8px 2px 2px; box-shadow: 0 8px 14px rgba(0,0,0,.25);
 }
 .regal-schild {
   position: absolute; left: 0; right: 0; top: 0; height: 30px; background: #f57c00; color: #fff;
@@ -131,15 +116,15 @@ body { background: #f3f7ee; }
 }
 /* Kühlschrank */
 #kuehlschrank {
-  position: absolute; left: 616px; top: 66px; width: 204px; height: 359px;
-  background: #eceff1; border: 3px solid #37474f; border-bottom: 0; border-radius: 10px 10px 0 0;
+  position: absolute; left: 558px; top: 86px; width: 190px; height: 368px;
+  background: #eceff1; border: 3px solid #37474f; border-radius: 10px 10px 2px 2px; box-shadow: 0 8px 14px rgba(0,0,0,.25);
 }
 .kuehl-schild {
   position: absolute; left: 0; right: 0; top: 0; height: 30px; background: #1565c0; color: #fff;
   font-size: 19px; font-weight: 900; text-align: center; line-height: 30px; border-radius: 7px 7px 0 0;
 }
 .kuehl-glas {
-  position: absolute; left: 8px; right: 8px; top: 38px; bottom: 6px; border-radius: 6px;
+  position: absolute; left: 8px; right: 8px; top: 38px; bottom: 8px; border-radius: 6px;
   background: linear-gradient(180deg, #e3f2fd, #bbdefb); border: 3px solid #78909c;
 }
 .kuehl-glas-vorne {
@@ -149,24 +134,23 @@ body { background: #f3f7ee; }
 .kuehl-brett { position: absolute; height: 6px; z-index: 2; background: rgba(255,255,255,.85); border: 1.5px solid #90a4ae; border-radius: 2px; }
 
 #regal-produkte { position: absolute; inset: 0; pointer-events: none; }
-.regal-ware {
-  position: absolute; z-index: 3; transition: opacity .5s, transform .5s;
-}
+.regal-ware { position: absolute; z-index: 3; transition: opacity .4s, transform .4s; }
 .regal-ware img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 2px 1px rgba(0,0,0,.25)); }
 .regal-ware.weg { opacity: 0; transform: translateY(-14px); }
-/* Lücke: leise Umrisslinie, wo ein Produkt fehlt */
-.luecke { position: absolute; z-index: 2; border: 2px dashed rgba(120,100,80,.45); border-radius: 8px; opacity: 0; transition: opacity .5s; }
-.luecke.an { opacity: 1; }
+/* Kinder wählen selbst: Produkte im Regal antippen */
+#laden.auswahl .regal-ware:not(.weg) { pointer-events: auto; cursor: pointer; }
+#laden.auswahl .regal-ware:not(.weg):active { transform: scale(.9); }
 
-/* Kasse */
-#theke { position: absolute; left: 840px; top: 318px; width: 760px; height: 107px; z-index: 5; }
+/* Kasse vorne in der Mitte */
+#theke { position: absolute; left: 424px; top: 598px; width: 560px; height: 302px; z-index: 5; }
 #theke::after {   /* Vorderseite der Theke */
-  content: ""; position: absolute; left: 0; right: 0; top: 18px; bottom: 0;
-  background: linear-gradient(#ffffff, #e0e0e0); border: 3px solid #37474f; border-bottom: 0; border-radius: 6px 0 0 0;
+  content: ""; position: absolute; left: 0; right: 0; top: 22px; bottom: 0;
+  background: linear-gradient(#fafafa, #dcdcdc); border: 4px solid #37474f; border-bottom: 0; border-radius: 8px 8px 0 0;
+  box-shadow: inset 0 10px 0 #b0bec5;
 }
 #band {
-  position: absolute; left: 10px; top: 0; width: 515px; height: 20px; z-index: 1; overflow: hidden;
-  background: #263238; border: 3px solid #101418; border-radius: 10px;
+  position: absolute; left: 12px; top: 0; width: 470px; height: 24px; z-index: 1; overflow: hidden;
+  background: #263238; border: 3px solid #101418; border-radius: 12px;
 }
 #band-streifen {
   position: absolute; left: -60px; top: 0; bottom: 0; width: 700px;
@@ -175,16 +159,16 @@ body { background: #f3f7ee; }
 #band.laeuft #band-streifen { animation: band-laufen .5s linear infinite; }
 @keyframes band-laufen { to { transform: translateX(30px); } }
 #scanner {
-  position: absolute; left: 530px; top: 2px; width: 70px; height: 16px; z-index: 1;
+  position: absolute; left: 488px; top: 4px; width: 62px; height: 18px; z-index: 1;
   background: linear-gradient(90deg, #455a64, #b71c1c 45%, #ff5252 50%, #b71c1c 55%, #455a64); border: 3px solid #101418; border-radius: 4px;
 }
 #kassiererin {
-  position: absolute; left: 1415px; top: 96px; width: 190px; height: 250px; z-index: 4;
-  object-fit: contain; object-position: 50% 0;
+  position: absolute; left: 975px; top: 312px; width: 215px; height: 580px; z-index: 4;
+  object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25));
 }
-#kassen-stange { position: absolute; left: 1384px; top: 225px; width: 12px; height: 95px; z-index: 5; background: linear-gradient(90deg, #607d8b, #b0bec5, #607d8b); border: 2px solid #263238; }
+#kassen-stange { position: absolute; left: 948px; top: 470px; width: 12px; height: 130px; z-index: 5; background: linear-gradient(90deg, #607d8b, #b0bec5, #607d8b); border: 2px solid #263238; }
 #kassen-anzeige {
-  position: absolute; left: 1290px; top: 168px; width: 200px; height: 62px; z-index: 6;
+  position: absolute; left: 850px; top: 404px; width: 210px; height: 66px; z-index: 6;
   background: #10261a; border: 5px solid #37474f; border-radius: 8px; box-shadow: inset 0 0 12px rgba(0,0,0,.8), 0 4px 6px rgba(0,0,0,.25);
   display: grid; place-items: center; overflow: hidden;
 }
@@ -195,42 +179,68 @@ body { background: #f3f7ee; }
 #anzeige-text.blinkt { animation: langsam-blinken 1.6s ease-in-out infinite; }
 #anzeige-text.loesung { color: #ffeb3b; text-shadow: 0 0 8px rgba(255,235,59,.8); }
 @keyframes langsam-blinken { 0%, 100% { opacity: 1; } 50% { opacity: .1; } }
+
+/* Sprechblase: die Kassiererin fragt (die Spitze zeigt zu ihrem Mund) */
 #sprechblase {
-  position: absolute; left: 880px; top: 40px; width: 350px; z-index: 6;
-  background: #fff; border: 4px solid #263238; border-radius: 26px; padding: 12px 18px;
-  font-size: 34px; font-weight: 900; text-align: center; color: #1d2733; box-shadow: 0 5px 0 rgba(0,0,0,.12);
+  position: absolute; left: 1080px; top: 200px; width: 380px; height: 150px; z-index: 7;
+  cursor: pointer; touch-action: manipulation;
 }
-#sprechblase::after {
-  content: ""; position: absolute; right: 18px; bottom: -24px; width: 34px; height: 34px;
-  background: #fff; border-right: 4px solid #263238; border-bottom: 4px solid #263238;
-  transform: skewX(-38deg) rotate(30deg);
+#sprechblase svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 5px 0 rgba(0,0,0,.12)); }
+#sprechblase span {
+  position: absolute; left: 8px; right: 8px; top: 8px; height: 98px; display: grid; place-items: center;
+  font-size: 33px; font-weight: 900; color: #1d2733; text-align: center;
 }
 
 /* Produkte auf dem Band */
-#band-bereich { position: absolute; left: 850px; top: 130px; width: 515px; height: 297px; z-index: 6; touch-action: manipulation; overflow: hidden; }
+#band-bereich { position: absolute; left: 436px; top: 420px; width: 470px; height: 340px; z-index: 6; overflow: hidden; pointer-events: none; }
+#laden.auswahl #band-bereich { pointer-events: auto; }
 .band-ware {
-  position: absolute; bottom: 106px; display: flex; flex-direction: column; align-items: center;
-  transition: transform .9s cubic-bezier(.3,.7,.3,1), opacity .5s;
+  position: absolute; bottom: 160px; display: flex; flex-direction: column; align-items: center;
+  transition: transform .9s cubic-bezier(.3,.7,.3,1), opacity .5s, left .5s;
 }
+#laden.auswahl .band-ware { cursor: pointer; }
 .band-ware img { display: block; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 4px 3px rgba(0,0,0,.3)); }
 .band-ware.rein { transform: translateX(-560px); }
-.band-ware.raus { transform: translateX(420px); opacity: 0; transition: transform .9s ease-in, opacity .6s .3s; }
+.band-ware.raus { transform: translateX(520px); opacity: 0; transition: transform .9s ease-in, opacity .6s .3s; }
 /* Preisschild hängt vorne an der Theke */
 .preis {
-  position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 26px); white-space: nowrap;
+  position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 34px); white-space: nowrap;
   background: #fff; border: 3px solid #d32f2f; border-radius: 8px; padding: 0 8px; line-height: 38px; height: 44px;
   font-size: 32px; font-weight: 900; color: #b71c1c; box-shadow: 0 3px 4px rgba(0,0,0,.25);
+  animation: auftauchen .3s ease-out;
 }
 .preis small { font-size: 22px; font-weight: 800; margin-left: 3px; }
-.preis::before {   /* kleiner Stiel nach oben */
-  content: ""; position: absolute; left: 50%; top: -29px; width: 4px; height: 26px; margin-left: -2px; background: #d32f2f;
+.preis::before { content: ""; position: absolute; left: 50%; top: -37px; width: 4px; height: 34px; margin-left: -2px; background: #d32f2f; }
+.preis.tief { top: calc(100% + 84px); }
+.preis.tief::before { top: -87px; height: 84px; }
+@keyframes auftauchen { from { transform: translateX(-50%) scale(.4); opacity: 0; } }
+
+/* Kinder wählen selbst */
+#hinweis {
+  position: absolute; left: 768px; top: 236px; z-index: 8; pointer-events: none;
+  background: #fffde7; border: 4px solid #f9a825; border-radius: 18px; padding: 6px 18px 6px 12px;
+  font-size: 28px; font-weight: 900; color: #5d4037; white-space: nowrap; box-shadow: 0 4px 0 rgba(0,0,0,.12);
+  animation: wippen 1.2s ease-in-out infinite;
 }
-.preis.tief { top: calc(100% + 72px); }
-.preis.tief::before { top: -75px; height: 72px; }
+#hinweis .pfeil { font-size: 44px; line-height: 0; margin-right: 8px; vertical-align: -6px; color: #e65100; }
+@keyframes wippen { 50% { transform: translateX(-10px); } }
+#laden.auswahl #sprechblase { visibility: hidden; }
+#btn-zur-kasse {
+  position: absolute; left: 560px; top: 770px; z-index: 8; border: 0; border-radius: var(--wackel-klein);
+  background: var(--gruen); color: #fff; font-size: 32px; font-weight: 900; padding: 12px 30px; --filz-farbe: #1b5e20;
+}
+#btn-zur-kasse:active { transform: translateY(3px); }
+#meldung {
+  position: absolute; left: 440px; top: 520px; width: 520px; z-index: 9; text-align: center; pointer-events: none;
+  font-size: 28px; font-weight: 900; color: #fff; background: #c62828; border-radius: 14px; padding: 8px 12px;
+  opacity: 0;
+}
+#meldung.zeigen { animation: meldung 2.2s; }
+@keyframes meldung { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Countdown über dem leeren Band */
 #wechsel-box {
-  position: absolute; left: 990px; top: 120px; width: 240px; z-index: 7;
+  position: absolute; left: 556px; top: 400px; width: 240px; z-index: 7;
   display: flex; flex-direction: column; align-items: center; cursor: pointer; touch-action: manipulation;
 }
 #wechsel-kreis { width: 220px; height: 220px; overflow: visible; }
@@ -249,12 +259,12 @@ body { background: #f3f7ee; }
 #werkzeuge button { width: 60px; height: 60px; border: 0; background: rgba(255,255,255,.95); font-size: 28px; border-radius: var(--wackel-klein); }
 #werkzeuge #btn-pause { width: auto; padding: 0 18px; font-size: 26px; }
 
-/* ---------- Unten ---------- */
+/* ---------- Eingabe ---------- */
 .panel {
-  position: absolute; bottom: 8px; width: 420px; height: 434px;
+  position: absolute; bottom: 8px; width: 400px; height: 434px; z-index: 10;
   background: var(--farbe-hell); padding: 12px 16px 14px;
   display: flex; flex-direction: column;
-  --filz-farbe: var(--farbe); --filz-dicke: 6px;
+  --filz-farbe: var(--farbe); --filz-dicke: 6px; box-shadow: 0 8px 18px rgba(0,0,0,.25);
 }
 #panel-0 { left: 8px; }
 #panel-1 { right: 8px; }
@@ -273,7 +283,6 @@ body { background: #f3f7ee; }
 .eingabe .zahl { min-width: 60px; text-align: center; }
 .eingabe .zahl:empty::before { content: "?"; color: #cfd8dc; }
 .eingabe.zeigt .zahl { color: var(--gruen); }
-.sack-zahl { font-family: var(--schrift); font-size: 72px; font-weight: 900; }
 .tastatur { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; flex: 1; }
 .tastatur button {
   border: 0; border-radius: var(--wackel-klein); background: var(--farbe); color: var(--text);
@@ -285,49 +294,45 @@ body { background: #f3f7ee; }
 .tastatur button.loeschen { background: #eceff1; color: #37474f; --filz-farbe: #37474f; font-size: 36px; }
 .tastatur button.ok { grid-column: 1 / -1; background: var(--gruen); color: #fff; --filz-farbe: #1b5e20; font-size: 34px; }
 .panel.gesperrt .tastatur button { background: #ef9a9a !important; color: #fff !important; opacity: .6; }
+.panel.wartet .tastatur { opacity: .45; }
 .sperre { position: absolute; left: 18px; right: 18px; bottom: 4px; height: 8px; border-radius: 99px; overflow: hidden; visibility: hidden; }
 .panel.gesperrt .sperre { visibility: visible; }
 .sperre div { height: 100%; width: 100%; background: var(--rot); border-radius: 99px; }
 
-/* Mitte: Goldsäckchen */
-#mitte {
-  position: absolute; left: 436px; bottom: 8px; width: 728px; height: 434px;
-  background: #fffaf0; border-radius: var(--wackel); --filz-dicke: 5px; --filz-farbe: #8d6e63;
-  display: flex; gap: 10px; padding: 12px;
-}
-#buehne.allein #mitte { width: 1156px; }
-.zone { flex: 1; position: relative; border-radius: var(--wackel-klein); background: var(--farbe-hell); }
-.zone-kopf { position: absolute; left: 0; right: 0; top: 8px; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 26px; font-weight: 900; color: var(--farbe-dunkel); white-space: nowrap; }
-.zone-kopf .ring { width: 42px; height: 42px; }
-.platz { position: absolute; }
-.platz::before {   /* gestrichelter Platz für ein Säckchen */
-  content: ""; position: absolute; left: 12%; right: 12%; top: 22%; bottom: 3%; border-radius: 40% 40% 30% 30%;
-  border: 3px dashed var(--farbe); opacity: .35;
-}
-.sack { position: absolute; inset: 0; transform-origin: 50% 100%; }
-.sack svg { width: 100%; height: 100%; overflow: visible; display: block; }
+/* ---------- Goldsäckchen (klein, unten auf dem Boden) ---------- */
+.saecke { position: absolute; z-index: 8; display: flex; align-items: flex-end; gap: 6px; }
+/* 1 Kind: unten rechts */
+#buehne.allein #saecke-0 { right: 16px; bottom: 14px; }
+/* 2 Kinder: vorne an der Theke, links und rechts */
+#buehne:not(.allein) #saecke-0 { left: 440px; bottom: 14px; }
+#buehne:not(.allein) #saecke-1 { right: 624px; bottom: 14px; }
+.saecke .ring { width: 40px; height: 40px; margin: 0 4px 8px; box-shadow: 0 0 0 3px var(--farbe); }
+.sack { position: relative; width: 84px; height: 100px; transform-origin: 50% 100%; flex: none; }
+.sack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 4px 3px rgba(0,0,0,.35)); }
+.sack svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sack-zahl { font-family: var(--schrift); font-weight: 900; }
 .sack.schwupp { animation: schwupp .35s ease-out; }
-@keyframes schwupp { 40% { transform: scale(1.07, .93); } 70% { transform: scale(.97, 1.04); } }
+@keyframes schwupp { 40% { transform: scale(1.1, .9); } 70% { transform: scale(.96, 1.05); } }
 .sack.fliegt { animation: einfliegen 1.1s cubic-bezier(.25,.8,.35,1.15) both; }
 @keyframes einfliegen {
-  0% { transform: translate(-120px, -760px) rotate(-35deg) scale(.7); }
+  0% { transform: translate(-80px, -700px) rotate(-35deg) scale(.7); }
   70% { transform: translate(0, 0) rotate(6deg) scale(1.02); }
-  85% { transform: translate(0, 0) rotate(-3deg) scale(1.04, .95); }
+  85% { transform: translate(0, 0) rotate(-3deg) scale(1.06, .92); }
   100% { transform: none; }
 }
 .sack.zu { animation: zubinden .6s ease-in-out; }
-@keyframes zubinden { 30% { transform: scale(.94, 1.05); } 60% { transform: scale(1.04, .97); } }
+@keyframes zubinden { 30% { transform: scale(.92, 1.06); } 60% { transform: scale(1.05, .96); } }
 
-/* Fliegende Goldmünzen (über der ganzen Bühne) */
+/* Fliegende Goldmünzen */
 #flieger { position: absolute; inset: 0; pointer-events: none; z-index: 25; }
-.muenze { position: absolute; width: 62px; height: 62px; margin: -31px 0 0 -31px; }
+.muenze { position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px; }
 .muenze svg { width: 100%; height: 100%; animation: drehen .45s linear infinite; }
 @keyframes drehen { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.15); } }
 .funkeln { position: absolute; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, #ffe082 45%, rgba(255,224,130,0) 70%); }
 
-/* "Ich weiss es nicht" (nur 1 Kind): klein, unten links */
+/* "Ich weiss es nicht" (nur 1 Kind): klein, unten links an der Theke */
 #btn-weiss-nicht {
-  position: absolute; left: 24px; bottom: 24px; z-index: 3; border: 0; border-radius: var(--wackel-klein);
+  position: absolute; left: 444px; bottom: 18px; z-index: 8; border: 0; border-radius: var(--wackel-klein);
   background: #fff; color: #546e7a; font-size: 22px; font-weight: 800; padding: 10px 18px; --filz-farbe: #90a4ae;
 }
 #btn-weiss-nicht:active { transform: translateY(2px); }
@@ -348,5 +353,5 @@ body { background: #f3f7ee; }
 .knopf-reihe { display: flex; gap: 14px; margin-top: 10px; }
 
 @media (prefers-reduced-motion: reduce) {
-  #anzeige-text.blinkt, .muenze svg, #band.laeuft #band-streifen { animation: none !important; }
+  #anzeige-text.blinkt, .muenze svg, #band.laeuft #band-streifen, #hinweis { animation: none !important; }
 }

@@ -39,7 +39,9 @@ const STANDARD = {
   zahlenraum: '20',     // Total höchstens … Fr.
   stufe: 'franken',     // franken | zehn | fuenf (siehe STUFEN in produkte.js)
   produkte: 3,          // höchstens so viele Produkte auf dem Band
-  saecke: '3',          // Säckchen bis zum Ziel
+  selbst: false,        // die Kinder legen die Produkte selbst aufs Band
+  saeckeEinzel: '3',    // Säckchen bis zum Ziel bei 1 Kind
+  saeckeDuell: '1',     // … und bei 2 Kindern
   wechselSek: '3',
   ton: true,
   teams: [
@@ -47,7 +49,7 @@ const STANDARD = {
     { name: 'Erdmännchen', tier: 'erdmaennchen', farbe: 'blau' }
   ]
 };
-const SPEICHER_EINST = 'einkaufen.einstellungen.v1';
+const SPEICHER_EINST = 'einkaufen.einstellungen.v2';
 const MAX_PRODUKTE = 5;
 const PRO_SACK = 10;          // Münzen pro Säckchen
 const SPERRE_MS = 1500;       // Sperre nach falscher Antwort
@@ -152,6 +154,10 @@ const TON = {
   zubinden() { if (tonAn()) { rauschen(0.18, { typ: 'highpass', freq: 2500, laut: 0.25 }); rauschen(0.18, { start: 0.2, typ: 'highpass', freq: 3000, laut: 0.25 }); } }
 };
 
+const MUENZE_SVG = `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="url(#gold-muenze)" stroke="#8a5a00" stroke-width="3"/>
+  <circle cx="30" cy="30" r="20" fill="none" stroke="#c17900" stroke-width="2.2"/>
+  <path d="M 30 18 L 33.5 26.5 L 42.4 26.9 L 35.4 32.6 L 37.8 41.4 L 30 36.4 L 22.2 41.4 L 24.6 32.6 L 17.6 26.9 L 26.5 26.5 Z" fill="#fff3c4" stroke="#c17900" stroke-width="1.5"/></svg>`;
+
 /* =========================================================
    Einstellungen
    ========================================================= */
@@ -161,10 +167,13 @@ if (!Array.isArray(E.teams) || E.teams.length !== 2) E.teams = structuredClone(S
 if (ganzzahlIn(E.zahlenraum, 2, 1000) === null) E.zahlenraum = STANDARD.zahlenraum;
 if (!STUFEN[E.stufe]) E.stufe = STANDARD.stufe;
 if (!(E.produkte >= 1 && E.produkte <= MAX_PRODUKTE)) E.produkte = STANDARD.produkte;
-if (ganzzahlIn(E.saecke, 1, 5) === null) E.saecke = STANDARD.saecke;
+if (ganzzahlIn(E.saeckeEinzel, 1, 5) === null) E.saeckeEinzel = STANDARD.saeckeEinzel;
+if (ganzzahlIn(E.saeckeDuell, 1, 5) === null) E.saeckeDuell = STANDARD.saeckeDuell;
 if (ganzzahlIn(E.wechselSek, 0, 30) === null) E.wechselSek = STANDARD.wechselSek;
 if (E.spieler !== 1 && E.spieler !== 2) E.spieler = 2;
+E.selbst = !!E.selbst;
 const merke = () => speichern(SPEICHER_EINST, E);
+const saeckeSchluessel = () => E.spieler === 1 ? 'saeckeEinzel' : 'saeckeDuell';
 
 /** Bei jedem Öffnen bekommen die Teams zufällig zwei verschiedene Farben */
 (function verteileFarben() {
@@ -222,9 +231,10 @@ function zeigeEinstellungen() {
   baueTeamKarte(0); baueTeamKarte(1);
   zeichneWahlKnoepfe();
   $('e-zahlenraum').value = E.zahlenraum;
-  $('e-saecke').value = E.saecke;
+  $('e-saecke').value = E[saeckeSchluessel()];
   $('e-wechsel').value = E.wechselSek;
   $('e-ton').checked = E.ton;
+  $('e-selbst').checked = E.selbst;
   // Countdown gibt es nur, wenn zwei Kinder abwechselnd an die Tafel kommen
   $('karte-ablauf').classList.toggle('versteckt', E.spieler === 1);
   $('fehler').textContent = '';
@@ -233,23 +243,26 @@ function zeigeEinstellungen() {
 
 function leseFormular() {
   E.zahlenraum = $('e-zahlenraum').value.trim();
-  E.saecke = $('e-saecke').value.trim();
+  E[saeckeSchluessel()] = $('e-saecke').value.trim();
   E.wechselSek = $('e-wechsel').value.trim();
   E.ton = $('e-ton').checked;
+  E.selbst = $('e-selbst').checked;
   merke();
 }
 
 /** Prüft die Einstellungen. Gibt eine Fehlermeldung zurück oder null. */
 function pruefeEinstellungen() {
   if (ganzzahlIn(E.zahlenraum, 2, 1000) === null) return 'Zahlenraum: bitte ein Total von 2 bis 1000 Franken.';
-  if (ganzzahlIn(E.saecke, 1, 5) === null) return 'Säckchen bis zum Ziel: bitte eine Zahl von 1 bis 5.';
+  if (ganzzahlIn(E[saeckeSchluessel()], 1, 5) === null) return 'Säckchen bis zum Ziel: bitte eine Zahl von 1 bis 5.';
   if (E.spieler === 2 && ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
+  if (E.selbst && anzahlBereich(Number(E.zahlenraum), E.stufe, E.produkte).max < 2)
+    return 'Wenn die Kinder selbst wählen, braucht es höchstens mindestens 2 Produkte auf der Kasse.';
   return null;
 }
 
 /* =========================================================
    Laden: Regal, Kühlschrank, Kassenband
-   Koordinaten im Laden (1600 × 450, unten bündig in der Szene)
+   Koordinaten im Laden (1600 × 900, unten bündig auf der Bühne)
    ========================================================= */
 const REGAL_REIHEN = [   // von oben nach unten
   ['schokolade', 'gummibaerchen', 'chips', 'cornflakes', 'honig', 'ketchup'],
@@ -263,22 +276,21 @@ const KUEHL_REIHEN = [
   ['wurst', 'dose'],
   ['glace', 'pizza']
 ];
-const REGAL = { links: 46, rechts: 574, oben: 106, unten: 422, brett: 12 };
-const KUEHL = { links: 630, rechts: 806, oben: 112, unten: 416, brett: 6 };
+const REGAL = { links: 44, rechts: 520, oben: 146, unten: 450, brett: 12 };
+const KUEHL = { links: 574, rechts: 732, oben: 130, unten: 440, brett: 6 };
 /** Plätze aller 30 Produkte berechnen: { id: { x, y, b, h } } (y = Unterkante) */
 function regalPlaetze() {
   const plaetze = {};
   const verteile = (reihen, g) => {
     const reiheH = (g.unten - g.oben) / reihen.length;
+    const zelle = (g.rechts - g.links) / Math.max(...reihen.map(x => x.length));
     reihen.forEach((reihe, r) => {
       const boden = g.oben + reiheH * (r + 1) - g.brett;
-      const zelle = (g.rechts - g.links) / Math.max(...reihen.map(x => x.length));
       const start = g.links + ((g.rechts - g.links) - zelle * reihe.length) / 2;
       reihe.forEach((id, k) => {
-        plaetze[id] = { x: start + zelle * k + 4, y: boden, b: zelle - 8, h: reiheH - g.brett - 8, brett: boden, reihe: r };
+        plaetze[id] = { x: start + zelle * k + 4, y: boden, b: zelle - 8, h: reiheH - g.brett - 8 };
       });
     });
-    return reiheH;
   };
   verteile(REGAL_REIHEN, REGAL);
   verteile(KUEHL_REIHEN, KUEHL);
@@ -287,7 +299,6 @@ function regalPlaetze() {
 const PLAETZE = regalPlaetze();
 
 function baueLaden() {
-  const ziel = $('regal-produkte');
   let html = '';
   // Bretter
   [[REGAL_REIHEN, REGAL, 'brett'], [KUEHL_REIHEN, KUEHL, 'kuehl-brett']].forEach(([reihen, g, klasse]) => {
@@ -297,53 +308,70 @@ function baueLaden() {
       html += `<div class="${klasse}" style="left:${g.links - 12}px; top:${y}px; width:${g.rechts - g.links + 24}px"></div>`;
     });
   });
-  // Produkte und Lücken
+  // Produkte (eine Lücke bleibt einfach leer)
   PRODUKTE.forEach(p => {
     const pl = PLAETZE[p.id];
-    const stil = `left:${pl.x}px; top:${pl.y - pl.h}px; width:${pl.b}px; height:${pl.h}px`;
-    html += `<div class="luecke" id="luecke-${p.id}" style="${stil}"></div>`;
-    html += `<div class="regal-ware" id="ware-${p.id}" style="${stil}"><img src="${BILD.produkt(p.id)}" alt="${esc(p.name)}"></div>`;
+    html += `<div class="regal-ware" id="ware-${p.id}" data-id="${p.id}" style="left:${pl.x}px; top:${pl.y - pl.h}px; width:${pl.b}px; height:${pl.h}px"><img src="${BILD.produkt(p.id)}" alt="${esc(p.name)}"></div>`;
   });
   // Glasscheibe vor dem Kühlschrank
-  html += `<div class="kuehl-glas-vorne" style="left:${KUEHL.links - 3}px; top:${KUEHL.oben - 5}px; width:${KUEHL.rechts - KUEHL.links + 6}px; height:${KUEHL.unten - KUEHL.oben + 3}px"></div>`;
-  ziel.innerHTML = html;
+  html += `<div class="kuehl-glas-vorne" style="left:${KUEHL.links - 8}px; top:${KUEHL.oben - 6}px; width:${KUEHL.rechts - KUEHL.links + 16}px; height:${KUEHL.unten - KUEHL.oben + 6}px"></div>`;
+  $('regal-produkte').innerHTML = html;
+  document.querySelectorAll('.regal-ware').forEach(el => el.addEventListener('pointerdown', ev => { ev.preventDefault(); waehleProdukt(el.dataset.id); }));
 }
 
 /** Produkte im Regal ausblenden (sie liegen auf dem Band) bzw. wieder zeigen */
-function setzeRegal(ids, imRegal) {
-  ids.forEach(id => {
-    $(`ware-${id}`).classList.toggle('weg', !imRegal);
-    $(`luecke-${id}`).classList.toggle('an', !imRegal);
-  });
-}
+function setzeRegal(ids, imRegal) { ids.forEach(id => $(`ware-${id}`).classList.toggle('weg', !imRegal)); }
 /** Welche Produkte fehlen gerade im Regal? (für Tests) */
 const fehlenImRegal = () => PRODUKTE.filter(p => $(`ware-${p.id}`).classList.contains('weg')).map(p => p.id).sort();
 
-const BAND = { links: 0, breite: 515 };
-function legeAufsBand(einkauf) {
-  const bereich = $('band-bereich');
-  const n = einkauf.produkte.length;
-  const zelle = BAND.breite / n;
+/* ---------- Kassenband ---------- */
+const BAND_BREITE = 470;
+/** Ein Produkt aufs Band legen (fährt von links herein) */
+function bandWareNeu(id) {
+  const p = PRODUKTE.find(x => x.id === id);
+  const el = document.createElement('div');
+  el.className = 'band-ware rein';
+  el.dataset.id = id;
+  el.innerHTML = `<img src="${BILD.produkt(id)}" alt="${esc(p.name)}">`;
+  el.addEventListener('pointerdown', ev => { ev.preventDefault(); legeZurueck(id); });
+  $('band-bereich').appendChild(el);
+  setzeRegal([id], false);
+  return el;
+}
+const bandWaren = () => [...$('band-bereich').querySelectorAll('.band-ware:not(.raus)')];
+/** Produkte auf dem Band gleichmässig verteilen; Preisschilder, sobald es Preise gibt */
+function ordneBand() {
+  const waren = bandWaren(), n = Math.max(1, waren.length);
+  const zelle = BAND_BREITE / Math.max(n, S && S.selbst ? 2 : 1);
   const breite = Math.min(150, zelle - 12), hoehe = n <= 3 ? 160 : n === 4 ? 145 : 130;
-  einkauf.produkte.forEach((p, k) => {
-    const el = document.createElement('div');
-    el.className = 'band-ware rein';
-    el.dataset.id = p.id;
-    el.style.left = (BAND.links + zelle * k + (zelle - breite) / 2) + 'px';
+  waren.forEach((el, k) => {
+    el.style.left = (zelle * k + (zelle - breite) / 2) + 'px';
     el.style.width = breite + 'px';
-    el.innerHTML = `<img src="${BILD.produkt(p.id)}" alt="${esc(p.name)}" style="width:${breite}px; height:${hoehe}px">
-      <div class="preis">${betragText(p.preis)}<small>Fr.</small></div>`;
-    bereich.appendChild(el);
+    const img = el.querySelector('img');
+    img.style.width = breite + 'px'; img.style.height = hoehe + 'px';
+  });
+  void $('band-bereich').offsetWidth;
+  waren.forEach(el => el.classList.remove('rein'));
+}
+function zeigePreise(einkauf) {
+  const waren = bandWaren();
+  einkauf.produkte.forEach(p => {
+    const el = waren.find(w => w.dataset.id === p.id);
+    if (!el) return;
+    el.querySelector('.preis')?.remove();
+    el.insertAdjacentHTML('beforeend', `<div class="preis">${betragText(p.preis)}<small>Fr.</small></div>`);
   });
   // Preisschilder dürfen sich nicht überlappen: sonst jedes zweite tiefer hängen
-  const schilder = [...bereich.querySelectorAll('.band-ware:not(.raus) .preis')];
-  const rechts = schilder.map(s => { const w = s.parentElement; return { l: w.offsetLeft + w.offsetWidth / 2 - s.offsetWidth / 2, r: w.offsetLeft + w.offsetWidth / 2 + s.offsetWidth / 2 }; });
-  const zuEng = rechts.some((a, k) => k > 0 && a.l < rechts[k - 1].r + 6);
-  if (zuEng) schilder.forEach((s, k) => s.classList.toggle('tief', k % 2 === 1));
-  void bereich.offsetWidth;
-  bereich.querySelectorAll('.band-ware.rein').forEach(el => el.classList.remove('rein'));
+  const schilder = waren.map(w => w.querySelector('.preis')).filter(Boolean);
+  const raender = schilder.map(s => { const w = s.parentElement, m = parseFloat(w.style.left) + parseFloat(w.style.width) / 2; return { l: m - s.offsetWidth / 2, r: m + s.offsetWidth / 2 }; });
+  const zuEng = raender.some((a, k) => k > 0 && a.l < raender[k - 1].r + 6);
+  schilder.forEach((s, k) => s.classList.toggle('tief', zuEng && k % 2 === 1));
+}
+function legeAufsBand(einkauf) {
+  einkauf.produkte.forEach(p => bandWareNeu(p.id));
+  ordneBand();
+  zeigePreise(einkauf);
   laufeBand(950);
-  setzeRegal(einkauf.produkte.map(p => p.id), false);
 }
 function laufeBand(ms) {
   const band = $('band');
@@ -353,8 +381,7 @@ function laufeBand(ms) {
 }
 /** Band leeren: Produkte fahren zur Kasse weiter, das Regal wird wieder aufgefüllt */
 function raeumeBand() {
-  const bereich = $('band-bereich');
-  const alte = [...bereich.querySelectorAll('.band-ware:not(.raus)')];
+  const alte = bandWaren();
   if (!alte.length) return;
   alte.forEach(el => { el.classList.add('raus'); setTimeout(() => el.remove(), 1000); });
   laufeBand(900);
@@ -367,91 +394,93 @@ function zeigeAnzeige(text, art) {
   t.className = art || '';
   t.style.fontSize = text.length > 9 ? '27px' : '';
 }
+function zeigeMeldung(text) {
+  const m = $('meldung');
+  m.textContent = text;
+  m.classList.remove('zeigen'); void m.offsetWidth; m.classList.add('zeigen');
+}
 
 /* =========================================================
-   Goldsäckchen (SVG, viewBox 0 0 200 240)
+   Kinder wählen selbst: Produkte im Regal antippen
    ========================================================= */
-const SACK_MUND = { x: 100, y: 52 };   // Öffnung oben, hier fallen die Münzen hinein
-function sackSvg(anzahl, offen) {
-  const hals = offen
-    ? 'M 64 94 C 50 72 38 52 30 32 C 58 46 78 26 100 38 C 122 26 142 46 170 32 C 162 52 150 72 136 94 Z'
-    : 'M 76 94 C 70 76 66 58 70 38 C 84 46 92 32 100 40 C 108 32 116 46 130 38 C 134 58 130 76 124 94 Z';
-  return `<svg viewBox="0 0 200 240" aria-label="${anzahl} Goldmünzen">
-    <ellipse cx="100" cy="230" rx="78" ry="8" fill="rgba(0,0,0,.18)"/>
-    <path d="M 62 90 C 18 114 6 170 26 205 C 44 236 156 236 174 205 C 194 170 182 114 138 90 Z" fill="url(#samt-rot)" stroke="#4a0707" stroke-width="4" filter="url(#samt)"/>
-    <path d="M 82 112 Q 70 160 80 214 M 120 112 Q 134 160 122 216 M 100 108 Q 98 170 100 222" fill="none" stroke="rgba(60,0,0,.22)" stroke-width="3" stroke-linecap="round"/>
-    <path d="M 48 140 Q 52 120 70 108" fill="none" stroke="rgba(255,190,190,.45)" stroke-width="6" stroke-linecap="round"/>
-    <path d="${hals}" fill="url(#samt-rot)" stroke="#4a0707" stroke-width="4" stroke-linejoin="round" filter="url(#samt)"/>
-    ${offen ? '<ellipse cx="100" cy="38" rx="56" ry="11" fill="#2b0404" stroke="#4a0707" stroke-width="3"/><path d="M 52 40 Q 100 54 148 40" fill="none" stroke="#6d0c0c" stroke-width="4"/>' : ''}
-    <path d="M 60 92 Q 100 106 140 92" fill="none" stroke="#6b4a00" stroke-width="13" stroke-linecap="round"/>
-    <path d="M 60 92 Q 100 106 140 92" fill="none" stroke="url(#gold-kordel)" stroke-width="8" stroke-linecap="round"/>
-    <path d="M 60 92 Q 100 106 140 92" fill="none" stroke="#fff8c4" stroke-width="2" stroke-dasharray="3 5" opacity=".8"/>
-    <path d="M 138 96 Q 150 112 146 136 M 140 96 Q 160 108 162 128" fill="none" stroke="#6b4a00" stroke-width="7" stroke-linecap="round"/>
-    <path d="M 138 96 Q 150 112 146 136 M 140 96 Q 160 108 162 128" fill="none" stroke="url(#gold-kordel)" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="146" cy="138" r="6" fill="url(#gold-kordel)" stroke="#6b4a00" stroke-width="2.5"/>
-    <circle cx="162" cy="130" r="6" fill="url(#gold-kordel)" stroke="#6b4a00" stroke-width="2.5"/>
-    <g class="stickerei">
-      <rect x="34" y="134" width="132" height="76" rx="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5" opacity=".9"/>
-      <g filter="drop-shadow(0 2px 1.5px rgba(40,0,0,.7))">
-        <circle cx="70" cy="172" r="21" fill="url(#faden)" stroke="#e9e4dc" stroke-width="1.5"/>
-        <circle cx="70" cy="172" r="14" fill="none" stroke="#c9c1b4" stroke-width="2" stroke-dasharray="3 3"/>
-        <path d="M 70 162 L 72.6 168.6 L 79.5 168.9 L 74.1 173.3 L 75.9 180.1 L 70 176.3 L 64.1 180.1 L 65.9 173.3 L 60.5 168.9 L 67.4 168.6 Z" fill="#c9c1b4"/>
-        <text x="${anzahl >= 10 ? 124 : 120}" y="199" text-anchor="middle" class="sack-zahl" fill="url(#faden)" stroke="#e9e4dc" stroke-width="1.5">${anzahl}</text>
-      </g>
-    </g>
-  </svg>`;
+function starteAuswahl() {
+  S.wahl = [];
+  setzePhase('auswahl', 0, null);
+  $('laden').classList.add('auswahl');
+  $('hinweis').classList.remove('versteckt');
+  $('btn-zur-kasse').classList.remove('versteckt');
+  [0, 1].forEach(i => { if (aktiv(i)) $(`panel-${i}`).classList.add('wartet'); });
 }
-const MUENZE_SVG = `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="url(#gold-muenze)" stroke="#8a5a00" stroke-width="3"/>
-  <circle cx="30" cy="30" r="20" fill="none" stroke="#c17900" stroke-width="2.2"/>
-  <path d="M 30 18 L 33.5 26.5 L 42.4 26.9 L 35.4 32.6 L 37.8 41.4 L 30 36.4 L 22.2 41.4 L 24.6 32.6 L 17.6 26.9 L 26.5 26.5 Z" fill="#fff3c4" stroke="#c17900" stroke-width="1.5"/></svg>`;
-
-/** Plätze für die Säckchen in einer Zone verteilen (so gross wie möglich) */
-function sackRaster(anzahl, w, h) {
-  let best = null;
-  for (let sp = 1; sp <= anzahl; sp++) {
-    const zeilen = Math.ceil(anzahl / sp);
-    const b = Math.min(w / sp, h / zeilen / 1.2);
-    if (!best || b > best.b) best = { sp, zeilen, b };
-  }
-  return best;
+function beendeAuswahl() {
+  $('laden').classList.remove('auswahl');
+  $('hinweis').classList.add('versteckt');
+  $('btn-zur-kasse').classList.add('versteckt');
+  [0, 1].forEach(i => { if (aktiv(i)) $(`panel-${i}`).classList.remove('wartet'); });
+}
+function waehleProdukt(id) {
+  if (!S || S.pausiert || S.phase !== 'auswahl' || S.wahl.includes(id)) return;
+  if (S.wahl.length >= S.anzahl.max) { zeigeMeldung(`Höchstens ${S.anzahl.max} Produkte!`); return; }
+  audio();
+  S.wahl.push(id);
+  bandWareNeu(id);
+  ordneBand();
+  laufeBand(700);
+  TON.scanner();
+}
+function legeZurueck(id) {
+  if (!S || S.pausiert || S.phase !== 'auswahl') return;
+  const el = bandWaren().find(w => w.dataset.id === id);
+  if (!el) return;
+  S.wahl = S.wahl.filter(x => x !== id);
+  el.remove();
+  setzeRegal([id], true);
+  ordneBand();
+}
+function zurKasse() {
+  if (!S || S.pausiert || S.phase !== 'auswahl') return;
+  if (S.wahl.length < 2) { zeigeMeldung('Bitte mindestens 2 Produkte aufs Band legen.'); TON.falsch(); return; }
+  S.einkauf = erzeugeEinkauf(S.maxFranken, S.stufe, S.wahl.length, S.einkauf, S.wahl.slice());
+  beendeAuswahl();
+  zeigePreise(S.einkauf);
+  laufeBand(500);
+  setzePhase('spiel', 0, null);
+  zeigeAnzeige('??? Fr.', 'blinkt');
 }
 
-function baueZone(i) {
-  const z = $(`zone-${i}`);
-  const team = S.teams[i];
-  setzeFarbVariablen(z, team.farbe);
-  const W = z.clientWidth, H = z.clientHeight;
-  const kopf = 58;
-  const linksFrei = S.n === 1 ? 250 : 0;   // Platz für «Ich weiss es nicht»
-  const fw = W - linksFrei - 16, fh = H - kopf - 8;
-  const r = sackRaster(S.saecke, fw, fh);
-  const b = Math.floor(r.b), h = Math.floor(r.b * 1.2);
-  const x0 = linksFrei + 8 + (fw - b * r.sp) / 2, y0 = kopf + (fh - h * r.zeilen) / 2;
-  let html = `<div class="zone-kopf">${ringHtml(team.tier)}<span>${esc(team.name)}</span></div>`;
-  for (let k = 0; k < S.saecke; k++) {
-    const sp = k % r.sp, ze = Math.floor(k / r.sp);
-    // letzte Zeile mittig, wenn sie nicht voll ist
-    const inZeile = Math.min(r.sp, S.saecke - ze * r.sp);
-    const x = x0 + (r.sp - inZeile) * b / 2 + sp * b, y = y0 + ze * h;
-    html += `<div class="platz" id="platz-${i}-${k}" style="left:${x}px; top:${y}px; width:${b}px; height:${h}px"></div>`;
+/* =========================================================
+   Goldsäckchen (Bilder bilder/sack-offen.png und sack-zu.png)
+   Darüber eine aufgestickte Zahl (SVG, viewBox 0 0 100 100 über dem ganzen Säckchen)
+   ========================================================= */
+const SACK = { mundY: 0.22, zahlY: 66, zahlGross: 34 };   // werden an die Bilder angepasst
+function sackHtml(anzahl, klasse) {
+  const offen = anzahl < PRO_SACK;
+  return `<div class="sack${klasse ? ' ' + klasse : ''}">
+    <img src="bilder/sack-${offen ? 'offen' : 'zu'}.png" alt="">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="${anzahl} Goldmünzen">
+      <text x="50" y="${SACK.zahlY}" text-anchor="middle" dominant-baseline="middle" class="sack-zahl" font-size="${SACK.zahlGross}"
+        fill="url(#faden)" stroke="#fff" stroke-width="1.2" stroke-dasharray="1.6 1.2" paint-order="stroke"
+        style="filter: drop-shadow(0 1px .6px rgba(60,0,0,.8))">${anzahl}</text>
+    </svg></div>`;
+}
+/** Säckchen eines Teams zeichnen; anim = { k, klasse } für eine kleine Bewegung */
+function zeichneSaecke(i, anim) {
+  const z = $(`saecke-${i}`);
+  setzeFarbVariablen(z, S.teams[i].farbe);
+  let html = S.n === 2 && i === 0 ? ringHtml(S.teams[i].tier) : '';
+  for (let k = 0; k < S.saeckeDa[i]; k++) {
+    const anzahl = Math.max(0, Math.min(PRO_SACK, S.sichtbar[i] - k * PRO_SACK));
+    html += sackHtml(anzahl, anim && anim.k === k ? anim.klasse : '');
   }
+  if (S.n === 2 && i === 1) html += ringHtml(S.teams[i].tier);
   z.innerHTML = html;
-  for (let k = 0; k < S.saeckeDa[i]; k++) zeichneSack(i, k);
 }
-function zeichneSack(i, k, klasse) {
-  const platz = $(`platz-${i}-${k}`);
-  if (!platz) return;
-  const anzahl = Math.max(0, Math.min(PRO_SACK, S.sichtbar[i] - k * PRO_SACK));
-  platz.innerHTML = `<div class="sack${klasse ? ' ' + klasse : ''}">${sackSvg(anzahl, anzahl < PRO_SACK)}</div>`;
-}
-/** Wo ist die Öffnung des aktuellen Säckchens (Bühnen-Koordinaten)? */
+/** Wo ist die Öffnung des Säckchens k (Bühnen-Koordinaten)? */
 function sackMund(i, k) {
-  const platz = $(`platz-${i}-${k}`), b = $('buehne').getBoundingClientRect(), r = platz.getBoundingClientRect();
-  const w = r.width / SKALA, h = r.height / SKALA, s = Math.min(w / 200, h / 240);
-  return {
-    x: (r.left - b.left) / SKALA + (w - 200 * s) / 2 + SACK_MUND.x * s,
-    y: (r.top - b.top) / SKALA + (h - 240 * s) / 2 + SACK_MUND.y * s
-  };
+  const el = $(`saecke-${i}`).querySelectorAll('.sack')[k];
+  const b = $('buehne').getBoundingClientRect();
+  if (!el) return { x: 800, y: S ? DY + 800 : 800 };
+  const r = el.getBoundingClientRect();
+  return { x: (r.left + r.width / 2 - b.left) / SKALA, y: (r.top + r.height * SACK.mundY - b.top) / SKALA };
 }
 
 /** Eine Goldmünze für Team i: Logik sofort, Bild und Ton mit Flug von der Kasse ins Säckchen */
@@ -460,7 +489,7 @@ function gibMuenze(i) {
   const ziel = S.muenzen[i];
   const k = Math.min(S.saecke - 1, Math.floor((ziel - 1) / PRO_SACK));
   const spiel = S;
-  const start = { x: 1390, y: DY + 200 };
+  const start = { x: 955, y: DY + 437 };
   const end = sackMund(i, k);
   const m = document.createElement('div');
   m.className = 'muenze';
@@ -470,8 +499,8 @@ function gibMuenze(i) {
   const animation = m.animate([
     { left: start.x + 'px', top: start.y + 'px', transform: 'scale(.6)' },
     { left: (start.x + end.x) / 2 + 'px', top: hoch + 'px', transform: 'scale(1.25)', offset: 0.45 },
-    { left: end.x + 'px', top: (end.y - 70) + 'px', transform: 'scale(1)', offset: 0.8 },
-    { left: end.x + 'px', top: (end.y + 6) + 'px', transform: 'scale(.55)', opacity: 0.6 }
+    { left: end.x + 'px', top: (end.y - 60) + 'px', transform: 'scale(1)', offset: 0.8 },
+    { left: end.x + 'px', top: (end.y + 6) + 'px', transform: 'scale(.5)', opacity: 0.6 }
   ], { duration: 950, easing: 'ease-in-out', fill: 'forwards' });
   let gelandet = false;
   const landen = () => {
@@ -491,19 +520,19 @@ function muenzeGelandet(i, ziel, pos) {
   funkeln(pos.x, pos.y);
   const k = Math.min(S.saecke - 1, Math.floor((ziel - 1) / PRO_SACK));
   if (ziel % PRO_SACK === 0) {
-    zeichneSack(i, k, 'zu');
+    zeichneSaecke(i, { k, klasse: 'zu' });
     setTimeout(() => TON.zubinden(), 150);
     if (ziel < S.saecke * PRO_SACK) {
       const spiel = S;
       setTimeout(() => {
         if (S !== spiel || S.saeckeDa[i] > k + 1) return;
         S.saeckeDa[i] = k + 2;
-        zeichneSack(i, k + 1, 'fliegt');
+        zeichneSaecke(i, { k: k + 1, klasse: 'fliegt' });
         TON.wusch();
       }, 650);
     }
   } else {
-    zeichneSack(i, k, 'schwupp');
+    zeichneSaecke(i, { k, klasse: 'schwupp' });
   }
 }
 function funkeln(x, y) {
@@ -536,8 +565,11 @@ function starteSpiel() {
     teams: structuredClone(E.teams).slice(0, E.spieler),
     maxFranken: Number(E.zahlenraum),
     stufe: E.stufe,
-    maxProdukte: E.produkte,
-    saecke: Number(E.saecke),
+    anzahl: anzahlBereich(Number(E.zahlenraum), E.stufe, E.produkte),
+    anzahlStapel: [],
+    selbst: E.selbst,
+    wahl: [],
+    saecke: Number(E[saeckeSchluessel()]),
     einkauf: null,
     muenzen: [0, 0],      // Logik
     sichtbar: [0, 0],     // so viele Münzen sind schon im Säckchen gelandet
@@ -545,7 +577,7 @@ function starteSpiel() {
     eingabe: ['', ''],
     sperre: [0, 0],
     wechselMs: E.spieler === 1 ? 0 : Number(E.wechselSek) * 1000,   // 1 Kind: kein Countdown
-    phase: 'spiel',       // spiel | loesung | wechsel | ende
+    phase: 'spiel',       // auswahl | spiel | loesung | wechsel | ende
     phaseRestMs: 0, weiter: null,
     gewinner: null,
     pausiert: false, beendet: false
@@ -569,9 +601,9 @@ function baueSpielfeld() {
   $('band-bereich').innerHTML = '';
   $('flieger').innerHTML = '';
   PRODUKTE.forEach(p => setzeRegal([p.id], true));
-  // erst alle Teile ein-/ausblenden, dann ausmessen und bauen
-  [0, 1].forEach(i => ['panel-', 'zone-'].forEach(p => $(p + i).classList.toggle('versteckt', !aktiv(i))));
-  [0, 1].forEach(i => { if (aktiv(i)) { bauePanel(i); baueZone(i); } });
+  beendeAuswahl();
+  [0, 1].forEach(i => ['panel-', 'saecke-'].forEach(p => $(p + i).classList.toggle('versteckt', !aktiv(i))));
+  [0, 1].forEach(i => { if (aktiv(i)) { bauePanel(i); zeichneSaecke(i); } });
   $('btn-ton').textContent = stumm ? '🔇' : '🔊';
   ['pause-menue', 'ende', 'wechsel-box'].forEach(id => $(id).classList.add('versteckt'));
 }
@@ -599,25 +631,34 @@ function bauePanel(i) {
 /* ---------- Ablauf ---------- */
 function setzePhase(name, ms, weiter) { S.phase = name; S.phaseRestMs = ms; S.weiter = weiter; }
 
+/** Nächste Anzahl Produkte: jede mögliche Anzahl kommt regelmässig dran */
+function naechsteAnzahl() {
+  if (!S.anzahlStapel.length) S.anzahlStapel = neuerAnzahlStapel(S.anzahl, S.letzteAnzahl);
+  S.letzteAnzahl = S.anzahlStapel.pop();
+  return S.letzteAnzahl;
+}
+
 function naechsteAufgabe() {
   raeumeBand();
+  beendeAuswahl();
   // Säckchen auf den aktuellen Stand bringen (falls eine Animation nicht fertig wurde)
   [0, 1].forEach(i => {
     if (!aktiv(i)) return;
     const soll = Math.min(S.saecke, Math.floor(S.muenzen[i] / PRO_SACK) + 1);
     if (S.sichtbar[i] !== S.muenzen[i] || S.saeckeDa[i] !== soll) {
-      S.sichtbar[i] = S.muenzen[i]; S.saeckeDa[i] = soll; baueZone(i);
+      S.sichtbar[i] = S.muenzen[i]; S.saeckeDa[i] = soll; zeichneSaecke(i);
     }
   });
-  S.einkauf = erzeugeEinkauf(S.maxFranken, S.stufe, S.maxProdukte, S.einkauf);
   S.eingabe = ['', ''];
   S.sperre = [0, 0];
-  setzePhase('spiel', 0, null);
   $('wechsel-box').classList.add('versteckt');
-  zeigeAnzeige('???', 'blinkt');
-  legeAufsBand(S.einkauf);
   [0, 1].forEach(i => { if (aktiv(i)) $(`panel-${i}`).querySelector('.eingabe').classList.remove('zeigt'); });
   zeichneEingaben();
+  zeigeAnzeige('??? Fr.', 'blinkt');
+  if (S.selbst) { starteAuswahl(); return; }
+  S.einkauf = erzeugeEinkauf(S.maxFranken, S.stufe, naechsteAnzahl(), S.einkauf);
+  setzePhase('spiel', 0, null);
+  legeAufsBand(S.einkauf);
 }
 
 function taste(i, wert) {
@@ -681,7 +722,7 @@ function weissNicht() {
   setzePhase('loesung', WEISS_NICHT_MS, () => wechsel(naechsteAufgabe));
 }
 
-/** Countdown zwischen den Aufgaben (über dem leeren Band) */
+/** Countdown zwischen den Aufgaben (über dem leeren Band, nur bei 2 Kindern) */
 function wechsel(danach) {
   S.eingabe = ['', ''];
   [0, 1].forEach(i => { if (aktiv(i)) $(`panel-${i}`).querySelector('.eingabe').classList.remove('zeigt'); });
@@ -709,6 +750,7 @@ function beende() {
   if (!S || S.beendet) return;
   S.beendet = true;
   S.phase = 'ende';
+  beendeAuswahl();
   const box = $('ende');
   const sieger = S.gewinner === null ? 0 : S.gewinner;
   const voll = S.saecke === 1 ? 'Das Säckchen ist voll!' : 'Alle Säckchen sind voll!';
@@ -782,7 +824,7 @@ function zeigeSeite(id) {
   ['wahl', 'einstellungen', 'spiel'].forEach(s => $(s).classList.toggle('versteckt', s !== id));
 }
 /* Die Bühne ist 1600 breit. Ist der Bildschirm höher als 16:9, wird sie höher (bis 1400),
-   damit kein leerer Rand bleibt: über dem Laden kommt mehr Wand dazu. */
+   damit kein leerer Rand bleibt: über dem Laden wird mehr vom Hintergrund sichtbar. */
 let DY = 0, SKALA = 1;
 function skaliere() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -793,10 +835,7 @@ function skaliere() {
   SKALA = Math.min(w / 1600, h / H);
   b.style.transform = `translate(-50%, -50%) scale(${SKALA})`;
 }
-window.addEventListener('resize', () => {
-  skaliere();
-  if (S && !$('spiel').classList.contains('versteckt')) [0, 1].forEach(i => { if (aktiv(i)) baueZone(i); });
-});
+window.addEventListener('resize', skaliere);
 function abbrechenUnd(weiter) { if (S) S.beendet = true; S = null; weiter(); }
 
 // Wer spielt?
@@ -812,29 +851,29 @@ document.querySelectorAll('[data-zr]').forEach(b => b.addEventListener('click', 
 document.querySelectorAll('[data-stufe]').forEach(b => b.addEventListener('click', () => { E.stufe = b.dataset.stufe; merke(); zeichneWahlKnoepfe(); }));
 document.querySelectorAll('[data-anzahl]').forEach(b => b.addEventListener('click', () => { E.produkte = Number(b.dataset.anzahl); merke(); zeichneWahlKnoepfe(); }));
 ['e-zahlenraum', 'e-saecke', 'e-wechsel'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); zeichneWahlKnoepfe(); }));
-$('e-ton').addEventListener('change', leseFormular);
+['e-ton', 'e-selbst'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
 $('btn-weiss-nicht').addEventListener('click', weissNicht);
+$('btn-zur-kasse').addEventListener('click', zurKasse);
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));
 $('wechsel-box').addEventListener('pointerdown', () => {
   if (S && !S.pausiert && S.phase === 'wechsel') { S.phaseRestMs = 0; zeichneWechselKreis(0); }
 });
-// Doppeltippen auf das Band: Aufgabe überspringen
+// Abkürzung: Doppeltippen auf die Sprechblase überspringt die Aufgabe
 let letzterTipp = 0;
-$('band-bereich').addEventListener('pointerdown', () => {
+$('sprechblase').addEventListener('pointerdown', () => {
   const jetzt = performance.now(), doppelt = jetzt - letzterTipp < 400;
   letzterTipp = doppelt ? 0 : jetzt;
-  if (doppelt && S && !S.pausiert && S.phase === 'spiel') naechsteAufgabe();
+  if (doppelt && S && !S.pausiert && (S.phase === 'spiel' || S.phase === 'auswahl')) naechsteAufgabe();
 });
-// Abkürzung zum Testen: Antippen der Münz-Anzeige füllt alle Säckchen und zeigt den Schluss
-[0, 1].forEach(i => $(`zone-${i}`).addEventListener('click', () => {
+// Abkürzung zum Testen: Antippen der Säckchen füllt alle Säckchen und zeigt den Schluss
+[0, 1].forEach(i => $(`saecke-${i}`).addEventListener('click', () => {
   if (!S || S.beendet || S.pausiert || !aktiv(i)) return;
   S.muenzen[i] = S.sichtbar[i] = S.saecke * PRO_SACK;
   S.saeckeDa[i] = S.saecke;
-  baueZone(i);
-  zeichneSack(i, S.saecke - 1, 'zu');
+  zeichneSaecke(i, { k: S.saecke - 1, klasse: 'zu' });
   TON.klimpern();
   S.gewinner = i;
   setzePhase('ende-warten', 0, null);

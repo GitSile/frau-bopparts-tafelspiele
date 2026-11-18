@@ -20,10 +20,26 @@ const ZEIGER = {
 };
 
 /** Winkel (Grad, 0 = oben, im Uhrzeigersinn) der beiden Zeiger für eine Zeit in Minuten (0..719).
-    Der Stundenzeiger zeigt (vereinfacht für die Kinder) immer genau auf die volle Stunde. */
+    Wie bei einer echten Uhr steht der Stundenzeiger je nach Minuten zwischen zwei Zahlen. */
 function zeigerWinkel(minutenGesamt) {
   const t = ((minutenGesamt % 720) + 720) % 720;
-  return { stunde: Math.floor(t / 60) * 30, minute: (t % 60) * 6 };
+  return { stunde: t / 2, minute: (t % 60) * 6 };
+}
+
+/* Uhr zum Stellen: beide Zeiger sind unabhängig und rasten in Viertelstunden ein.
+   s = Stellung des Stundenzeigers in Viertelstunden-Schritten (0..47, je 7,5°),
+   m = Stellung des Minutenzeigers in Viertelstunden (0..3, je 90°). */
+function zeigerStellung(minutenGesamt) {
+  const t = ((minutenGesamt % 720) + 720) % 720;
+  return { s: t / 15, m: (t % 60) / 15 };
+}
+function stellungRichtig(z, minutenGesamt) {
+  const soll = zeigerStellung(minutenGesamt);
+  return z.s === soll.s && z.m === soll.m;
+}
+function stelleZeiger(svg, z) {
+  svg.querySelector('.zeiger-stunde').setAttribute('transform', `rotate(${(z.s * 7.5).toFixed(2)})`);
+  svg.querySelector('.zeiger-minute').setAttribute('transform', `rotate(${z.m * 90})`);
 }
 
 /** Minuten seit 12 Uhr (0..719) für Stunde h (0..24) und Minute m */
@@ -170,4 +186,4 @@ function segmentSvg(text) {
 }
 
 // Für automatische Tests mit Node
-if (typeof module !== 'undefined') module.exports = { pruefeEingabe, ergaenzeDoppelpunkt, minutenVon, zeigerWinkel, zeitText12 };
+if (typeof module !== 'undefined') module.exports = { zeigerStellung, stellungRichtig, pruefeEingabe, ergaenzeDoppelpunkt, minutenVon, zeigerWinkel, zeitText12 };

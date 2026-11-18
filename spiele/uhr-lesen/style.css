@@ -115,6 +115,8 @@ body { background: #eef3fb; }
 #rakete { transition: opacity .6s; filter: drop-shadow(0 6px 6px rgba(0,0,0,.35)); }
 #schnur-bild { z-index: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
 #rakete.weg { opacity: 0; transition: none; }
+#schnur-bild, #schnur { transition: opacity .6s; }
+#schnur-bild.weg, #schnur.weg { opacity: 0; transition: opacity .25s; }
 .funke {
   position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; z-index: 4; border-radius: 50%;
   background: radial-gradient(circle, #fff 0 18%, #ffeb3b 30%, #ff9800 55%, rgba(255,87,34,0) 72%);
