@@ -171,6 +171,9 @@ body { background: #eef7e8; }
 .schwebt { animation: schweben 4s ease-in-out infinite; }
 .neon { animation: gluehen 1.2s ease-in-out infinite alternate; }
 
+/* Stufen-Zeichen (Rauten, Steinmännchen, Pylonen …): dezent, aber erkennbar */
+.welt-ebene .marke:not(.birne) { opacity: .62; }
+
 /* Presse und Schlitten bewegen sich weich */
 .dose-form, .stempel, .schlitten, .seil-gruppe { transition: transform 1s cubic-bezier(.5, 0, .3, 1); }
 .knitter { transition: opacity 1s; }

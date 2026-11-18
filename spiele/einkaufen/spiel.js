@@ -365,7 +365,7 @@ function zeigeAnzeige(text, art) {
   const t = $('anzeige-text');
   t.textContent = text;
   t.className = art || '';
-  t.style.fontSize = text.length > 9 ? '30px' : '';
+  t.style.fontSize = text.length > 9 ? '27px' : '';
 }
 
 /* =========================================================
@@ -396,7 +396,7 @@ function sackSvg(anzahl, offen) {
         <circle cx="70" cy="172" r="21" fill="url(#faden)" stroke="#e9e4dc" stroke-width="1.5"/>
         <circle cx="70" cy="172" r="14" fill="none" stroke="#c9c1b4" stroke-width="2" stroke-dasharray="3 3"/>
         <path d="M 70 162 L 72.6 168.6 L 79.5 168.9 L 74.1 173.3 L 75.9 180.1 L 70 176.3 L 64.1 180.1 L 65.9 173.3 L 60.5 168.9 L 67.4 168.6 Z" fill="#c9c1b4"/>
-        <text x="${anzahl >= 10 ? 128 : 124}" y="194" text-anchor="middle" class="sack-zahl" fill="url(#faden)" stroke="#e9e4dc" stroke-width="1.5">${anzahl}</text>
+        <text x="${anzahl >= 10 ? 124 : 120}" y="199" text-anchor="middle" class="sack-zahl" fill="url(#faden)" stroke="#e9e4dc" stroke-width="1.5">${anzahl}</text>
       </g>
     </g>
   </svg>`;
@@ -569,13 +569,9 @@ function baueSpielfeld() {
   $('band-bereich').innerHTML = '';
   $('flieger').innerHTML = '';
   PRODUKTE.forEach(p => setzeRegal([p.id], true));
-  [0, 1].forEach(i => {
-    const da = aktiv(i);
-    ['panel-', 'zone-'].forEach(p => $(p + i).classList.toggle('versteckt', !da));
-    if (!da) return;
-    bauePanel(i);
-    baueZone(i);
-  });
+  // erst alle Teile ein-/ausblenden, dann ausmessen und bauen
+  [0, 1].forEach(i => ['panel-', 'zone-'].forEach(p => $(p + i).classList.toggle('versteckt', !aktiv(i))));
+  [0, 1].forEach(i => { if (aktiv(i)) { bauePanel(i); baueZone(i); } });
   $('btn-ton').textContent = stumm ? '🔇' : '🔊';
   ['pause-menue', 'ende', 'wechsel-box'].forEach(id => $(id).classList.add('versteckt'));
 }
