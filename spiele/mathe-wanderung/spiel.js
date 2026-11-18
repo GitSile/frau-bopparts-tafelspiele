@@ -257,6 +257,8 @@ function baueEbenen(id, sichtbar) {
     const div = document.createElement('div');
     div.className = 'welt-ebene' + (sichtbar ? '' : ' unsichtbar');
     div.innerHTML = fn ? `<svg viewBox="0 0 1600 520" width="1600" height="520">${fn.call(welt)}</svg>` : '';
+    // hinten: die oberste Himmelsfarbe füllt den Platz über der Welt (bei höheren Bildschirmen)
+    if (ebene === 'hinten') { const stop = div.querySelector('stop'); if (stop) div.style.background = stop.getAttribute('stop-color'); }
     $(ebene).appendChild(div);
     neu[ebene] = div;
   });
@@ -410,7 +412,7 @@ function geheZuStufe(n) {
     setzePose(vor ? 'freude' : 'traurig', 1100);
   } else {
     bewegeZu(n, SCHRITT_MS);
-    if (welt.art === 'laufen') setzePose('sprung', SCHRITT_MS);
+    if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
     else setzePose(vor ? 'freude' : 'traurig', SCHRITT_MS);
   }
 }
@@ -425,11 +427,17 @@ function falsch() {
   zeichneEingabe();
 }
 
-function zeigeLoesung() {
+function zeigeLoesung(ms = LOESUNG_MS) {
   S.eingabe = ''; zeichneEingabe();
   zeigeAufgabe(S.ergebnis);
   $('aufgabe-text').classList.add('loesung');
-  setzePhase('loesung', LOESUNG_MS, () => wechsel(naechsteAufgabe));
+  setzePhase('loesung', ms, () => wechsel(naechsteAufgabe));
+}
+/** Knopf "Ich weiss es nicht": Lösung zeigen, kein Schritt, dann die nächste Aufgabe */
+const WEISS_NICHT_MS = 2600;
+function weissNicht() {
+  if (!S || S.pausiert || S.phase !== 'spiel') return;
+  zeigeLoesung(WEISS_NICHT_MS);
 }
 
 /* ---------- Level geschafft und Kran ---------- */
@@ -491,11 +499,12 @@ function zeichneKran(t) {
   const katzeX = K2.alt.x + HAKEN_DX + (K2.neu ? (K2.neu.x - K2.alt.x) * glatt(2300, 3100, t) : 0);
   // Haken: runter (800–1400), hoch mit Tier (1600–2300), runter mit Tier (3100–3800), hoch ohne Tier (3950–4500)
   const hakenTief1 = hakenAmTier(K2.alt) - 46;
-  let hakenY = HAKEN_OBEN;
-  if (t < 1600) hakenY = HAKEN_OBEN + (hakenTief1 - HAKEN_OBEN) * glatt(800, 1400, t);
-  else if (t < 2300) hakenY = hakenTief1 + (HAKEN_OBEN - hakenTief1) * glatt(1600, 2300, t);
-  else if (t < 3950) { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = HAKEN_OBEN + (tief2 - HAKEN_OBEN) * glatt(3100, 3800, t); }
-  else { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = tief2 + (HAKEN_OBEN - tief2) * glatt(3950, 4500, t); }
+  const oben = HAKEN_OBEN - DY;   // ganz oben im Feld (über der Welt kann Platz sein)
+  let hakenY = oben;
+  if (t < 1600) hakenY = oben + (hakenTief1 - oben) * glatt(800, 1400, t);
+  else if (t < 2300) hakenY = hakenTief1 + (oben - hakenTief1) * glatt(1600, 2300, t);
+  else if (t < 3950) { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = oben + (tief2 - oben) * glatt(3100, 3800, t); }
+  else { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = tief2 + (oben - tief2) * glatt(3950, 4500, t); }
   // Tier hängt am Haken zwischen 1600 und 3800 ms
   const haengt = t >= 1600 && t < 3850;
   if (haengt) {
@@ -508,10 +517,10 @@ function zeichneKran(t) {
   if (t >= 1450 && !K2.klack[0]) { K2.klack[0] = true; TON.klack(); }
   if (t >= 3850 && !K2.klack[1]) { K2.klack[1] = true; TON.klack(); }
   // zeichnen
-  $('kran-ausleger').setAttribute('transform', `translate(${r1(katzeX - 300 + auslegerX)} 0)`);
-  $('kran-katze').setAttribute('transform', `translate(${r1(katzeX + auslegerX)} 0)`);
-  $('kran-kette-band').setAttribute('height', Math.max(0, r1(hakenY - 50)));
-  $('kran-haken').setAttribute('transform', `translate(0 ${r1(hakenY)})`);
+  $('kran-ausleger').setAttribute('transform', `translate(${r1(katzeX - 300 + auslegerX)} ${-DY})`);
+  $('kran-katze').setAttribute('transform', `translate(${r1(katzeX + auslegerX)} ${-DY})`);
+  $('kran-kette-band').setAttribute('height', Math.max(0, r1(hakenY + DY - 50)));
+  $('kran-haken').setAttribute('transform', `translate(0 ${r1(hakenY + DY)})`);
 }
 function beendeKran() {
   $('kran').style.visibility = 'hidden';
@@ -580,6 +589,9 @@ function zeichneLaufend() {
     $('zeitbalken-fuellung').style.width = (anteil * 100) + '%';
     $('zeitbalken').classList.toggle('knapp', S.phase === 'spiel' && S.aufgabeRestMs <= 5000);
   }
+  const wn = $('btn-weiss-nicht');
+  wn.classList.toggle('versteckt', $('aufgabe-box').classList.contains('versteckt'));
+  wn.classList.toggle('aus', S.phase !== 'spiel' || S.pausiert);
   const p = $('panel');
   p.classList.toggle('gesperrt', S.sperre > 0);
   p.querySelector('.sperre div').style.width = (S.sperre / SPERRE_MS * 100) + '%';
@@ -610,9 +622,18 @@ function pause(an) {
    Seiten, Skalierung, Ereignisse
    ========================================================= */
 function zeigeSeite(id) { ['einstellungen', 'spiel'].forEach(s => $(s).classList.toggle('versteckt', s !== id)); }
+/* Die Bühne ist 1600 breit. Ist der Bildschirm höher als 16:9, wird sie höher (bis 1400),
+   damit kein leerer Rand bleibt: die Welt bekommt oben mehr Himmel. */
+let DY = 0;   // so viel Platz liegt über der Welt (1600 × 520)
 function skaliere() {
-  const s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
-  $('buehne').style.transform = `translate(-50%, -50%) scale(${s})`;
+  const w = window.innerWidth, h = window.innerHeight;
+  const H = Math.round(Math.min(1400, Math.max(900, 1600 * h / w)));
+  const b = $('buehne');
+  b.style.setProperty('--h', H + 'px');
+  DY = H - 900;
+  $('kran').setAttribute('viewBox', `0 ${-DY} 1600 ${520 + DY}`);
+  const s = Math.min(w / 1600, h / H);
+  b.style.transform = `translate(-50%, -50%) scale(${s})`;
 }
 window.addEventListener('resize', skaliere);
 function abbrechenUnd(weiter) { timerStopp(); if (S) S.beendet = true; S = null; weiter(); }
@@ -633,6 +654,7 @@ document.querySelectorAll('[data-reihe]').forEach(b => b.addEventListener('click
 ['e-wechsel', 'e-zeitlimit-sek'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
 ['e-zeitlimit-an', 'e-zurueck', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
+$('btn-weiss-nicht').addEventListener('click', weissNicht);
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));
