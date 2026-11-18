@@ -102,7 +102,7 @@ body { background: #eef7e8; }
 .welt-ebene.unsichtbar { opacity: 0; }
 .welt-ebene svg { display: block; overflow: hidden; position: absolute; left: 0; bottom: 0; }
 #vorne { z-index: 3; }
-#kran { position: absolute; left: 0; top: 0; width: 1600px; height: calc(var(--h) - 380px); z-index: 4; pointer-events: none; visibility: hidden; }
+#kran { position: absolute; left: 0; top: 0; width: 1600px; height: calc(var(--h) - 380px); z-index: 1; pointer-events: none; visibility: hidden; }   /* hinter dem Tier: der Haken greift hinten am Rücken */
 
 /* Das Tier (mit Fahrzeug): Ankerpunkt unten in der Mitte */
 #akteur { position: absolute; left: 0; top: calc(var(--h) - 900px); z-index: 2; transform-origin: 0 0; will-change: transform; }
@@ -193,6 +193,7 @@ body { background: #eef7e8; }
   position: absolute; top: 14px; left: 14px; z-index: 5; background: rgba(255,255,255,.94);
   padding: 8px 20px 12px; border-radius: var(--wackel); --filz-dicke: 4px; min-width: 250px;
 }
+#level-anzeige { cursor: pointer; }   /* Antippen = Test-Abkürzung ans Level-Ende */
 #level-nummer { font-size: 44px; font-weight: 900; color: #e65100; line-height: 1.05; }
 #welt-name { font-size: 22px; font-weight: 800; color: #455a64; }
 #stufen-punkte { display: flex; gap: 7px; margin-top: 8px; }

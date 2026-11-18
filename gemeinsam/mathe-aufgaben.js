@@ -192,3 +192,26 @@ function entzerren(stapel, vorher) {
   }
   return folge.reverse();
 }
+
+/** Nimmt die nächste Aufgabe vom Stapel (von hinten). Hätte sie dasselbe Ergebnis wie die
+    vorherige Aufgabe, wird stattdessen die nächstbeste Aufgabe mit einem anderen Ergebnis
+    genommen. So kommt nie zweimal hintereinander dasselbe Ergebnis (z. B. zweimal 10).
+    Liegen nur noch Aufgaben mit demselben Ergebnis auf dem Stapel, wird mit dem
+    neu gemischten Pool aufgefüllt (pool). Mengen-Bilder bleiben, wo sie sind:
+    ihre Reihenfolge ist schon geprüft (entzerren). */
+function naechsteAusStapel(stapel, vorher, pool) {
+  const passt = a => !mengenThema(a) && rechne(a) !== rechne(vorher);
+  const letzte = stapel.length - 1;
+  if (vorher && letzte >= 0 && !mengenThema(stapel[letzte]) && rechne(stapel[letzte]) === rechne(vorher)) {
+    let j = letzte - 1;
+    while (j >= 0 && !passt(stapel[j])) j--;
+    if (j < 0 && pool && pool.length) {
+      // nur noch gleiche Ergebnisse übrig: frisch gemischte Aufgaben unten anfügen
+      stapel.unshift(...mischen(pool));
+      return naechsteAusStapelOhneAuffuellen(stapel, vorher);
+    }
+    if (j >= 0) [stapel[j], stapel[letzte]] = [stapel[letzte], stapel[j]];
+  }
+  return stapel.pop();
+}
+function naechsteAusStapelOhneAuffuellen(stapel, vorher) { return naechsteAusStapel(stapel, vorher, null); }

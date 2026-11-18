@@ -179,16 +179,25 @@ WELTEN.presse = {
       const y = amboss - (PRESSE.doseH - s * 20);
       skala += `<line class="marke" x1="1122" y1="${y}" x2="${s % 4 === 0 ? 1146 : 1138}" y2="${y}" stroke="${K}" stroke-width="3"/>`;
     }
+    // Schlanke Energy-Drink-Dose: blau-silbernes Karomuster, gelbe Sonne (ohne Logo und Schrift)
+    let karos = '';
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 4; c++)
+      karos += `<rect x="${-42 + c * 21}" y="${-180 + r * 27}" width="21" height="27" fill="${(r + c) % 2 ? '#1a3f8f' : '#cfd8dc'}"/>`;
     const dose = `<g class="dose-form">
-        <rect x="-60" y="-200" width="120" height="200" rx="10" fill="#1e5bb8" stroke="${K}" stroke-width="4"/>
-        <path d="M-60 -120 Q-20 -150 20 -110 T60 -130 V-80 Q20 -60 -20 -96 T-60 -70 Z" fill="#cfd8dc" stroke="${K}" stroke-width="2.5"/>
-        <rect x="-60" y="-200" width="120" height="16" rx="6" fill="#eceff1" stroke="${K}" stroke-width="3"/>
-        <rect x="-60" y="-14" width="120" height="14" rx="6" fill="#b0bec5" stroke="${K}" stroke-width="3"/>
-        <rect x="-44" y="-182" width="12" height="160" rx="6" fill="#fff" opacity=".35"/>
+        <defs><clipPath id="w-dose-koerper"><path d="M-42 -184 Q-42 -192 -36 -196 L-30 -200 H30 L36 -196 Q42 -192 42 -184 V-8 Q42 0 34 0 H-34 Q-42 0 -42 -8 Z"/></clipPath>
+          <linearGradient id="w-dose-glanz" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".25" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#000" stop-opacity=".18"/></linearGradient></defs>
+        <g clip-path="url(#w-dose-koerper)">
+          <rect x="-42" y="-200" width="84" height="200" fill="#cfd8dc"/>${karos}
+          <circle cx="0" cy="-104" r="20" fill="#ffd600" stroke="${K}" stroke-width="2.5"/>
+          <rect x="-42" y="-200" width="84" height="22" fill="#eceff1"/><rect x="-42" y="-12" width="84" height="12" fill="#b0bec5"/>
+          <rect x="-42" y="-200" width="84" height="200" fill="url(#w-dose-glanz)"/></g>
+        <path d="M-42 -184 Q-42 -192 -36 -196 L-30 -200 H30 L36 -196 Q42 -192 42 -184 V-8 Q42 0 34 0 H-34 Q-42 0 -42 -8 Z" fill="none" stroke="${K}" stroke-width="4"/>
+        <path d="M-42 -178 H42 M-42 -12 H42" stroke="${K}" stroke-width="2.5"/>
+        <rect x="-12" y="-205" width="24" height="7" rx="3" fill="#b0bec5" stroke="${K}" stroke-width="2.5"/>
         <g class="knitter" fill="none" stroke="${K}" stroke-width="3" stroke-linejoin="round" opacity="0">
-          <path d="M-60 -150 L-40 -140 L-55 -125 L-35 -112 L-58 -95 L-36 -80 L-60 -60"/>
-          <path d="M60 -160 L42 -146 L58 -130 L40 -118 L60 -100 L44 -84 L60 -66"/>
-          <path d="M-20 -150 L-6 -138 L-18 -120 M12 -100 L26 -88 L14 -72"/></g></g>`;
+          <path d="M-42 -150 L-26 -140 L-38 -125 L-22 -112 L-40 -95 L-24 -80 L-42 -60"/>
+          <path d="M42 -160 L28 -146 L40 -130 L26 -118 L42 -100 L30 -84 L42 -66"/>
+          <path d="M-12 -150 L0 -138 L-10 -120 M8 -100 L18 -88 L10 -72"/></g></g>`;
     return himmel('w-pr-h', '#cfd8dc', '#eceff1') + fenster
       + `<g stroke="${K}" stroke-width="2" opacity=".25">${[300, 700, 1000, 1500].map(x => `<path d="M${x} 0V420"/>`).join('')}</g>
          <rect x="0" y="420" width="1600" height="100" fill="#78909c" stroke="${K}" stroke-width="4"/>
@@ -564,14 +573,14 @@ WELTEN.spielautomat = {
 /* =========================================================
    Akteure: Tier mit (oder ohne) Fahrzeug.
    Gibt { b, h, html, haken } zurück: Breite, Höhe, Inhalt und
-   die Höhe des Aufhängepunkts für den Kran (von unten gemessen).
+   die Höhe des Aufhängepunkts für den Kran (von unten gemessen): Dort greift der Kranhaken hinten am Rücken ein (der Kran liegt hinter dem Tier).
    Ankerpunkt ist immer unten in der Mitte.
    ========================================================= */
 function akteur(welt, tier) {
   const art = welt.fahrzeug || welt.art;
   if (art === 'boot') {
     const b = 300, h = 210;
-    return { b, h, haken: 190, html: `
+    return { b, h, haken: 112, html: `
       ${svgTeil(b, h, `<g stroke="${K}" stroke-width="4" stroke-linejoin="round"><rect x="56" y="70" width="6" height="90" fill="#8d6e63"/><path d="M62 74 L62 140 L118 140 Z" fill="#fff"/></g>`)}
       ${oberkoerper(tier, 150, 112, 18, 0.62)}
       ${svgTeil(b, h, `<g stroke="${K}" stroke-width="4" stroke-linejoin="round">
@@ -583,7 +592,7 @@ function akteur(welt, tier) {
   }
   if (art === 'motorrad') {
     const b = 260, h = 200;
-    return { b, h, haken: 190, html: `
+    return { b, h, haken: 112, html: `
       ${oberkoerper(tier, 140, 70, 12, 0.6)}
       ${svgTeil(b, h, `<g stroke="${K}" stroke-width="4" stroke-linejoin="round">
         <g class="rad"><circle cx="52" cy="160" r="36" fill="#37474f"/><circle cx="52" cy="160" r="16" fill="#cfd8dc"/><path d="M52 126 V194 M18 160 H86" stroke-width="3"/></g>
@@ -597,7 +606,7 @@ function akteur(welt, tier) {
   }
   if (art === 'uboot') {
     const b = 300, h = 170;
-    return { b, h, haken: 160, html: `
+    return { b, h, haken: 140, html: `
       ${svgTeil(b, h, `<defs><clipPath id="bullauge-${tier}"><circle cx="204" cy="104" r="34"/></clipPath></defs>
         <g stroke="${K}" stroke-width="4" stroke-linejoin="round">
         <rect x="120" y="20" width="70" height="50" rx="10" fill="#fbc02d"/><path d="M168 20 V-0 H192" fill="none" stroke-width="6"/>
@@ -612,7 +621,7 @@ function akteur(welt, tier) {
   }
   if (art === 'flugzeug') {
     const b = 300, h = 190;
-    return { b, h, haken: 180, html: `
+    return { b, h, haken: 110, html: `
       ${svgTeil(b, h, `<g stroke="${K}" stroke-width="4" stroke-linejoin="round"><rect x="70" y="58" width="190" height="20" rx="10" fill="#ffca28"/>
         <path d="M110 78 L104 128 M220 78 L226 128" stroke-width="5"/></g>`)}
       ${oberkoerper(tier, 110, 118, 18, 0.6)}
@@ -628,7 +637,7 @@ function akteur(welt, tier) {
   }
   if (art === 'gleitschirm') {
     const b = 260, h = 300;
-    return { b, h, haken: 292, html: `
+    return { b, h, haken: 270, html: `
       ${svgTeil(b, h, `<g stroke="${K}" stroke-width="4" stroke-linejoin="round">
         <path d="M14 70 Q130 -14 246 70 Q130 30 14 70Z" fill="#ff7043"/>
         <path d="M14 70 Q40 38 70 30 L84 50 Q50 56 14 70Z M246 70 Q220 38 190 30 L176 50 Q210 56 246 70Z" fill="#fdd835"/>
@@ -639,7 +648,7 @@ function akteur(welt, tier) {
   }
   // zu Fuss (laufen, joggen) oder fest an einem Ort (Presse, Schlitten, Spielautomat)
   const b = 210, h = 210;
-  return { b, h, haken: 192, html: figur(tier, b, h) };
+  return { b, h, haken: 118, html: figur(tier, b, h) };
 }
 
 /* =========================================================
