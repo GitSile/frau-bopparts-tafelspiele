@@ -1,0 +1,295 @@
+/* =========================================================
+   Uhr lesen – Stil
+   Grundstil, Farben, Filzstift-Rand und Knöpfe: ../../gemeinsam/filz.css
+   ========================================================= */
+body { background: #eef3fb; }
+.zur-uebersicht { text-decoration: none; display: inline-block; }
+
+/* =========================================================
+   Wer spielt? und Einstellungen
+   ========================================================= */
+#wahl, #einstellungen { padding: 20px 24px 40px; max-width: 1280px; margin: 0 auto; }
+.kopf { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.kopf h1 { margin: 0; font-size: 40px; }
+.kopf > div { display: flex; gap: 10px; }
+
+.wahl-frage { text-align: center; font-size: 64px; margin: 30px 0 34px; color: #1d2733; }
+.wahl-knoepfe { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+.wahl-gross {
+  width: 440px; height: 400px; border: 0; background: #fff; border-radius: var(--wackel);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  --filz-dicke: 6px; --filz-farbe: var(--blau); transition: transform .15s;
+}
+.wahl-gross:hover { transform: rotate(-1.2deg) scale(1.03); }
+.wahl-gross:active { transform: scale(.97); }
+.wahl-bilder { display: flex; align-items: flex-end; justify-content: center; height: 250px; }
+.wahl-bilder img { height: 240px; width: auto; }
+.wahl-bilder img.gespiegelt { transform: scaleX(-1); margin-left: 16px; }
+.wahl-titel { font-size: 56px; font-weight: 900; color: var(--blau); }
+
+.raster { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+.karte { grid-column: span 2; background: #fff; border-radius: var(--wackel); padding: 18px 22px; }
+.karte.breit { grid-column: 1 / -1; }
+.team-karte { grid-column: span 3; --filz-farbe: var(--farbe); --filz-dicke: 4px; }
+.team-karte.allein { grid-column: 1 / -1; }
+.team-karte.allein .tier-wahl { grid-template-columns: repeat(9, 1fr); }
+.karte h2 { margin: 0 0 12px; font-size: 26px; }
+@media (max-width: 900px) {
+  .raster { grid-template-columns: 1fr; }
+  .karte, .team-karte { grid-column: auto; }
+  .team-karte.allein .tier-wahl { grid-template-columns: repeat(5, 1fr); }
+}
+
+.abschnitt { padding: 14px 0; border-top: 2px dashed #b0bec5; }
+.abschnitt:first-of-type { border-top: 0; padding-top: 0; }
+.abschnitt-titel { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+.knopf-raster { display: grid; gap: 14px; }
+.arten-raster { grid-template-columns: repeat(auto-fill, 260px); }
+.wahl {
+  width: 260px; min-height: 64px; border: 0; border-radius: var(--wackel-klein);
+  background: #fff; color: #78909c; font-size: 22px; font-weight: 800; padding: 6px 10px;
+  --filz-farbe: #b0bec5;
+}
+.wahl small { display: block; font-size: 16px; font-weight: 600; }
+.wahl.an { background: var(--gruen-hell); color: #1b5e20; --filz-farbe: var(--gruen); }
+.wahl:active { transform: translateY(2px) rotate(-1deg); }
+.blatt-raster { display: flex; gap: 18px; flex-wrap: wrap; }
+.wahl.blatt { width: 230px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; }
+.wahl.blatt svg { width: 130px; height: 130px; }
+.wahl.blatt:not(.an) svg { opacity: .55; }
+
+.zahl-feld { display: inline-flex; width: 110px; height: 52px; align-items: center; background: #fff; border-radius: var(--wackel-klein); }
+.zahl-feld input { width: 100%; border: 0; background: transparent; outline: none; font: inherit; font-size: 24px; font-weight: 800; text-align: center; color: #1d2733; }
+.feld-zeile { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; margin: 12px 0; }
+.hinweis { margin: 0 0 6px; color: #546e7a; font-size: 16px; }
+
+.team-name { font: inherit; font-size: 24px; font-weight: 800; width: 100%; padding: 8px 14px; border: 0; border-radius: var(--wackel-klein); background: var(--farbe-hell); margin-bottom: 12px; outline: none; }
+.schalter-zeile { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; margin: 14px 0; cursor: pointer; }
+.schalter-zeile input { position: absolute; opacity: 0; pointer-events: none; }
+.schalter { width: 54px; height: 32px; border-radius: 999px; background: #cfd8dc; position: relative; flex: none; border: 2.5px solid var(--strich); }
+.schalter::after { content: ""; position: absolute; top: 2px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--strich); transition: left .15s; }
+.schalter-zeile input:checked + .schalter { background: #81c784; }
+.schalter-zeile input:checked + .schalter::after { left: 24px; }
+
+.team-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.team-kopf h2 { margin: 0; flex: 1; font-size: 38px; font-weight: 900; color: var(--farbe-dunkel); -webkit-text-stroke: 1px currentColor; }
+.wuerfel { border: 0; background: #fff; border-radius: var(--wackel-klein); font-size: 28px; padding: 2px 12px; }
+.unterzeile { font-size: 15px; color: #546e7a; margin: 10px 0 6px; font-weight: 700; }
+.tier-wahl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.tier-wahl button { aspect-ratio: 1; border: 0; border-radius: var(--wackel-klein); background: #f1f5f9; display: grid; place-items: center; padding: 6px; --filz-farbe: transparent; }
+.tier-wahl button img { width: 100%; height: 100%; object-fit: contain; }
+.tier-wahl button.aktiv { background: var(--farbe-hell); --filz-farbe: var(--farbe); --filz-dicke: 4px; }
+.tier-wahl button.vergeben { opacity: .25; filter: grayscale(1); cursor: not-allowed; }
+
+.fehler { color: var(--rot); font-weight: 800; font-size: 22px; min-height: 30px; text-align: center; margin: 20px 0 8px; }
+.anpfiff-zeile { text-align: center; }
+
+.ring { border-radius: 50%; background: #fff; overflow: hidden; display: grid; place-items: center; flex: none; box-shadow: 0 0 0 4px var(--farbe); }
+.ring img { width: 100%; height: 100%; object-fit: contain; }
+
+/* ---------- Analoge Uhr (SVG) ---------- */
+.uhr { display: block; overflow: visible; }
+.uhr-zahl { font-family: var(--schrift); font-size: 19px; font-weight: 700; fill: #111; text-anchor: middle; dominant-baseline: central; }
+.uhr-zahl.gross { font-size: 22px; }
+.uhr .zeiger { transition: transform .15s; }
+
+/* ---------- Digitalanzeige ---------- */
+.segmente .seg.an { fill: #ff2a1a; filter: drop-shadow(0 0 3px rgba(255, 40, 20, .9)); }
+.segmente .seg.aus { fill: #2a0806; opacity: .55; }
+
+/* =========================================================
+   Spiel – Bühne 1600 × 900, wird auf das Fenster skaliert
+   ========================================================= */
+#spiel { position: fixed; inset: 0; background: #0b1530; overflow: hidden; }
+#buehne { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; overflow: hidden; background: #fdfaf3; }
+
+/* ---------- Szene oben ---------- */
+#szene {
+  position: absolute; left: 0; top: 0; width: 1600px; height: 450px; overflow: hidden;
+  background: #2a2f6b url("bilder/hintergrund.jpg") 50% 75% / cover no-repeat;
+}
+#schnur { position: absolute; left: 0; top: 0; width: 1600px; height: 450px; z-index: 2; pointer-events: none; }
+.brand { fill: none; stroke: #2a2220; stroke-width: 7.5; stroke-linecap: round; stroke-linejoin: round; opacity: .92; }
+#rakete, #schnur-bild { position: absolute; z-index: 3; pointer-events: none; }
+#rakete { transition: opacity .6s; filter: drop-shadow(0 6px 6px rgba(0,0,0,.35)); }
+#schnur-bild { z-index: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+#rakete.weg { opacity: 0; transition: none; }
+.funke {
+  position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; z-index: 4; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, #ffeb3b 30%, #ff9800 55%, rgba(255,87,34,0) 72%);
+  animation: flackern .12s infinite alternate;
+}
+@keyframes flackern { from { transform: scale(.8); } to { transform: scale(1.25); } }
+
+/* Schritte auf der Wiese */
+.schritt {
+  position: absolute; top: 431px; width: 24px; height: 10px; margin-left: -12px; z-index: 1;
+  border-radius: 50%; background: rgba(255,255,255,.4); box-shadow: 0 0 0 1.5px rgba(40,50,40,.18);
+  transition: background .3s;
+}
+.schritt.erreicht { background: var(--farbe); opacity: .65; box-shadow: none; }
+
+/* Tiere mit Fackel */
+.figur {
+  position: absolute; top: 205px; width: 220px; height: 228px; margin-left: -110px; z-index: 5;
+  transition: left .85s cubic-bezier(.45,.05,.4,1);
+}
+.figur img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; transform-origin: 50% 100%; }
+.figur.rechts img { transform: scaleX(-1); }
+.figur.geht img { animation: gehen .28s ease-in-out 3; }
+.figur.rechts.geht img { animation-name: gehen-rechts; }
+@keyframes gehen { 50% { transform: translateY(-14px) rotate(4deg); } }
+@keyframes gehen-rechts { 0%, 100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(-14px) rotate(4deg); } }
+.figur.zuendet img { transform: rotate(16deg) translateY(10px); transition: transform .4s; }
+.figur.rechts.zuendet img { transform: scaleX(-1) rotate(16deg) translateY(10px); }
+.figur.traurig img { animation: wackeln .5s; filter: grayscale(.5); }
+.figur.rechts.traurig img { animation-name: wackeln-rechts; }
+@keyframes wackeln { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+@keyframes wackeln-rechts { 0%,100% { transform: scaleX(-1); } 25% { transform: scaleX(-1) rotate(-7deg); } 75% { transform: scaleX(-1) rotate(7deg); } }
+.zaehler {
+  position: absolute; left: 50%; top: -22px; transform: translateX(-50%); white-space: nowrap;
+  background: var(--farbe); color: var(--text); font-size: 24px; font-weight: 900; padding: 1px 12px;
+  border-radius: var(--wackel-klein); box-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+
+/* Anzeigetafel */
+#oben { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 6; }
+#anzeigetafel { display: inline-flex; align-items: center; gap: 40px; background: rgba(255,255,255,.95); border-radius: var(--wackel); padding: 6px 22px; }
+.tafel-team { display: inline-flex; align-items: center; gap: 12px; font-size: 32px; font-weight: 800; white-space: nowrap; }
+.tafel-team .ring { width: 48px; height: 48px; }
+.tafel-raketen { font-size: 36px; font-weight: 900; color: var(--farbe); min-width: 70px; }
+#ziel { margin-top: 6px; font-size: 24px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+#ziel.knapp { color: #ffcdd2; animation: blinken 1s steps(2) infinite; }
+@keyframes blinken { 50% { opacity: .25; } }
+
+#werkzeuge { position: absolute; top: 14px; right: 14px; display: flex; gap: 10px; z-index: 6; }
+#werkzeuge button { width: 60px; height: 60px; border: 0; background: rgba(255,255,255,.95); font-size: 28px; border-radius: var(--wackel-klein); }
+#werkzeuge #btn-pause { width: auto; padding: 0 18px; font-size: 26px; }
+
+/* ---------- Unten ---------- */
+.panel {
+  position: absolute; top: 458px; width: 430px; height: 434px;
+  background: var(--farbe-hell); padding: 10px 16px 14px;
+  display: flex; flex-direction: column;
+  --filz-farbe: var(--farbe); --filz-dicke: 6px;
+}
+#panel-0 { left: 8px; }
+#panel-1 { right: 8px; }
+.panel.richtig { animation: blitz-gruen .6s; }
+.panel.falsch .tastatur, .panel.falsch .eingabe, .panel.falsch .uhr-halter { animation: schuetteln .45s; }
+@keyframes blitz-gruen { 0%,100% { background: var(--farbe-hell); } 30% { background: #b9f6ca; } }
+@keyframes schuetteln { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-14px); } 40% { transform: translateX(12px); } 60% { transform: translateX(-8px); } 80% { transform: translateX(5px); } }
+
+.panel-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.panel-name { flex: 1; font-size: 26px; font-weight: 900; color: var(--farbe-dunkel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eingabe {
+  width: 210px; height: 58px; border-radius: var(--wackel-klein); background: #fff;
+  font-size: 46px; font-weight: 900; text-align: center; line-height: 58px; color: #1d2733; letter-spacing: 1px;
+  --filz-farbe: var(--farbe); --filz-dicke: 3px;
+}
+.eingabe:empty::before { content: "00:00"; color: #d5dbe0; }
+.meldung { position: absolute; left: 16px; right: 16px; top: 74px; z-index: 2; text-align: center; font-size: 26px; font-weight: 900; color: #fff; background: var(--blau); border-radius: var(--wackel-klein); padding: 4px; opacity: 0; pointer-events: none; }
+.meldung.zeigen { animation: meldung 1.4s; }
+@keyframes meldung { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.tastatur { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; flex: 1; }
+.tastatur button {
+  border: 0; border-radius: var(--wackel-klein); background: var(--farbe); color: var(--text);
+  font-size: 40px; font-weight: 900; --filz-farbe: var(--farbe-dunkel); --filz-dicke: 3px;
+}
+.tastatur button:active, .gross-ok:active { transform: translateY(3px) scale(.97); }
+.tastatur button.doppelpunkt { background: #fff; color: #1d2733; font-size: 48px; --filz-farbe: #37474f; }
+.tastatur button.loeschen { background: #eceff1; color: #37474f; --filz-farbe: #37474f; font-size: 36px; }
+.tastatur button.ok, .gross-ok { grid-column: 1 / -1; background: var(--gruen); color: #fff; --filz-farbe: #1b5e20; font-size: 34px; }
+.panel.gesperrt .tastatur button, .panel.gesperrt .gross-ok { background: #ef9a9a !important; color: #fff !important; opacity: .6; }
+.sperre { position: absolute; left: 18px; right: 18px; bottom: 4px; height: 8px; border-radius: 99px; overflow: hidden; visibility: hidden; }
+.panel.gesperrt .sperre { visibility: visible; }
+.sperre div { height: 100%; width: 100%; background: var(--rot); border-radius: 99px; }
+
+/* Uhr stellen im Panel */
+.uhr-teil { display: none; flex: 1; flex-direction: column; gap: 8px; min-height: 0; }
+.panel.stellen .uhr-teil { display: flex; }
+.panel.stellen .tastatur, .panel.stellen .eingabe { display: none; }
+.uhr-teil .wand { flex: 1; min-height: 0; border-radius: var(--wackel-klein); position: relative; }
+.uhr-halter { position: absolute; inset: 4px 0 8px; }
+.uhr-halter svg { width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.uhr-halter svg.zieht { cursor: grabbing; }
+.zieht-minute .zeiger-minute rect, .zieht-stunde .zeiger-stunde rect { stroke: #ffeb3b; stroke-width: 2.5; }
+.panel.geloest .uhr-halter svg { filter: drop-shadow(0 0 10px #00c853) drop-shadow(0 0 4px #00c853); }
+.gross-ok { height: 66px; border: 0; border-radius: var(--wackel-klein); font-weight: 900; flex: none; }
+
+/* Weisse Wohnungswand mit leichter Struktur */
+.wand {
+  background-color: #f7f6f2;
+  background-image:
+    radial-gradient(ellipse at 50% 30%, rgba(255,255,255,.9), rgba(255,255,255,0) 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .48 0 0 0 0 .44 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-shadow: inset 0 0 40px rgba(120,110,90,.18);
+}
+
+/* Aufgabe in der Mitte */
+#mitte { position: absolute; left: 450px; top: 458px; width: 700px; height: 434px; }
+#buehne.allein #mitte { width: 1142px; }
+#aufgabe-box, #wechsel-box {
+  position: absolute; inset: 0; background: #fff; border-radius: var(--wackel);
+  display: flex; align-items: center; justify-content: center; overflow: hidden; --filz-dicke: 5px;
+}
+#aufgabe-lesen { position: absolute; inset: 0; display: grid; place-items: center; }
+/* Sockelleiste unten an der Wand */
+#aufgabe-lesen::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: linear-gradient(#fff, #e9e6df); border-top: 2px solid #d8d3c8; }
+#uhr-gross { height: 408px; aspect-ratio: 216 / 244; margin-top: -14px; }
+#uhr-gross svg { width: 100%; height: 100%; }
+#loesung-text {
+  position: absolute; right: 22px; bottom: 34px; z-index: 2;
+  font-size: 84px; font-weight: 900; color: var(--gruen); background: #fff; padding: 0 22px;
+  border-radius: var(--wackel-klein); box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  animation: auftauchen .3s ease-out;
+}
+@keyframes auftauchen { from { transform: scale(.4); opacity: 0; } }
+
+#aufgabe-stellen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#e3f2fd, #fff 70%); }
+/* Das schwarze Anzeigefeld im Weckerbild liegt bei x 8–92 %, y 41–80 % */
+#wecker { position: relative; height: 360px; aspect-ratio: 720 / 687; --anz-l: 9%; --anz-o: 42%; --anz-b: 82%; --anz-h: 37%; }
+#wecker img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0,0,0,.25)); }
+#wecker-anzeige { position: absolute; left: var(--anz-l, 20%); top: var(--anz-o, 40%); width: var(--anz-b, 60%); height: var(--anz-h, 30%); display: grid; place-items: center; }
+#wecker-anzeige svg { width: 88%; height: 80%; }
+#stellen-hinweis { font-size: 34px; font-weight: 900; color: #455a64; margin-top: 4px; }
+
+#wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; cursor: pointer; touch-action: manipulation; flex-direction: column; }
+#wechsel-kreis { width: 280px; height: 280px; overflow: visible; }
+#wechsel-hinweis { margin-top: 6px; font-size: 20px; color: #8d6e63; }
+#wechsel-kreis .spur, #wechsel-kreis .rest { fill: none; stroke-width: 12; }
+#wechsel-kreis .spur { stroke: #ffe0b2; stroke-dasharray: 2 4; stroke-linecap: round; }
+#wechsel-kreis .rest { stroke: #ffb300; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 0; }
+#wechsel-sek { font-family: var(--schrift); font-size: 46px; font-weight: 900; fill: #e65100; }
+#wechsel-sek.hops { animation: sek-hops .35s ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes sek-hops { 40% { transform: scale(1.25); } }
+#wechsel-vogel .vogel-koerper { animation: gleiten .5s ease-in-out infinite alternate; }
+@keyframes gleiten { from { transform: translateY(-1.8px) rotate(-4deg); } to { transform: translateY(1.8px) rotate(4deg); } }
+
+/* ---------- Flug und Feuerwerk ---------- */
+#feuerwerk { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; z-index: 20; pointer-events: none; }
+#flug-rakete { position: absolute; left: 0; top: 0; z-index: 21; pointer-events: none; transform-origin: center; }
+#jubel { position: absolute; left: 0; right: 0; top: 520px; z-index: 22; text-align: center; pointer-events: none; }
+#jubel-text {
+  display: inline-block; font-size: 84px; font-weight: 900; color: var(--farbe); background: rgba(255,255,255,.92);
+  padding: 4px 40px; border-radius: var(--wackel); box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  animation: auftauchen .4s ease-out;
+}
+
+/* ---------- Overlays ---------- */
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 30; }
+.overlay.dunkel { background: rgba(10,20,50,.82); }
+.menue-box { background: #fff; border-radius: var(--wackel); padding: 36px 50px; min-width: 520px; display: flex; flex-direction: column; gap: 16px; align-items: stretch; text-align: center; --filz-dicke: 5px; }
+.menue-box h2 { margin: 0 0 8px; font-size: 54px; }
+.menue-box .knopf { font-size: 30px; }
+.ende-box { min-width: 760px; align-items: center; }
+#ende-bild { display: flex; align-items: flex-end; gap: 10px; height: 240px; }
+#ende-bild .figur-bild { width: 220px; height: 240px; }
+#ende-bild img { width: 100%; height: 100%; object-fit: contain; }
+#ende-text { font-size: 60px; color: var(--farbe-dunkel); }
+#ende-stand { font-size: 36px; font-weight: 800; color: #546e7a; }
+.knopf-reihe { display: flex; gap: 14px; margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .figur img, #ziel.knapp, .funke { animation: none !important; }
+}
