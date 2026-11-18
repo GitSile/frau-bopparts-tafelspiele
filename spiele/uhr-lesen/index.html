@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uhr lesen · Frau Bopparts Tafelspiele</title>
+  <meta name="description" content="Uhrzeiten lesen und Uhren stellen an der Schultafel">
+  <!-- Vorschau beim Teilen (WhatsApp, Teams, E-Mail …) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Uhr lesen · Frau Bopparts Tafelspiele">
+  <meta property="og:description" content="Uhrzeiten lesen und Uhren stellen an der Schultafel">
+  <meta property="og:url" content="https://boppart.info/spiele/uhr-lesen/">
+  <meta property="og:image" content="https://boppart.info/vorschau.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕒</text></svg>">
+  <link rel="stylesheet" href="../../gemeinsam/filz.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Filzstift-Effekt für alle Ränder -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="filz" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
+      <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <!-- ============ WER SPIELT? ============ -->
+  <section id="wahl" class="seite">
+    <header class="kopf">
+      <h1>🕒 Uhr lesen</h1>
+      <div>
+        <a href="../../index.html" class="knopf hell filz zur-uebersicht">← Alle Spiele</a>
+        <button class="knopf hell filz btn-vollbild" title="Vollbild ein/aus">⛶</button>
+      </div>
+    </header>
+    <h2 class="wahl-frage">Wer spielt?</h2>
+    <div class="wahl-knoepfe">
+      <button class="wahl-gross filz" data-spieler="1">
+        <span class="wahl-bilder"><img src="bilder/fackel/loewe.png" alt=""></span>
+        <span class="wahl-titel">1 Kind</span>
+      </button>
+      <button class="wahl-gross filz" data-spieler="2">
+        <span class="wahl-bilder"><img src="bilder/fackel/loewe.png" alt=""><img class="gespiegelt" src="bilder/fackel/erdmaennchen.png" alt=""></span>
+        <span class="wahl-titel">2 Kinder</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <section id="einstellungen" class="seite versteckt">
+    <header class="kopf">
+      <h1>🕒 Uhr lesen</h1>
+      <div>
+        <button id="btn-zur-wahl" class="knopf hell filz">← Wer spielt?</button>
+        <button class="knopf hell filz btn-vollbild" title="Vollbild ein/aus">⛶</button>
+      </div>
+    </header>
+
+    <div class="raster">
+      <div class="karte team-karte filz" id="karte-0"></div>
+      <div class="karte team-karte filz" id="karte-1"></div>
+
+      <div class="karte breit filz">
+        <h2>Aufgaben</h2>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Aufgabenart</div>
+          <div class="knopf-raster arten-raster">
+            <button class="wahl filz" data-art="lesen">Uhr lesen <small>(Zeit eintippen)</small></button>
+            <button class="wahl filz" data-art="stellen">Uhr stellen <small>(Zeiger ziehen)</small></button>
+          </div>
+        </div>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Uhrzeiten</div>
+          <div class="knopf-raster arten-raster">
+            <button class="wahl filz" data-zeit="ganz">Ganze Stunden <small>(3:00)</small></button>
+            <button class="wahl filz" data-zeit="halb">Halbe Stunden <small>(3:30)</small></button>
+            <button class="wahl filz" data-zeit="viertel">Viertelstunden <small>(3:15, 3:45)</small></button>
+          </div>
+        </div>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Zifferblatt</div>
+          <div class="blatt-raster" id="blatt-raster"></div>
+        </div>
+        <div class="abschnitt">
+          <label class="schalter-zeile"><input type="checkbox" id="e-nachmittag"><span class="schalter"></span>Beim Uhr stellen auch Nachmittagszeiten zeigen (z. B. 15:15)</label>
+        </div>
+      </div>
+
+      <div class="karte filz">
+        <h2>Rakete</h2>
+        <label class="feld-zeile">Richtige bis zum Zünden
+          <span class="zahl-feld filz"><input type="text" id="e-schritte" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <p class="hinweis">3 bis 10. Mit jeder richtigen Antwort kommt das Tier der Zündschnur einen Schritt näher.</p>
+      </div>
+
+      <div class="karte filz">
+        <h2>Spielzeit</h2>
+        <label class="feld-zeile">Minuten
+          <span class="zahl-feld filz"><input type="text" id="e-minuten" inputmode="numeric" maxlength="2" placeholder="–"></span>
+        </label>
+        <p class="hinweis">Leer lassen = ohne Ende. Ist die Zeit um, startet die Rakete von selbst.</p>
+      </div>
+
+      <div class="karte filz">
+        <h2>Ablauf</h2>
+        <label class="feld-zeile">Wechselzeit (Sekunden)
+          <span class="zahl-feld filz"><input type="text" id="e-wechsel" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <p class="hinweis">Countdown zwischen den Aufgaben. 0 = sofort weiter.</p>
+        <label class="schalter-zeile"><input type="checkbox" id="e-ton"><span class="schalter"></span>Ton</label>
+      </div>
+    </div>
+
+    <p id="fehler" class="fehler" role="alert"></p>
+    <div class="anpfiff-zeile">
+      <button id="btn-start" class="knopf gross filz">Los geht's! 🚀</button>
+    </div>
+  </section>
+
+  <!-- ============ SPIEL ============ -->
+  <section id="spiel" class="seite versteckt">
+    <div id="buehne">
+
+      <!-- Oben: Wiese mit Rakete, Zündschnur und Tieren -->
+      <div id="szene">
+        <div id="schritte"></div>
+        <svg id="schnur" viewBox="0 0 1600 450" aria-hidden="true">
+          <path id="schnur-0" class="schnur" d=""/>
+          <path id="schnur-1" class="schnur" d=""/>
+          <path id="brand-0" class="brand" d=""/>
+          <path id="brand-1" class="brand" d=""/>
+        </svg>
+        <div id="funke-0" class="funke versteckt"></div>
+        <div id="funke-1" class="funke versteckt"></div>
+        <img id="rakete" src="bilder/rakete.png" alt="Rakete">
+        <div class="figur" id="figur-0"></div>
+        <div class="figur" id="figur-1"></div>
+
+        <div id="oben">
+          <div id="anzeigetafel" class="filz">
+            <span class="tafel-team" id="tafel-0"></span>
+            <span class="tafel-team rechts" id="tafel-1"></span>
+          </div>
+          <div id="ziel"></div>
+        </div>
+        <div id="werkzeuge">
+          <button id="btn-pause" class="filz" title="Menü (Spiel pausiert)">Menü</button>
+          <button id="btn-ton" class="filz" title="Ton an/aus">🔊</button>
+          <button class="filz btn-vollbild" title="Vollbild">⛶</button>
+        </div>
+      </div>
+
+      <!-- Unten: Eingabe – Aufgabe – Eingabe -->
+      <div class="panel filz" id="panel-0"></div>
+
+      <div id="mitte">
+        <div id="aufgabe-box" class="filz">
+          <div id="aufgabe-lesen" class="wand">
+            <div id="uhr-gross"></div>
+            <div id="loesung-text" class="versteckt"></div>
+          </div>
+          <div id="aufgabe-stellen" class="versteckt">
+            <div id="wecker">
+              <img src="bilder/wecker.png" alt="">
+              <div id="wecker-anzeige"></div>
+            </div>
+            <div id="stellen-hinweis">Stelle die Uhr!</div>
+          </div>
+        </div>
+        <div id="wechsel-box" class="filz versteckt">
+          <svg id="wechsel-kreis" viewBox="-8 -8 116 116" aria-label="Countdown">
+            <circle class="spur" cx="50" cy="50" r="42"></circle>
+            <circle class="rest" id="wechsel-rest" cx="50" cy="50" r="42" pathLength="100" transform="rotate(-90 50 50)"></circle>
+            <text id="wechsel-sek" x="50" y="52" text-anchor="middle" dominant-baseline="middle">5</text>
+            <g id="wechsel-vogel">
+              <g class="vogel-koerper">
+                <image href="../mathe-fussball/bilder/vogel.png" x="-12" y="-12" width="24" height="24"></image>
+              </g>
+            </g>
+          </svg>
+          <div id="wechsel-hinweis">(Zum Starten antippen)</div>
+        </div>
+      </div>
+
+      <div class="panel filz" id="panel-1"></div>
+
+      <!-- Flug und Feuerwerk über der ganzen Bühne -->
+      <canvas id="feuerwerk" width="1600" height="900"></canvas>
+      <img id="flug-rakete" class="versteckt" src="bilder/rakete.png" alt="">
+
+      <div id="jubel" class="versteckt"><div id="jubel-text"></div></div>
+
+      <div id="pause-menue" class="overlay dunkel versteckt">
+        <div class="menue-box filz">
+          <h2>Pause</h2>
+          <button id="btn-weiter" class="knopf gross filz">▶ Weiterspielen</button>
+          <button id="btn-neustart" class="knopf hell filz">↻ Neu starten</button>
+          <button id="btn-zu-einst" class="knopf hell filz">⚙ Zu den Einstellungen</button>
+        </div>
+      </div>
+
+      <div id="ende" class="overlay dunkel versteckt">
+        <div class="menue-box ende-box filz">
+          <div id="ende-bild"></div>
+          <h2 id="ende-text"></h2>
+          <div id="ende-stand"></div>
+          <div class="knopf-reihe">
+            <button id="btn-nochmal" class="knopf gross filz">↻ Nochmal</button>
+            <button id="btn-ende-einst" class="knopf hell filz">⚙ Einstellungen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="../../gemeinsam/hilfen.js"></script>
+  <script src="uhr.js"></script>
+  <script src="spiel.js"></script>
+</body>
+</html>
