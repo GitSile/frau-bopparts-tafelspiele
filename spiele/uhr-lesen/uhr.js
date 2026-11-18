@@ -19,10 +19,11 @@ const ZEIGER = {
   minute: { farbe: '#1b5e20', laenge: 70, breite: 6.5, hinten: 14 }   // dunkelgrün, lang (bis zu den Strichen)
 };
 
-/** Winkel (Grad, 0 = oben, im Uhrzeigersinn) der beiden Zeiger für eine Zeit in Minuten (0..719) */
+/** Winkel (Grad, 0 = oben, im Uhrzeigersinn) der beiden Zeiger für eine Zeit in Minuten (0..719).
+    Der Stundenzeiger zeigt (vereinfacht für die Kinder) immer genau auf die volle Stunde. */
 function zeigerWinkel(minutenGesamt) {
   const t = ((minutenGesamt % 720) + 720) % 720;
-  return { stunde: t / 2, minute: (t % 60) * 6 };
+  return { stunde: Math.floor(t / 60) * 30, minute: (t % 60) * 6 };
 }
 
 /** Minuten seit 12 Uhr (0..719) für Stunde h (0..24) und Minute m */
@@ -50,6 +51,18 @@ function pruefeEingabe(text, h, m) {
   const hh = Number(r[1]), mm = Number(r[2]);
   if (mm > 59 || hh > 24 || (hh === 24 && mm !== 0)) return 'falsch';
   return mm === m && hh % 12 === h % 12 ? 'richtig' : 'falsch';
+}
+
+/**
+ * Setzt einen fehlenden Doppelpunkt ein: 4 Ziffern -> in der Mitte (1530 -> 15:30),
+ * 3 Ziffern -> nach der ersten (315 -> 3:15). Sonst bleibt der Text, wie er ist.
+ */
+function ergaenzeDoppelpunkt(text) {
+  const t = String(text).trim();
+  if (t.includes(':') || !/^[0-9]+$/.test(t)) return t;
+  if (t.length === 4) return t.slice(0, 2) + ':' + t.slice(2);
+  if (t.length === 3) return t.slice(0, 1) + ':' + t.slice(1);
+  return t;
 }
 
 /* ---------- Analoge Uhr ---------- */
@@ -157,4 +170,4 @@ function segmentSvg(text) {
 }
 
 // Für automatische Tests mit Node
-if (typeof module !== 'undefined') module.exports = { pruefeEingabe, minutenVon, zeigerWinkel, zeitText12 };
+if (typeof module !== 'undefined') module.exports = { pruefeEingabe, ergaenzeDoppelpunkt, minutenVon, zeigerWinkel, zeitText12 };
