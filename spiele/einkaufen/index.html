@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Einkaufen · Frau Bopparts Tafelspiele</title>
+  <meta name="description" content="Im Markt einkaufen und Frankenbeträge zusammenzählen an der Schultafel">
+  <!-- Vorschau beim Teilen (WhatsApp, Teams, E-Mail …) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Einkaufen · Frau Bopparts Tafelspiele">
+  <meta property="og:description" content="Im Markt einkaufen und Frankenbeträge zusammenzählen an der Schultafel">
+  <meta property="og:url" content="https://boppart.info/spiele/einkaufen/">
+  <meta property="og:image" content="https://boppart.info/vorschau.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <link rel="stylesheet" href="../../gemeinsam/filz.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Filzstift-Effekt für alle Ränder -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="filz" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
+      <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- Samt der Säckchen -->
+    <filter id="samt" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0" result="dunkel"/>
+      <feComposite in="dunkel" in2="SourceGraphic" operator="in" result="korn"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="korn"/></feMerge>
+    </filter>
+    <!-- Stickerei: weisse Fäden schräg -->
+    <pattern id="faden" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="5" height="5" fill="#ffffff"/>
+      <rect width="1.2" height="5" fill="#d9d4cc"/>
+    </pattern>
+    <radialGradient id="samt-rot" cx="40%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#ef5350"/>
+      <stop offset=".45" stop-color="#c62828"/>
+      <stop offset="1" stop-color="#6d0c0c"/>
+    </radialGradient>
+    <linearGradient id="gold-kordel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff59d"/>
+      <stop offset=".5" stop-color="#fbc02d"/>
+      <stop offset="1" stop-color="#b8860b"/>
+    </linearGradient>
+    <radialGradient id="gold-muenze" cx="38%" cy="34%" r="75%">
+      <stop offset="0" stop-color="#fffde7"/>
+      <stop offset=".35" stop-color="#ffd54f"/>
+      <stop offset=".8" stop-color="#f9a825"/>
+      <stop offset="1" stop-color="#c17900"/>
+    </radialGradient>
+  </svg>
+
+  <!-- ============ WER SPIELT? ============ -->
+  <section id="wahl" class="seite">
+    <header class="kopf">
+      <h1>🛒 Einkaufen</h1>
+      <div>
+        <a href="../../index.html" class="knopf hell filz zur-uebersicht">← Alle Spiele</a>
+        <button class="knopf hell filz btn-vollbild" title="Vollbild ein/aus">⛶</button>
+      </div>
+    </header>
+    <h2 class="wahl-frage">Wer spielt?</h2>
+    <div class="wahl-knoepfe">
+      <button class="wahl-gross filz" data-spieler="1">
+        <span class="wahl-bilder"><img src="../mathe-fussball/bilder/figuren/loewe-stehen.png" alt=""></span>
+        <span class="wahl-titel">1 Kind</span>
+      </button>
+      <button class="wahl-gross filz" data-spieler="2">
+        <span class="wahl-bilder"><img src="../mathe-fussball/bilder/figuren/loewe-stehen.png" alt=""><img class="gespiegelt" src="../mathe-fussball/bilder/figuren/erdmaennchen-stehen.png" alt=""></span>
+        <span class="wahl-titel">2 Kinder</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <section id="einstellungen" class="seite versteckt">
+    <header class="kopf">
+      <h1>🛒 Einkaufen</h1>
+      <div>
+        <button id="btn-zur-wahl" class="knopf hell filz">← Wer spielt?</button>
+        <button class="knopf hell filz btn-vollbild" title="Vollbild ein/aus">⛶</button>
+      </div>
+    </header>
+
+    <div class="raster">
+      <div class="karte team-karte filz" id="karte-0"></div>
+      <div class="karte team-karte filz" id="karte-1"></div>
+
+      <div class="karte breit filz">
+        <h2>Aufgaben</h2>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Zahlenraum: Total höchstens</div>
+          <div class="zr-zeile">
+            <button class="wahl klein filz" data-zr="10">10 Fr.</button>
+            <button class="wahl klein filz" data-zr="20">20 Fr.</button>
+            <button class="wahl klein filz" data-zr="50">50 Fr.</button>
+            <button class="wahl klein filz" data-zr="100">100 Fr.</button>
+            <span class="zr-eigen">oder <span class="zahl-feld filz"><input type="text" id="e-zahlenraum" inputmode="numeric" maxlength="4"></span> Fr.</span>
+          </div>
+        </div>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Schwierigkeit</div>
+          <div class="knopf-raster arten-raster">
+            <button class="wahl filz" data-stufe="franken">Beginner <small>nur ganze Franken (13.00 Fr.)</small></button>
+            <button class="wahl filz" data-stufe="zehn">Schwierig <small>10-Rappen-Schritte (13.20 Fr.)</small></button>
+            <button class="wahl filz" data-stufe="fuenf">Sehr schwierig <small>5-Rappen-Schritte (13.25 Fr.)</small></button>
+          </div>
+        </div>
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Produkte auf der Kasse: höchstens</div>
+          <div class="zr-zeile" id="anzahl-zeile"></div>
+        </div>
+      </div>
+
+      <div class="karte filz">
+        <h2>Goldsäckchen</h2>
+        <label class="feld-zeile">Säckchen bis zum Ziel
+          <span class="zahl-feld filz"><input type="text" id="e-saecke" inputmode="numeric" maxlength="1"></span>
+        </label>
+        <p class="hinweis">1 bis 5. In jedes Säckchen passen 10 Münzen. Sind alle Säckchen voll, ist das Spiel fertig.</p>
+      </div>
+
+      <div class="karte filz" id="karte-ablauf">
+        <h2>Ablauf</h2>
+        <label class="feld-zeile">Wechselzeit (Sekunden)
+          <span class="zahl-feld filz"><input type="text" id="e-wechsel" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <p class="hinweis">Countdown zwischen den Aufgaben (nur bei 2 Kindern). 0 = sofort weiter.</p>
+      </div>
+
+      <div class="karte filz">
+        <h2>Ton</h2>
+        <label class="schalter-zeile"><input type="checkbox" id="e-ton"><span class="schalter"></span>Ton</label>
+      </div>
+    </div>
+
+    <p id="fehler" class="fehler" role="alert"></p>
+    <div class="anpfiff-zeile">
+      <button id="btn-start" class="knopf gross filz">Los geht's! 🛒</button>
+    </div>
+  </section>
+
+  <!-- ============ SPIEL ============ -->
+  <section id="spiel" class="seite versteckt">
+    <div id="buehne">
+
+      <!-- Oben: der Laden (wird bei höheren Bildschirmen nach oben grösser) -->
+      <div id="szene">
+        <div id="laden">
+          <div id="schild">Markt</div>
+          <div id="regal"><div class="regal-schild">Lebensmittel &amp; Haushalt</div></div>
+          <div id="kuehlschrank"><div class="kuehl-schild">❄ Kühlregal</div><div class="kuehl-glas"></div></div>
+          <div id="regal-produkte"></div>
+
+          <img id="kassiererin" src="bilder/kassiererin.png" alt="Kassiererin">
+          <div id="sprechblase">Was kostet der Einkauf?</div>
+          <div id="kassen-stange"></div>
+          <div id="kassen-anzeige"><span id="anzeige-text">???</span></div>
+          <div id="theke">
+            <div id="band"><div id="band-streifen"></div></div>
+            <div id="scanner"></div>
+          </div>
+          <div id="band-bereich"></div>
+          <div id="wechsel-box" class="versteckt">
+            <svg id="wechsel-kreis" viewBox="-8 -8 116 116" aria-label="Countdown">
+              <circle class="hinten" cx="50" cy="50" r="50"></circle>
+              <circle class="spur" cx="50" cy="50" r="42"></circle>
+              <circle class="rest" id="wechsel-rest" cx="50" cy="50" r="42" pathLength="100" transform="rotate(-90 50 50)"></circle>
+              <text id="wechsel-sek" x="50" y="52" text-anchor="middle" dominant-baseline="middle">5</text>
+              <g id="wechsel-vogel">
+                <g class="vogel-koerper">
+                  <image href="../mathe-fussball/bilder/vogel.png" x="-12" y="-12" width="24" height="24"></image>
+                </g>
+              </g>
+            </svg>
+            <div id="wechsel-hinweis">(Zum Starten antippen)</div>
+          </div>
+        </div>
+        <div id="werkzeuge">
+          <button id="btn-pause" class="filz" title="Menü (Spiel pausiert)">Menü</button>
+          <button id="btn-ton" class="filz" title="Ton an/aus">🔊</button>
+          <button class="filz btn-vollbild" title="Vollbild">⛶</button>
+        </div>
+      </div>
+
+      <!-- Unten: Eingabe – Goldsäckchen – Eingabe -->
+      <div class="panel filz" id="panel-0"></div>
+      <div id="mitte" class="filz">
+        <div class="zone" id="zone-0"></div>
+        <div class="zone" id="zone-1"></div>
+        <button id="btn-weiss-nicht" class="filz versteckt">Ich weiss es nicht</button>
+      </div>
+      <div class="panel filz" id="panel-1"></div>
+
+      <div id="flieger"></div>
+
+      <div id="pause-menue" class="overlay dunkel versteckt">
+        <div class="menue-box filz">
+          <h2>Pause</h2>
+          <button id="btn-weiter" class="knopf gross filz">▶ Weiterspielen</button>
+          <button id="btn-neustart" class="knopf hell filz">↻ Neu starten</button>
+          <button id="btn-zu-einst" class="knopf hell filz">⚙ Spiel-Einstellungen</button>
+          <a id="btn-spiel-wechseln" href="../../index.html" class="knopf hell filz zur-uebersicht">🎲 Spiel wechseln</a>
+        </div>
+      </div>
+
+      <div id="ende" class="overlay dunkel versteckt">
+        <div class="menue-box ende-box filz">
+          <div id="ende-bild"></div>
+          <h2 id="ende-text"></h2>
+          <div id="ende-stand"></div>
+          <div class="knopf-reihe">
+            <button id="btn-nochmal" class="knopf gross filz">↻ Nochmal</button>
+            <button id="btn-ende-einst" class="knopf hell filz">⚙ Einstellungen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="../../gemeinsam/hilfen.js"></script>
+  <script src="produkte.js"></script>
+  <script src="spiel.js"></script>
+</body>
+</html>
