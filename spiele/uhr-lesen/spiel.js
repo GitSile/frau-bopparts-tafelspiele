@@ -56,7 +56,8 @@ const LOESUNG_MS = 1300;     // Lösung zeigen nach richtiger Antwort
 const START_UHR = 15;        // die Uhr zum Stellen steht am Anfang auf 12:15
 
 /* Zeitplan der Rakete (ms ab Zünden) */
-const R = { neigen: 0, schnur: 500, start: 1700, flug: 3000, knall: 4700, fertig: 7000 };
+// bücken: Tier ist angekommen und hält die Fackel an die Schnur; erst danach brennt die Schnur
+const R = { buecken: 900, schnur: 1400, start: 2600, flug: 3000, knall: 5600, fertig: 7900 };
 
 /* ---------- Hilfen ---------- */
 const tierVon = id => TIERE.find(t => t.id === id) || TIERE[0];
@@ -391,7 +392,7 @@ function starteSpiel() {
     raketen: [0, 0],
     eingabe: ['', ''],
     sperre: [0, 0],
-    uhr: [START_UHR, START_UHR],
+    uhr: [zeigerStellung(START_UHR), zeigerStellung(START_UHR)],   // Stellung der Zeiger beim Stellen
     mitZeit: E.minuten !== '',
     restMs: E.minuten !== '' ? Number(E.minuten) * 60000 : 0,
     wechselMs: E.spieler === 1 ? 0 : Number(E.wechselSek) * 1000,   // 1 Kind: kein Countdown
@@ -428,6 +429,7 @@ function baueSpielfeld() {
     el.style.width = RAKETEN_BILD.breite + 'px'; el.style.height = RAKETEN_BILD.hoehe + 'px';
   });
   r.classList.remove('weg');
+  $('schnur-bild').classList.remove('weg'); $('schnur').classList.remove('weg');
 
   $('schritte').innerHTML = '';
   [0, 1].forEach(i => {
@@ -522,8 +524,8 @@ function naechsteAufgabe() {
     const p = $(`panel-${i}`);
     p.classList.toggle('stellen', !lesen);
     p.classList.remove('geloest', 'gezeigt');
-    S.uhr[i] = START_UHR;
-    stelleUhr(p.querySelector('.uhr-teil svg'), S.uhr[i]);
+    S.uhr[i] = zeigerStellung(START_UHR);
+    stelleZeiger(p.querySelector('.uhr-teil svg'), S.uhr[i]);
     p.querySelector('.meldung').textContent = '';
   });
   $('wechsel-box').classList.add('versteckt');
@@ -561,7 +563,7 @@ function pruefe(i) {
     if (ergebnis === 'richtig') richtig(i); else falsch(i);
   } else {
     if (S.ziehen && S.ziehen.i === i) return;
-    if (S.uhr[i] === minutenVon(a.h, a.m)) richtig(i); else falsch(i);
+    if (stellungRichtig(S.uhr[i], minutenVon(a.h, a.m))) richtig(i); else falsch(i);
   }
 }
 
@@ -615,9 +617,9 @@ function weissNicht() {
   } else {
     // Uhr im Panel auf die richtige Zeit stellen
     S.ziehen = null;
-    S.uhr[0] = minutenVon(a.h, a.m);
+    S.uhr[0] = zeigerStellung(minutenVon(a.h, a.m));
     const p = $('panel-0');
-    stelleUhr(p.querySelector('.uhr-teil svg'), S.uhr[0]);
+    stelleZeiger(p.querySelector('.uhr-teil svg'), S.uhr[0]);
     p.classList.add('gezeigt');
   }
   setzePhase('loesung', WEISS_NICHT_MS, () => wechsel(naechsteAufgabe));
@@ -676,7 +678,7 @@ function starteRakete(zuender, punkt) {
     z.style.top = (ziel.y - 205 - fy).toFixed(1) + 'px';
     fig.classList.add('geht');
     fig.style.left = (i === 0 ? mitte : 1600 - mitte) + 'px';
-    setTimeout(() => { fig.classList.remove('geht'); fig.classList.add('zuendet'); }, 600);
+
   });
   zeichneStand();
 }
@@ -716,6 +718,7 @@ function raketeSchritt(dt) {
   r.ms += dt;
   const ueber = ms => vorher < ms && r.ms >= ms;
   // Zündschnur brennt von der Fackel bis zur Rakete
+  if (ueber(R.buecken)) r.zuender.forEach(i => { const f = $(`figur-${i}`); f.classList.remove('geht'); f.classList.add('zuendet'); });
   if (ueber(R.schnur)) TON.zischen();
   if (r.ms >= R.schnur) {
     const anteil = Math.min(1, (r.ms - R.schnur) / (R.start - R.schnur));
@@ -735,6 +738,7 @@ function raketeSchritt(dt) {
   if (ueber(R.start)) {
     TON.heulen();
     $('rakete').classList.add('weg');
+    $('schnur-bild').classList.add('weg'); $('schnur').classList.add('weg');   // Schnüre hängen sonst in der Luft
     $('flug-rakete').classList.remove('versteckt');
     r.zuender.forEach(i => $(`figur-${i}`).classList.remove('zuendet'));
   }
@@ -783,6 +787,7 @@ function raketeFertig() {
   // Neue Runde: neue Rakete, Tiere zurück an den Start
   S.schritte = [0, 0];
   $('rakete').classList.remove('weg');
+  $('schnur-bild').classList.remove('weg'); $('schnur').classList.remove('weg');
   zeichneSchritte(true);
   zeichneStand();
   wechsel(naechsteAufgabe);
@@ -888,7 +893,8 @@ function zeichneFunken(dt) {
    Uhr stellen: Zeiger mit dem Finger ziehen
    - Die beiden Zeiger sind unabhängig voneinander und werden je einzeln gestellt
    - Minutenzeiger rastet in Viertelstunden ein (:00, :15, :30, :45)
-   - Stundenzeiger rastet bei den vollen Stunden ein
+   - Stundenzeiger rastet ebenfalls in Viertelstunden ein (wie bei einer echten Uhr steht er
+     z. B. um 3:30 genau zwischen 3 und 4) – richtig ist nur die genaue Stellung beider Zeiger
    ========================================================= */
 function winkelDiff(a, b) { const d = Math.abs(mod(a - b, 360)); return Math.min(d, 360 - d); }
 function verbindeZiehen(i, svg) {
@@ -903,8 +909,7 @@ function verbindeZiehen(i, svg) {
     audio();
     const { winkel, r } = punkt(ev);
     if (r > 115) return;
-    const w = zeigerWinkel(S.uhr[i]);
-    const dm = winkelDiff(winkel, w.minute), dh = winkelDiff(winkel, w.stunde);
+    const dm = winkelDiff(winkel, S.uhr[i].m * 90), dh = winkelDiff(winkel, S.uhr[i].s * 7.5);
     // Welcher Zeiger? Der näher liegende; liegen beide nah beieinander, entscheidet der Abstand zur Mitte
     let zeiger = dm <= dh ? 'minute' : 'stunde';
     if (Math.abs(dm - dh) < 25) zeiger = r > 50 ? 'minute' : 'stunde';
@@ -915,11 +920,11 @@ function verbindeZiehen(i, svg) {
   });
   const bewege = winkel => {
     const z = S.ziehen;
-    let neu;
-    const stunde = Math.floor(S.uhr[i] / 60), minute = S.uhr[i] % 60;
-    if (z.zeiger === 'minute') neu = stunde * 60 + mod(Math.round(winkel / 90) * 15, 60);
-    else neu = mod(Math.round(winkel / 30), 12) * 60 + minute;
-    if (neu !== S.uhr[i]) { S.uhr[i] = neu; TON.klick(); stelleUhr(svg, neu); }
+    const alt = S.uhr[i];
+    const neu = z.zeiger === 'minute'
+      ? { s: alt.s, m: mod(Math.round(winkel / 90), 4) }       // Minutenzeiger: :00, :15, :30, :45
+      : { s: mod(Math.round(winkel / 7.5), 48), m: alt.m };    // Stundenzeiger: in Viertelstunden zwischen den Zahlen
+    if (neu.s !== alt.s || neu.m !== alt.m) { S.uhr[i] = neu; TON.klick(); stelleZeiger(svg, neu); }
   };
   svg.addEventListener('pointermove', ev => {
     if (!S || !S.ziehen || S.ziehen.i !== i || S.ziehen.id !== ev.pointerId) return;
