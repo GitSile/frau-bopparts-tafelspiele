@@ -7,6 +7,7 @@ Lernspiele für die digitale Schultafel. Alle Spiele laufen direkt im Browser, o
 | Spiel | Fach | Beschreibung |
 | --- | --- | --- |
 | [Mathe-Fussball](spiele/mathe-fussball/index.html) | Mathematik, 1.–4. Klasse | Zwei Teams rechnen um die Wette. Wer zuerst richtig antwortet, schiesst den Ball Richtung gegnerisches Tor. |
+| [Uhr lesen](spiele/uhr-lesen/index.html) | Mathematik | Für 1 oder 2 Kinder: Uhrzeiten ablesen und eintippen oder die Zeiger einer Uhr stellen. Jede richtige Antwort bringt das Tier mit der Fackel näher an die Zündschnur – dann startet die Rakete. |
 
 ## Aufbau
 
@@ -19,6 +20,12 @@ spiele/
   mathe-fussball/          das Spiel Mathe-Fussball
     index.html
     style.css
+    spiel.js
+    bilder/
+  uhr-lesen/               das Spiel Uhr lesen
+    index.html
+    style.css
+    uhr.js                 Uhren (Zifferblatt, Zeiger, Digitalanzeige) und Prüfung der Eingabe
     spiel.js
     bilder/
 ```
@@ -46,6 +53,8 @@ Töne in `spiele/mathe-fussball/toene/` von Pixabay (Pixabay Content License, fr
 - `tick.wav` – eine Sekunde aus "sec_mixdown" (freesound_community), verstärkt, pixabay.com/sound-effects/film-special-effects-sec-mixdown-62016/
 
 Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fussball/bilder/mengen/` (Icons wie Hände, Torte, Fussballer, Tiere, Eier, Muffins, Autos, Ballone, Sterne, Flaschen sowie Wüste und Strand) erstellt mit ChatGPT. Kerzen, Ast, Würfel, Domino, Striche, Perlen und Punkte sind als Vektorgrafik im Code gezeichnet (`mengen.js`).
+
+Bilder in `spiele/uhr-lesen/bilder/` (Tiere mit Fackel, Rakete, Wecker, Abendlandschaft) erstellt mit ChatGPT. Uhren, Zeiger, rote Segment-Ziffern, Zündschnur und Feuerwerk sind im Code gezeichnet (`uhr.js`, `spiel.js`). Uhr lesen verwendet zusätzlich die Töne `richtig.mp3`, `falsch.mp3` und `tick.wav`, die Tierköpfe, die jubelnden Figuren und den Vogel aus Mathe-Fussball; Zischen, Heulen und Knall der Rakete werden im Code erzeugt.
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
