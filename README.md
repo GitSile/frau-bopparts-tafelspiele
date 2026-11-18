@@ -34,7 +34,7 @@ spiele/
   mathe-wanderung/         das Spiel Mathe-Wanderung (benutzt Tiere, Töne und Mengen-Bilder von Mathe-Fussball)
     index.html
     style.css
-    welten.js              die 14 Welten als Vektorgrafik
+    welten.js              die 14 Welten (gemalte Hintergründe + Zeichnungen darüber)
     spiel.js
     bilder/
   einkaufen/               das Spiel Einkaufen
@@ -71,7 +71,7 @@ Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fu
 
 Bilder in `spiele/uhr-lesen/bilder/` (Tiere mit Fackel, gebückte Tiere beim Zünden, Flammenbilder für die flackernde Fackel, Rakete mit Zündschnüren, Wecker, Abendlandschaft, Fuchs mit Uhr für die Startseite) erstellt mit ChatGPT. Uhren, Zeiger, rote Segment-Ziffern, Zündschnur und Feuerwerk sind im Code gezeichnet (`uhr.js`, `spiel.js`). Uhr lesen verwendet zusätzlich die Töne `richtig.mp3`, `falsch.mp3` und `tick.wav`, die Tierköpfe, die jubelnden Figuren und den Vogel aus Mathe-Fussball; Zischen, Heulen und Knall der Rakete werden im Code erzeugt.
 
-Mathe-Wanderung: Das Bild `spiele/mathe-wanderung/bilder/baer-wandern.png` (Bär mit Rucksack) wurde mit ChatGPT erstellt. Alle Welten, Fahrzeuge, Ortsschilder und der Kran sind als Vektorgrafik im Code gezeichnet (`welten.js`). Das Spiel benutzt die Tierfiguren, den Vogel, die Töne und einige Mengen-Bilder (Kamel, Palme, Fisch) von Mathe-Fussball.
+Mathe-Wanderung: Mit ChatGPT erstellt sind der Bär-Wanderer (`spiele/mathe-wanderung/bilder/baer-wandern.png`), die 14 Welt-Hintergründe (`bilder/welten/`), die Maschinen, Fahrzeuge, Möwen und die Münze (`bilder/teile/`) sowie die sitzenden Tiere für die Fahrzeuge (`bilder/sitzen/`). Ortsnamen («Zuzwil», «Aadorf», «Zuzi-Bahn»), Fahnen, Stufen-Zeichen, Zielband und Kran sind im Code gezeichnet (`welten.js`, `index.html`). Das Spiel benutzt die Tierfiguren, Tierköpfe, den Vogel und die Töne von Mathe-Fussball.
 
 Einkaufen: Die Bilder in `spiele/einkaufen/bilder/` (30 Produkte in `produkte/`, Kassiererin, Hase mit Einkaufskorb) wurden mit ChatGPT erstellt. Regal, Kühlschrank, Kasse, Preisschilder, Goldsäckchen und Münzen sind im Code gezeichnet (`style.css`, `spiel.js`). Das Spiel benutzt die Töne `richtig.mp3`, `falsch.mp3`, `tick.wav` und `jubel.mp3`, die Tierköpfe, die jubelnden Figuren und den Vogel von Mathe-Fussball; das Klimpern der Münzen wird im Code erzeugt.
 

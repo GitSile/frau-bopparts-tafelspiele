@@ -288,3 +288,45 @@ body { background: #eef7e8; }
 @media (prefers-reduced-motion: reduce) {
   .zieht, .dreht-langsam, .flocke, .schwimmt, .wellen-vorne { animation: none !important; }
 }
+
+/* =========================================================
+   Gemalte Teile (ChatGPT): sitzende Tiere, Fahrzeuge, Bullauge
+   ========================================================= */
+.tier-sitzt, .teil-bild { position: absolute; object-fit: contain; }
+.bullauge { position: absolute; border-radius: 50%; overflow: hidden; background: #81d4fa; }
+.bullauge img { position: absolute; left: -12%; top: -6%; width: 124%; height: 124%; object-fit: contain; }
+.bullauge::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.55) 0 18%, rgba(255,255,255,0) 40%), rgba(129,212,250,.18); }
+#akteur.art-buggy .akteur-innen { animation: ruetteln .18s linear infinite; }
+#akteur.art-schlitten .akteur-innen { animation: schweben 3s ease-in-out infinite; }
+/* Spielautomat: Tier zieht den Hebel nach unten */
+.hebel.ziehen { animation: hebelZiehen .8s ease-in-out; }
+@keyframes hebelZiehen { 40% { transform: rotate(-58deg); } 100% { transform: rotate(0); } }
+#akteur.hebelzug .tier-figur { animation: hebelzug .8s ease-in-out; }
+@keyframes hebelzug { 0% { transform: translate(0, 0); } 15% { transform: translate(-10px, -6px); } 45% { transform: translate(-8px, 36px); } 100% { transform: translate(0, 0); } }
+/* Möwen mit Flügelschlag, die das Zielband tragen */
+.moewe .fluegel-oben { animation: fluegelOben .36s steps(1) infinite; animation-delay: var(--v); }
+.moewe .fluegel-unten { animation: fluegelUnten .36s steps(1) infinite; animation-delay: var(--v); }
+@keyframes fluegelOben { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes fluegelUnten { 0% { opacity: 0; } 50% { opacity: 1; } }
+.zielband { animation: schweben 1.4s ease-in-out infinite; }
+
+/* =========================================================
+   Level geschafft: kleine Zusatz-Effekte
+   ========================================================= */
+.effekt { position: absolute; pointer-events: none; }
+.funke { width: 10px; height: 10px; border-radius: 50%; opacity: 0; box-shadow: 0 0 8px currentColor; animation: funke 1.5s ease-out forwards; }
+@keyframes funke { 0% { opacity: 1; transform: translate(0, 0) scale(1.2); } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 60px)) scale(.4); } }
+.muenze-faellt { top: -70px; width: 46px; height: 46px; animation: muenzeFaellt 2s ease-in forwards; }
+.muenze-faellt img { width: 100%; height: 100%; animation: drehen .6s linear infinite; }
+@keyframes muenzeFaellt { to { transform: translateY(1150px); } }
+.blase-steigt { border-radius: 50%; border: 3px solid rgba(255,255,255,.9); background: rgba(225,245,254,.25); animation: blaseSteigt 2.4s ease-in forwards; opacity: 0; }
+@keyframes blaseSteigt { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-700px) translateX(30px); } }
+.flocke-faellt { top: -40px; color: #fff; text-shadow: 0 0 4px #90caf9; animation: flockeFaellt 3s linear forwards; }
+@keyframes flockeFaellt { to { transform: translate(40px, 1100px) rotate(360deg); } }
+.ballon-steigt { width: 46px; height: 58px; border-radius: 50% 50% 46% 46%; background: var(--farbe); border: 3px solid #263238; animation: ballonSteigt 3.6s ease-out forwards; }
+.ballon-steigt::after { content: ""; position: absolute; left: 21px; top: 56px; width: 2px; height: 40px; background: #263238; }
+@keyframes ballonSteigt { to { transform: translateY(-1200px) translateX(-40px); } }
+.tropfen { width: 12px; height: 16px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #4fc3f7; border: 2px solid #01579b; opacity: 0; animation: tropfen 1.4s ease-out forwards; }
+@keyframes tropfen { 0% { opacity: 1; transform: translate(0, 0); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 260px)); } }
+.stern-glitzert { color: #ffd600; text-shadow: 0 0 10px #fff176, 0 0 2px #263238; opacity: 0; animation: glitzern 1.4s ease-in-out 2; }
+@keyframes glitzern { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(40deg); } }
