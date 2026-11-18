@@ -275,18 +275,27 @@ function erzeugePool(f) {
   });
   return pool;
 }
-/** Nie zweimal dieselbe Uhrzeit direkt nacheinander */
-function naechsteAusStapel() {
-  if (!S.stapel.length) S.stapel = mischen(S.pool);
+/** Nächste Aufgabe:
+    - Uhr lesen und Uhr stellen wechseln meistens ab (70 %), manchmal kommen zwei gleiche nacheinander,
+      aber nie drei (wenn beide Arten eingeschaltet sind)
+    - nie zweimal dieselbe Uhrzeit direkt nacheinander */
+const WECHSEL_ANTEIL = 0.7;
+function naechsteArt() {
   const vorher = S.aufgabe;
+  if (S.filter.arten.length < 2 || !vorher) return waehle(S.filter.arten);
+  const andere = vorher.art === 'lesen' ? 'stellen' : 'lesen';
+  if (S.gleicheArt >= 2) return andere;
+  return Math.random() < WECHSEL_ANTEIL ? andere : vorher.art;
+}
+function naechsteAusStapel() {
+  const art = naechsteArt(), vorher = S.aufgabe;
+  const passt = a => a.art === art && (!vorher || a.h !== vorher.h || a.m !== vorher.m);
+  if (!S.stapel.some(passt)) S.stapel = mischen(S.pool);
   let k = S.stapel.length - 1;
-  if (vorher) {
-    for (let j = S.stapel.length - 1; j >= 0; j--) {
-      const a = S.stapel[j];
-      if (a.h !== vorher.h || a.m !== vorher.m) { k = j; break; }
-    }
-  }
-  return S.stapel.splice(k, 1)[0];
+  for (let j = S.stapel.length - 1; j >= 0; j--) if (passt(S.stapel[j])) { k = j; break; }
+  const neu = S.stapel.splice(k, 1)[0];
+  S.gleicheArt = vorher && vorher.art === neu.art ? S.gleicheArt + 1 : 1;
+  return neu;
 }
 
 /* =========================================================
@@ -328,7 +337,7 @@ function starteSpiel() {
   S = {
     n: E.spieler,
     teams: structuredClone(E.teams).slice(0, E.spieler),
-    pool, stapel: mischen(pool),
+    filter, pool, stapel: mischen(pool), gleicheArt: 0,
     aufgabe: null,
     ziel: Number(E.schritte),
     schritte: [0, 0],
