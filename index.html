@@ -32,8 +32,10 @@
     }
     .kachel:hover, .kachel:focus-visible { transform: rotate(-1.2deg) scale(1.03); outline: none; }
     .kachel:active { transform: scale(.98); }
-    .kachel-bild { width: 190px; height: 190px; display: grid; place-items: center; }
-    .kachel-bild img { width: 100%; height: 100%; object-fit: contain; }
+    .kachel-bild { width: 190px; height: 190px; display: grid; place-items: center; position: relative; }
+    .kachel-bild img { width: 100%; height: 100%; max-height: 190px; object-fit: contain; }
+    /* kleines Zusatzbild vorne unten, z. B. der Ball vor dem Löwen */
+    .kachel-bild img.vorne { position: absolute; width: 58px; height: 58px; right: 18px; bottom: 0; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
     .kachel h2 { margin: 10px 0 4px; font-size: 32px; font-weight: 900; color: var(--farbe, #1d2733); }
     .hinweise { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 10px; }
     .fach { display: inline-block; padding: 4px 14px; border-radius: var(--wackel-klein); background: var(--farbe-hell, #eceff1); font-weight: 800; font-size: 16px; }
@@ -88,6 +90,7 @@
         text: '',
         link: 'spiele/mathe-fussball/index.html',
         bild: 'spiele/mathe-fussball/bilder/figuren/loewe-jubel.png',
+        vorne: 'spiele/mathe-fussball/bilder/ball.png',   // Zusatzbild vorne unten (leer lassen, wenn keins)
         farbe: '#2e7d32'
       },
       {
@@ -96,8 +99,9 @@
         modus: '1 oder 2 Personen',
         text: '',
         link: 'spiele/uhr-lesen/index.html',
-        bild: 'spiele/uhr-lesen/bilder/kachel.svg',
-        farbe: '#1565c0'
+        bild: 'spiele/uhr-lesen/bilder/fackel/fuchs.png',
+        farbe: '#1565c0',
+        bald: true
       }
     ];
 
@@ -105,7 +109,7 @@
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     kacheln.innerHTML = SPIELE.map(s => `
       <a class="kachel filz${s.bald ? ' in-arbeit' : ''}" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
-        <div class="kachel-bild"><img src="${esc(s.bild)}" alt=""></div>
+        <div class="kachel-bild"><img src="${esc(s.bild)}" alt="">${s.vorne ? `<img class="vorne" src="${esc(s.vorne)}" alt="">` : ''}</div>
         <h2>${esc(s.name)}</h2>
         <div class="hinweise">
           <span class="fach">${esc(s.fach)}</span>
