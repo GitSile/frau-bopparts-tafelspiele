@@ -37,7 +37,7 @@ const STANDARD = {
   arten: { lesen: true, stellen: true },
   zeiten: { ganz: true, halb: true, viertel: true },
   blatt: 'alle',
-  nachmittag: false,
+  nachmittag: true,
   schritte: '6',
   minuten: '',
   wechselSek: '3',
@@ -47,7 +47,8 @@ const STANDARD = {
     { name: 'Erdmännchen', tier: 'erdmaennchen', farbe: 'blau' }
   ]
 };
-const SPEICHER_EINST = 'uhrlesen.einstellungen.v1';
+// v2: Nachmittagszeiten neu standardmässig ein – ältere gespeicherte Einstellungen werden einmalig verworfen
+const SPEICHER_EINST = 'uhrlesen.einstellungen.v2';
 const SPERRE_MS = 1500;      // Sperre nach falscher Antwort
 const LOESUNG_MS = 1300;     // Lösung zeigen nach richtiger Antwort
 const START_UHR = 15;        // die Uhr zum Stellen steht am Anfang auf 12:15
@@ -227,6 +228,8 @@ function zeigeEinstellungen() {
   $('e-schritte').value = E.schritte;
   $('e-minuten').value = E.minuten;
   $('e-wechsel').value = E.wechselSek;
+  // Wechselzeit braucht es nur, wenn zwei Kinder abwechselnd an die Tafel kommen
+  $('wechsel-zeile').classList.toggle('versteckt', E.spieler === 1);
   $('e-ton').checked = E.ton;
   $('fehler').textContent = '';
   zeigeSeite('einstellungen');
@@ -247,7 +250,7 @@ function pruefeEinstellungen() {
   if (!E.zeiten.ganz && !E.zeiten.halb && !E.zeiten.viertel) return 'Bitte mindestens eine Art Uhrzeit einschalten.';
   if (ganzzahlIn(E.schritte, 3, 10) === null) return 'Richtige bis zum Zünden: bitte eine Zahl von 3 bis 10.';
   if (E.minuten !== '' && ganzzahlIn(E.minuten, 1, 90) === null) return 'Spielzeit: bitte 1 bis 90 Minuten oder leer lassen.';
-  if (ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
+  if (E.spieler === 2 && ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
   return null;
 }
 
@@ -294,9 +297,17 @@ let letzterFrame = 0, letzterTick = -1;
 
 /* Bühne: 1600 × 900. Szene oben 450 hoch, unten Eingaben und Aufgabe. */
 const BODEN_Y = 420;                 // hier stehen die Tiere
-const START_X = 115, END_X = 555;    // Weg des linken Tiers (rechtes gespiegelt)
-const RAKETE = { x: 800, unten: 438, hoehe: 330 };
-const SCHNUR_ENDE_X = 655;           // Ende der Zündschnur links (rechts gespiegelt)
+const START_X = 115, END_X = 500;    // Weg des linken Tiers (rechtes gespiegelt)
+/* Rakete mit zwei langen Zündschnüren (bilder/rakete-stehend.png und bilder/zuendschnur.png,
+   beide gleich gross und genau übereinander). Die Pfade folgen der Mitte der gezeichneten Schnüre
+   (automatisch aus dem Bild gemessen), vom äusseren Ende bis unter den Raketenkörper. */
+const RAKETEN_BILD = { links: 575, oben: 145, breite: 450, hoehe: 300 };
+const FLUG_START = { x: 799.6, y: 295.2, hoehe: 298 };   // Mitte und Höhe der Rakete allein (bilder/rakete.png)
+const SCHNUR_ENDE_X = 577;           // äusseres Ende der Zündschnur links (rechts gespiegelt)
+const SCHNUR_PFADE = [
+  'M 576.5 438.3 L 578.5 438 L 580.9 437.4 L 583.5 437.1 L 586.1 436.8 L 589.4 436.8 L 592.3 437.1 L 595.2 437.4 L 598.1 437.7 L 601.4 438 L 604 438.3 L 607.2 438.6 L 610.2 438.3 L 613.1 438.3 L 616 438 L 618.9 437.7 L 621.9 437.4 L 624.5 436.8 L 627.1 436.5 L 629.8 435.9 L 632.1 435.4 L 634.8 434.8 L 637.4 434.8 L 639.7 434.2 L 642.4 433.9 L 645.3 433.6 L 647.7 433.3 L 650.6 433 L 653.5 433 L 656.2 432.7 L 659.4 433 L 662 433 L 665.2 433.3 L 668.5 433.9 L 671.4 433.9 L 674.6 434.8 L 677.8 435.1 L 680.8 435.7 L 684 436.2 L 686.6 437.1 L 689.6 437.7 L 692.5 438 L 695.1 438.6 L 697.8 438.6 L 700.7 438.9 L 703.3 438.9 L 706.3 439.2 L 709.5 438.9 L 712.4 438.6 L 715.6 438.3 L 718.6 437.7 L 721.8 437.1 L 724.7 436.2 L 727.6 435.4 L 730.3 433.9 L 732.3 432.7 L 734.1 431.8 L 736.1 431 L 737.9 429.8 L 739.9 428.6 L 741.7 427.5 L 743.2 426.3 L 744.9 424.8 L 746.7 423.6 L 747.9 422.2 L 749.3 420.7 L 751.1 419.3 L 752.2 417.8 L 753.7 416 L 754.9 414.6 L 756.3 412.8 L 757.5 411 L 758.7 409.6 L 759.9 407.8 L 761 406.1 L 762.2 404 L 763.1 402 L 764.3 400.2 L 765.1 398.4 L 766 396.4 L 767.2 394.3 L 768.1 392.6 L 768.9 390.2 L 769.8 388.2 L 770.7 386.1 L 771.3 383.8 L 772.2 381.8 L 772.8 379.7 L 773.3 377.1 L 774.2 375.3 L 774.8 373 L 775.4 370.3 L 776.3 368.3 L 776.6 365.9 L 777.1 363.6 L 777.7 361.2 L 778.3 358.6 L 778.6 356 L 779.2 353.9 L 779.5 351.3 L 780.1 348.6 L 780.4 346.3 L 780.7 343.7 L 781.3 341 L 781.5 338.4 L 781.8 335.8 L 782.1 333.1 L 782.1 330.5 L 782.4 327.8 L 782.7 325.2 L 783 322.3 L 784.2 320.8 L 785.6 319.3 L 788 318.8 L 790.9 318.8 L 793.3 318.8',
+  'M 1023.2 437.7 L 1021.2 437.7 L 1018.8 437.4 L 1015.9 437.1 L 1013.3 436.5 L 1010.4 436.8 L 1007.1 437.1 L 1004.5 437.1 L 1001.3 437.7 L 998.3 437.7 L 995.4 438.3 L 992.5 438.6 L 989.6 438.3 L 986.6 438.6 L 984 438.3 L 980.8 438 L 977.8 437.7 L 975.2 436.8 L 972.3 436.8 L 969.6 435.9 L 967 435.7 L 964.4 435.1 L 961.7 434.5 L 959.4 434.2 L 956.7 433.9 L 953.8 433.6 L 951.5 433.3 L 948.5 433 L 945.9 433 L 943 432.7 L 939.7 433 L 936.8 433.3 L 933.9 433.3 L 930.7 433.6 L 927.7 434.2 L 924.5 434.5 L 921.6 435.1 L 918.1 435.9 L 915.1 436.2 L 912.2 437.1 L 909.6 437.7 L 906.6 438.3 L 904 438.6 L 901.4 438.9 L 898.4 438.9 L 895.5 438.9 L 892.9 439.2 L 889.6 438.6 L 886.7 438.9 L 883.8 438.3 L 880.6 437.7 L 877.3 437.4 L 874.4 436.2 L 871.5 435.4 L 868.8 434.2 L 867.1 432.7 L 865 431.8 L 863 431 L 861.2 429.5 L 859.5 428.6 L 857.4 427.5 L 856 426 L 854.5 424.8 L 852.7 423.6 L 851.3 422.2 L 849.8 420.4 L 848.3 419.3 L 846.9 417.5 L 845.7 416 L 844.2 414.3 L 842.8 412.8 L 841.6 411 L 840.4 409.3 L 839.3 407.5 L 838.1 405.8 L 837.2 404 L 836 402.3 L 834.9 400.2 L 834 398.4 L 832.8 396.4 L 832.2 394.3 L 831.1 392.3 L 830.2 390.5 L 829.3 388.2 L 828.4 386.1 L 827.5 384.1 L 827 381.8 L 826.1 379.7 L 825.5 377.4 L 824.6 375.3 L 824.3 373 L 823.4 370.6 L 822.9 368.6 L 822.6 365.9 L 822 363.6 L 821.4 361.2 L 821.1 358.6 L 820.5 356.3 L 819.9 353.9 L 819.6 351.3 L 819 348.6 L 818.8 346.3 L 818.5 343.4 L 817.9 341 L 817.9 338.4 L 817.3 335.8 L 817.3 333.1 L 817 330.2 L 816.7 327.6 L 817 324.6 L 816.1 322.3 L 815.2 320.5 L 813.5 319.3 L 811.1 318.8 L 808.2 318.8 L 805.9 318.8'
+];
 const tierX = (i, k) => {
   const x = START_X + (END_X - START_X) * k / S.ziel;
   return i === 0 ? x : 1600 - x;
@@ -327,7 +338,7 @@ function starteSpiel() {
     uhr: [START_UHR, START_UHR],
     mitZeit: E.minuten !== '',
     restMs: E.minuten !== '' ? Number(E.minuten) * 60000 : 0,
-    wechselMs: Number(E.wechselSek) * 1000,
+    wechselMs: E.spieler === 1 ? 0 : Number(E.wechselSek) * 1000,   // 1 Kind: kein Countdown
     phase: 'spiel',      // spiel | loesung | wechsel | rakete | ende
     phaseRestMs: 0, weiter: null,
     rakete: null,
@@ -347,43 +358,37 @@ function starteSpiel() {
 const aktiv = i => i < S.n;
 
 /* ---------- Spielfeld aufbauen ---------- */
-function schnurPfad(i) {
-  // Von der Zündschnur am Ende (beim Tier) bis zur kleinen Schnur unten an der Rakete
-  const s = i === 0 ? 1 : -1, x = v => 800 - s * (800 - v);
-  const ende = x(SCHNUR_ENDE_X), y = BODEN_Y + 2;
-  return `M ${ende} ${y} C ${x(670)} ${y - 14}, ${x(690)} ${y + 12}, ${x(715)} ${y + 2}`
-    + ` S ${x(752)} ${y - 6}, ${x(770)} ${y - 4} C ${x(788)} ${y - 6}, ${x(795)} ${y - 40}, ${x(797)} ${RAKETE.unten - RAKETE.hoehe * 0.36}`;
-}
+function schnurPfad(i) { return SCHNUR_PFADE[i]; }
 function baueSpielfeld() {
   const b = $('buehne');
   b.classList.toggle('allein', S.n === 1);
   // Rakete
   const r = $('rakete');
-  r.style.height = RAKETE.hoehe + 'px';
-  r.style.top = (RAKETE.unten - RAKETE.hoehe) + 'px';
+  [r, $('schnur-bild')].forEach(el => {
+    el.style.left = RAKETEN_BILD.links + 'px'; el.style.top = RAKETEN_BILD.oben + 'px';
+    el.style.width = RAKETEN_BILD.breite + 'px'; el.style.height = RAKETEN_BILD.hoehe + 'px';
+  });
   r.classList.remove('weg');
 
   $('schritte').innerHTML = '';
   [0, 1].forEach(i => {
     const da = aktiv(i);
-    ['figur-', 'panel-', 'tafel-', 'schnur-', 'brand-', 'funke-'].forEach(p => $(p + i).classList.toggle('versteckt', !da || p === 'funke-'));
+    ['figur-', 'panel-', 'tafel-', 'brand-', 'funke-'].forEach(p => $(p + i).classList.toggle('versteckt', !da || p === 'funke-'));
     if (!da) return;
     const team = S.teams[i];
     b.style.setProperty(`--farbe-${i}`, farbeVon(team.farbe).wert);
     // Zündschnur
     const d = schnurPfad(i);
-    $(`schnur-${i}`).setAttribute('d', d);
     const brand = $(`brand-${i}`);
     brand.setAttribute('d', d);
     const L = brand.getTotalLength();
     brand.style.strokeDasharray = `${L} ${L}`;
     brand.style.strokeDashoffset = L;
-    // Schritte auf der Wiese: 1 … ziel
+    // Schritte auf der Wiese: dezente Punkte ohne Zahlen
     for (let k = 1; k <= S.ziel; k++) {
       const p = document.createElement('div');
       p.className = 'schritt';
       p.id = `schritt-${i}-${k}`;
-      p.textContent = k;
       p.style.left = tierX(i, k) + 'px';
       setzeFarbVariablen(p, team.farbe);
       $('schritte').appendChild(p);
@@ -451,7 +456,7 @@ function naechsteAufgabe() {
   if (lesen) {
     stelleUhr($('uhr-gross').querySelector('svg'), minutenVon(a.h, a.m));
   } else {
-    $('wecker-anzeige').innerHTML = segmentSvg(`${a.anzeigeH}:${String(a.m).padStart(2, '0')}`);
+    $('wecker-anzeige').innerHTML = segmentSvg(`${String(a.anzeigeH).padStart(2, '0')}:${String(a.m).padStart(2, '0')}`);
   }
   [0, 1].forEach(i => {
     if (!aktiv(i)) return;
@@ -507,7 +512,7 @@ function richtig(i) {
   blinke(p, 'richtig');
   if (a.art === 'lesen') {
     const l = $('loesung-text');
-    l.textContent = `${a.h}:${String(a.m).padStart(2, '0')}`;
+    l.textContent = `${String(a.h).padStart(2, '0')}:${String(a.m).padStart(2, '0')}`;
     l.classList.remove('versteckt');
   } else {
     p.classList.add('geloest');
@@ -575,7 +580,7 @@ function starteRakete(zuender, punkt) {
   zuender.forEach(i => {
     const fig = $(`figur-${i}`);
     fig.classList.add('geht');
-    fig.style.left = (i === 0 ? SCHNUR_ENDE_X - 85 : 1600 - SCHNUR_ENDE_X + 85) + 'px';
+    fig.style.left = (i === 0 ? SCHNUR_ENDE_X - 62 : 1600 - SCHNUR_ENDE_X + 62) + 'px';
     setTimeout(() => { fig.classList.remove('geht'); fig.classList.add('zuendet'); }, 450);
   });
   zeichneStand();
@@ -583,7 +588,7 @@ function starteRakete(zuender, punkt) {
 
 /* Flugbahn: hoch, Looping rechts, Looping links, dann Knall oben in der Mitte */
 const FLUG_PUNKTE = [
-  [800, 273], [800, 190], [835, 105], [960, 50], [1130, 75], [1250, 200], [1220, 350], [1070, 420],
+  [800, 295], [800, 190], [835, 105], [960, 50], [1130, 75], [1250, 200], [1220, 350], [1070, 420],
   [930, 360], [840, 250], [770, 160], [650, 85], [480, 70], [345, 170], [345, 330], [480, 420],
   [640, 380], [740, 300], [790, 250], [815, 215]
 ];
@@ -641,12 +646,12 @@ function raketeSchritt(dt) {
   if (r.ms >= R.start && r.ms < R.knall) {
     const t = (r.ms - R.start) / R.flug;
     const p = flugBahn(flugAnteil(t));
-    const groesse = 1 - 0.45 * t, hoehe = RAKETE.hoehe * groesse;
+    const groesse = 1 - 0.45 * t, hoehe = FLUG_START.hoehe * groesse;
     const el = $('flug-rakete');
     el.style.height = hoehe + 'px';
     el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) rotate(${(p.w * 180 / Math.PI + 90).toFixed(1)}deg)`;
     // Feuerschweif unten am Raketenkörper
-    const hx = p.x - Math.cos(p.w) * hoehe * 0.14, hy = p.y - Math.sin(p.w) * hoehe * 0.14;
+    const hx = p.x - Math.cos(p.w) * hoehe * 0.09, hy = p.y - Math.sin(p.w) * hoehe * 0.09;
     for (let k = 0; k < 5; k++) funken.push(neuerFunke(hx, hy, 'schweif', p.w));
     if (Math.random() < 0.5) funken.push(neuerFunke(hx, hy, 'rauch', p.w));
   }
@@ -787,8 +792,9 @@ function zeichneFunken(dt) {
 /* =========================================================
    Uhr stellen: Zeiger mit dem Finger ziehen
    - Minutenzeiger rastet in Viertelstunden ein (:00, :15, :30, :45)
-   - Stundenzeiger rastet bei den ganzen Stunden ein
-   - Wie bei einer echten Uhr dreht der Stundenzeiger mit
+   - Stundenzeiger rastet ebenfalls in Viertelstunden ein: er steht also wie bei einer
+     echten Uhr je nach Minuten zwischen zwei Zahlen, und der Minutenzeiger dreht mit
+   - Umgekehrt dreht beim Minutenzeiger der Stundenzeiger langsam mit
    ========================================================= */
 function winkelDiff(a, b) { const d = Math.abs(mod(a - b, 360)); return Math.min(d, 360 - d); }
 function verbindeZiehen(i, svg) {
@@ -807,7 +813,7 @@ function verbindeZiehen(i, svg) {
     const dm = winkelDiff(winkel, w.minute), dh = winkelDiff(winkel, w.stunde);
     // Welcher Zeiger? Der näher liegende; liegen beide nah beieinander, entscheidet der Abstand zur Mitte
     let zeiger = dm <= dh ? 'minute' : 'stunde';
-    if (Math.abs(dm - dh) < 25) zeiger = r > 56 ? 'minute' : 'stunde';
+    if (Math.abs(dm - dh) < 25) zeiger = r > 50 ? 'minute' : 'stunde';
     S.ziehen = { i, zeiger, roh: S.uhr[i], minute: mod(S.uhr[i], 60), id: ev.pointerId };
     try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* egal */ }
     svg.classList.add('zieht', 'zieht-' + zeiger);
@@ -825,7 +831,7 @@ function verbindeZiehen(i, svg) {
       let d = winkel / 30 - mod(z.roh / 60, 12);
       d = mod(d + 6, 12) - 6;
       z.roh += d * 60;
-      neu = mod(Math.round((z.roh - z.minute) / 60) * 60 + z.minute, 720);
+      neu = mod(Math.round(z.roh / 15) * 15, 720);
     }
     if (neu !== S.uhr[i]) { S.uhr[i] = neu; TON.klick(); stelleUhr(svg, neu); }
   };
@@ -877,7 +883,9 @@ function zeichneSchritte(gehen) {
     if (!aktiv(i)) return;
     const k = S.schritte[i], fig = $(`figur-${i}`);
     fig.classList.remove('zuendet');
-    if (gehen) { fig.classList.remove('geht'); void fig.offsetWidth; fig.classList.add('geht'); clearTimeout(fig._t); fig._t = setTimeout(() => fig.classList.remove('geht'), 900); }
+    // Nur das Tier geht, dessen Schritt sich geändert hat – das andere bleibt still stehen
+    if (gehen && fig._k !== k) { fig.classList.remove('geht'); void fig.offsetWidth; fig.classList.add('geht'); clearTimeout(fig._t); fig._t = setTimeout(() => fig.classList.remove('geht'), 900); }
+    fig._k = k;
     fig.style.left = tierX(i, k) + 'px';
     fig.querySelector('.zaehler').textContent = `${k} / ${S.ziel}`;
     for (let n = 1; n <= S.ziel; n++) $(`schritt-${i}-${n}`).classList.toggle('erreicht', n <= k);

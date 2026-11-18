@@ -9,14 +9,14 @@
 /* Zifferblatt-Arten */
 const ZIFFERBLAETTER = [
   { id: 'alle',    name: 'Striche und alle Zahlen' },
-  { id: 'viertel', name: 'Nur 12, 3, 6 und 9' },
+  { id: 'viertel', name: 'Nur 3, 6, 9, 12' },
   { id: 'keine',   name: 'Nur Striche' }
 ];
 
 /* Farben und Längen der Zeiger (Radius der Uhr = 100) */
 const ZEIGER = {
-  stunde: { farbe: '#d32f2f', laenge: 50, breite: 10, hinten: 14 },   // rot, kurz und dick
-  minute: { farbe: '#1b5e20', laenge: 84, breite: 6.5, hinten: 16 }   // dunkelgrün, lang
+  stunde: { farbe: '#d32f2f', laenge: 44, breite: 10, hinten: 12 },   // rot, kurz und dick
+  minute: { farbe: '#1b5e20', laenge: 70, breite: 6.5, hinten: 14 }   // dunkelgrün, lang (bis zu den Strichen)
 };
 
 /** Winkel (Grad, 0 = oben, im Uhrzeigersinn) der beiden Zeiger für eine Zeit in Minuten (0..719) */
@@ -63,13 +63,13 @@ function uhrSvg(art, { nagel = true, klasse = '' } = {}) {
   const striche = [];
   // Nur die 12 Stundenstriche – keine Minutenstriche
   for (let i = 0; i < 12; i++) {
-    striche.push(`<line x1="0" y1="-76" x2="0" y2="-92" transform="rotate(${i * 30})" stroke="#111" stroke-width="5.5"/>`);
+    striche.push(`<line x1="0" y1="-57" x2="0" y2="-71" transform="rotate(${i * 30})" stroke="#111" stroke-width="5.5"/>`);
   }
   const zahlen = [];
   for (let z = 1; z <= 12; z++) {
     if (art === 'keine') break;
     if (art === 'viertel' && z % 3 !== 0) continue;
-    const w = z * 30 * Math.PI / 180, r = 60;
+    const w = z * 30 * Math.PI / 180, r = 83;   // Zahlen aussen, ausserhalb der Striche
     const x = (r * Math.sin(w)).toFixed(1), y = (-r * Math.cos(w)).toFixed(1);
     zahlen.push(`<text x="${x}" y="${y}" class="uhr-zahl${art === 'viertel' ? ' gross' : ''}">${z}</text>`);
   }

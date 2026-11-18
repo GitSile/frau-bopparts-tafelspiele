@@ -75,9 +75,9 @@
         <div class="abschnitt">
           <div class="abschnitt-titel">Uhrzeiten</div>
           <div class="knopf-raster arten-raster">
-            <button class="wahl filz" data-zeit="ganz">Ganze Stunden <small>(3:00)</small></button>
-            <button class="wahl filz" data-zeit="halb">Halbe Stunden <small>(3:30)</small></button>
-            <button class="wahl filz" data-zeit="viertel">Viertelstunden <small>(3:15, 3:45)</small></button>
+            <button class="wahl filz" data-zeit="ganz">Ganze Stunden <small>(03:00)</small></button>
+            <button class="wahl filz" data-zeit="halb">Halbe Stunden <small>(03:30)</small></button>
+            <button class="wahl filz" data-zeit="viertel">Viertelstunden <small>(03:15, 03:45)</small></button>
           </div>
         </div>
         <div class="abschnitt">
@@ -107,10 +107,12 @@
 
       <div class="karte filz">
         <h2>Ablauf</h2>
+        <div id="wechsel-zeile">
         <label class="feld-zeile">Wechselzeit (Sekunden)
           <span class="zahl-feld filz"><input type="text" id="e-wechsel" inputmode="numeric" maxlength="2"></span>
         </label>
         <p class="hinweis">Countdown zwischen den Aufgaben. 0 = sofort weiter.</p>
+        </div>
         <label class="schalter-zeile"><input type="checkbox" id="e-ton"><span class="schalter"></span>Ton</label>
       </div>
     </div>
@@ -129,14 +131,13 @@
       <div id="szene">
         <div id="schritte"></div>
         <svg id="schnur" viewBox="0 0 1600 450" aria-hidden="true">
-          <path id="schnur-0" class="schnur" d=""/>
-          <path id="schnur-1" class="schnur" d=""/>
           <path id="brand-0" class="brand" d=""/>
           <path id="brand-1" class="brand" d=""/>
         </svg>
         <div id="funke-0" class="funke versteckt"></div>
         <div id="funke-1" class="funke versteckt"></div>
-        <img id="rakete" src="bilder/rakete.png" alt="Rakete">
+        <img id="schnur-bild" src="bilder/zuendschnur.png" alt="">
+        <img id="rakete" src="bilder/rakete-stehend.png" alt="Rakete">
         <div class="figur" id="figur-0"></div>
         <div class="figur" id="figur-1"></div>
 
@@ -168,7 +169,7 @@
               <img src="bilder/wecker.png" alt="">
               <div id="wecker-anzeige"></div>
             </div>
-            <div id="stellen-hinweis">Stelle die Uhr!</div>
+            <div id="stellen-hinweis">Stelle die Zeiger richtig ein!</div>
           </div>
         </div>
         <div id="wechsel-box" class="filz versteckt">
@@ -199,7 +200,8 @@
           <h2>Pause</h2>
           <button id="btn-weiter" class="knopf gross filz">▶ Weiterspielen</button>
           <button id="btn-neustart" class="knopf hell filz">↻ Neu starten</button>
-          <button id="btn-zu-einst" class="knopf hell filz">⚙ Zu den Einstellungen</button>
+          <button id="btn-zu-einst" class="knopf hell filz">⚙ Spiel-Einstellungen</button>
+          <a id="btn-spiel-wechseln" href="../../index.html" class="knopf hell filz zur-uebersicht">🎲 Spiel wechseln</a>
         </div>
       </div>
 
