@@ -505,7 +505,7 @@ function naechsteAufgabe() {
     if (S.aufgabe && S.stapel.length > 1 && S.stapel[S.stapel.length - 1] === S.aufgabe) S.stapel.unshift(S.stapel.pop());
     S.stapel = entzerren(S.stapel, S.letzteMenge);
   }
-  S.aufgabe = S.stapel.pop();
+  S.aufgabe = naechsteAusStapel(S.stapel, S.aufgabe, S.pool);   // nie zweimal dasselbe Ergebnis nacheinander
   if (mengenThema(S.aufgabe)) S.letzteMenge = S.aufgabe;
   S.ergebnis = rechne(S.aufgabe);
   S.eingabe = ['', ''];

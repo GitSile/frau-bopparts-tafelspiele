@@ -24,7 +24,7 @@ const STANDARD = {
   arten: { verliebt: false, doppelt: false, haelfte: false, mengen: false, kopfrechnen: false },
   ops: { plus: true, minus: true, mal: false, geteilt: false },
   zueb: true, stellen: 'ZE', reihen: ALLE_REIHEN.slice(),
-  wechselSek: '3', zeitlimitAn: false, zeitlimitSek: '20',
+  zeitlimitAn: false, zeitlimitSek: '20',
   zurueck: false, ton: true
 };
 const SPEICHER_EINST = 'mathewanderung.einstellungen.v1';
@@ -145,7 +145,6 @@ function zeichneAufgabenKnoepfe() {
 function zeigeEinstellungen() {
   baueTierKarte();
   zeichneAufgabenKnoepfe();
-  $('e-wechsel').value = E.wechselSek;
   $('e-zeitlimit-an').checked = E.zeitlimitAn;
   $('e-zeitlimit-sek').value = E.zeitlimitSek;
   $('e-zurueck').checked = E.zurueck;
@@ -157,7 +156,6 @@ function zeigeEinstellungen() {
 
 function leseFormular() {
   E.zahlenraum = $('e-zahlenraum').value.trim();
-  E.wechselSek = $('e-wechsel').value.trim();
   E.zeitlimitAn = $('e-zeitlimit-an').checked;
   E.zeitlimitSek = $('e-zeitlimit-sek').value.trim();
   E.zurueck = $('e-zurueck').checked;
@@ -173,7 +171,6 @@ function pruefeEinstellungen() {
     if (!Object.keys(E.ops).some(k => E.ops[k])) return 'Bitte mindestens eine Rechenart einschalten.';
     if ((E.ops.mal || E.ops.geteilt) && !E.reihen.length) return 'Für Mal und Geteilt bitte mindestens eine Einmaleins-Reihe einschalten.';
   }
-  if (ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
   if (E.zeitlimitAn && ganzzahlIn(E.zeitlimitSek, 5, 60) === null) return 'Zeitlimit: bitte 5 bis 60 Sekunden.';
   return null;
 }
@@ -224,7 +221,7 @@ function starteSpiel() {
     level: 1, stufe: 0, weltStand: { beutel: [], letzte: null }, welt: null, weltId: null,
     richtige: 0,
     zeitlimitMs: E.zeitlimitAn ? Number(E.zeitlimitSek) * 1000 : 0,
-    wechselMs: Number(E.wechselSek) * 1000,
+    wechselMs: 0,   // nur eine Person: nie ein Countdown, die nächste Aufgabe kommt sofort
     aufgabeRestMs: 0, phase: 'spiel', phaseRestMs: 0, weiter: null,
     kran: null, pausiert: false, beendet: false
   };
@@ -342,7 +339,7 @@ function naechsteAufgabe() {
     if (S.aufgabe && S.stapel.length > 1 && S.stapel[S.stapel.length - 1] === S.aufgabe) S.stapel.unshift(S.stapel.pop());
     S.stapel = entzerren(S.stapel, S.letzteMenge);
   }
-  S.aufgabe = S.stapel.pop();
+  S.aufgabe = naechsteAusStapel(S.stapel, S.aufgabe, S.pool);   // nie zweimal dasselbe Ergebnis nacheinander
   if (mengenThema(S.aufgabe)) S.letzteMenge = S.aufgabe;
   S.ergebnis = rechne(S.aufgabe);
   S.eingabe = ''; S.sperre = 0;
@@ -651,7 +648,7 @@ document.querySelectorAll('[data-reihe]').forEach(b => b.addEventListener('click
   E.reihen = E.reihen.includes(r) ? E.reihen.filter(x => x !== r) : [...E.reihen, r].sort((a, c) => a - c);
   merke(); zeichneAufgabenKnoepfe();
 }));
-['e-wechsel', 'e-zeitlimit-sek'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
+['e-zeitlimit-sek'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
 ['e-zeitlimit-an', 'e-zurueck', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
 $('btn-weiss-nicht').addEventListener('click', weissNicht);
