@@ -42,6 +42,7 @@ const STANDARD = {
   minuten: '',
   wechselSek: '3',
   ton: true,
+  zurueck: false,          // 1 Kind: bei falscher Antwort einen Schritt zurück
   teams: [
     { name: 'Löwen',       tier: 'loewe',        farbe: 'rot' },
     { name: 'Erdmännchen', tier: 'erdmaennchen', farbe: 'blau' }
@@ -231,6 +232,8 @@ function zeigeEinstellungen() {
   // Wechselzeit braucht es nur, wenn zwei Kinder abwechselnd an die Tafel kommen
   $('wechsel-zeile').classList.toggle('versteckt', E.spieler === 1);
   $('e-ton').checked = E.ton;
+  $('e-zurueck').checked = E.zurueck;
+  $('zeile-zurueck').classList.toggle('versteckt', E.spieler !== 1);
   $('fehler').textContent = '';
   zeigeSeite('einstellungen');
 }
@@ -241,6 +244,7 @@ function leseFormular() {
   E.minuten = $('e-minuten').value.trim();
   E.wechselSek = $('e-wechsel').value.trim();
   E.ton = $('e-ton').checked;
+  E.zurueck = $('e-zurueck').checked;
   merke();
 }
 
@@ -352,6 +356,7 @@ function starteSpiel() {
     phaseRestMs: 0, weiter: null,
     rakete: null,
     zeitUm: false,
+    zurueck: E.spieler === 1 && E.zurueck,
     pausiert: false, beendet: false
   };
   baueSpielfeld();
@@ -371,6 +376,7 @@ function schnurPfad(i) { return SCHNUR_PFADE[i]; }
 function baueSpielfeld() {
   const b = $('buehne');
   b.classList.toggle('allein', S.n === 1);
+  $('btn-weiss-nicht').classList.toggle('versteckt', S.n !== 1);
   // Rakete
   const r = $('rakete');
   [r, $('schnur-bild')].forEach(el => {
@@ -471,7 +477,7 @@ function naechsteAufgabe() {
     if (!aktiv(i)) return;
     const p = $(`panel-${i}`);
     p.classList.toggle('stellen', !lesen);
-    p.classList.remove('geloest');
+    p.classList.remove('geloest', 'gezeigt');
     S.uhr[i] = START_UHR;
     stelleUhr(p.querySelector('.uhr-teil svg'), S.uhr[i]);
     p.querySelector('.meldung').textContent = '';
@@ -543,6 +549,33 @@ function falsch(i) {
   const fig = $(`figur-${i}`);
   blinke(fig, 'traurig');
   zeichneEingaben();
+  // Einstellung (nur 1 Kind): enttäuscht einen Schritt zurück, aber nie hinter den Start
+  if (S.zurueck && S.schritte[i] > 0) {
+    S.schritte[i]--;
+    setTimeout(() => { if (S && !S.beendet) zeichneSchritte(true); }, 450);
+  }
+}
+
+/** Knopf "Ich weiss es nicht" (nur 1 Kind): Lösung zeigen, kein Schritt, dann die nächste Aufgabe */
+const WEISS_NICHT_MS = 2600;
+function weissNicht() {
+  if (!S || S.pausiert || S.phase !== 'spiel' || S.n !== 1) return;
+  const a = S.aufgabe;
+  S.eingabe = ['', ''];
+  zeichneEingaben();
+  if (a.art === 'lesen') {
+    const l = $('loesung-text');
+    l.textContent = `${String(a.h).padStart(2, '0')}:${String(a.m).padStart(2, '0')}`;
+    l.classList.remove('versteckt');
+  } else {
+    // Uhr im Panel auf die richtige Zeit stellen
+    S.ziehen = null;
+    S.uhr[0] = minutenVon(a.h, a.m);
+    const p = $('panel-0');
+    stelleUhr(p.querySelector('.uhr-teil svg'), S.uhr[0]);
+    p.classList.add('gezeigt');
+  }
+  setzePhase('loesung', WEISS_NICHT_MS, () => wechsel(naechsteAufgabe));
 }
 
 /** Countdown zwischen den Aufgaben */
@@ -908,6 +941,7 @@ function zeichneEingaben() {
   [0, 1].forEach(i => { if (aktiv(i)) $(`panel-${i}`).querySelector('.eingabe').textContent = S.eingabe[i]; });
 }
 function zeichneLaufend() {
+  $('btn-weiss-nicht').classList.toggle('aus', S.phase !== 'spiel' || S.pausiert);
   const ziel = $('ziel');
   if (S.mitZeit) { ziel.textContent = `⏱ ${zeitText(S.restMs)}`; ziel.className = S.restMs <= 10000 && !S.zeitUm ? 'knapp' : ''; }
   else { ziel.textContent = `${S.ziel} richtige Antworten zünden die Rakete`; ziel.className = ''; }
@@ -958,7 +992,9 @@ document.querySelectorAll('[data-zeit]').forEach(b => b.addEventListener('click'
 document.querySelectorAll('[data-blatt]').forEach(b => b.addEventListener('click', () => { E.blatt = b.dataset.blatt; merke(); zeichneWahlKnoepfe(); }));
 ['e-schritte', 'e-minuten', 'e-wechsel'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
 ['e-nachmittag', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
+['e-zurueck'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
+$('btn-weiss-nicht').addEventListener('click', weissNicht);
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));

@@ -254,6 +254,14 @@ body { background: #eef3fb; }
 #wecker-anzeige svg { width: 88%; height: 80%; }
 #stellen-hinweis { font-size: 34px; font-weight: 900; color: #455a64; margin-top: 4px; }
 
+/* "Ich weiss es nicht" (nur 1 Kind): klein, unten links in der Aufgabe */
+#btn-weiss-nicht {
+  position: absolute; left: 16px; bottom: 16px; z-index: 3; border: 0; border-radius: var(--wackel-klein);
+  background: #fff; color: #546e7a; font-size: 22px; font-weight: 800; padding: 10px 18px; --filz-farbe: #90a4ae;
+}
+#btn-weiss-nicht:active { transform: translateY(2px); }
+#btn-weiss-nicht.aus { opacity: .35; pointer-events: none; }
+.panel.gezeigt .uhr-halter svg { filter: drop-shadow(0 0 10px #2196f3) drop-shadow(0 0 4px #2196f3); }
 #wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; cursor: pointer; touch-action: manipulation; flex-direction: column; }
 #wechsel-kreis { width: 280px; height: 280px; overflow: visible; }
 #wechsel-hinweis { margin-top: 6px; font-size: 20px; color: #8d6e63; }
