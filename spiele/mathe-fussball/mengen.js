@@ -36,7 +36,8 @@ const MENGEN_AEHNLICH = [['domino', 'wuerfel'], ['kamele', 'erdmaennchen']];
 const MENGEN_AUFGABEN = MENGEN_THEMEN.flatMap(t =>
   Array.from({ length: t.max }, (_, i) => `M ${t.id} ${i + 1}`));
 
-const MB = 'bilder/mengen/';
+// Andere Spiele (z. B. Mathe-Wanderung) setzen vorher MENGEN_PFAD, weil die Bilder hier im Ordner liegen
+const MB = typeof MENGEN_PFAD === 'string' ? MENGEN_PFAD : 'bilder/mengen/';
 const B = 800, H = 300;          // Zeichenfläche (viewBox)
 
 /** Bild an Position (Mitte x, Unterkante y), mit Schatten für den 3D-Eindruck */

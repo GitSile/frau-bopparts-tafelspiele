@@ -7,6 +7,7 @@ Lernspiele für die digitale Schultafel. Alle Spiele laufen direkt im Browser, o
 | Spiel | Fach | Beschreibung |
 | --- | --- | --- |
 | [Mathe-Fussball](spiele/mathe-fussball/index.html) | Mathematik, 1.–4. Klasse | Zwei Teams rechnen um die Wette. Wer zuerst richtig antwortet, schiesst den Ball Richtung gegnerisches Tor. |
+| [Mathe-Wanderung](spiele/mathe-wanderung/index.html) | Mathematik, 1.–4. Klasse | Für eine Person: Mit jeder richtigen Antwort kommt das Tier einen Schritt weiter. 8 richtige Antworten = Level geschafft, dann hebt der Kran das Tier in die nächste Welt. |
 
 ## Aufbau
 
@@ -15,10 +16,17 @@ index.html                 Startseite mit allen Spielen
 gemeinsam/                 Stil und Hilfsfunktionen für alle Spiele
   filz.css                 Grundstil im Filzstift-Look
   hilfen.js                kleine Werkzeuge (Zufall, Speichern, Farben …)
+  mathe-aufgaben.js        Rechenaufgaben für Mathe-Fussball und Mathe-Wanderung
 spiele/
   mathe-fussball/          das Spiel Mathe-Fussball
     index.html
     style.css
+    spiel.js
+    bilder/
+  mathe-wanderung/         das Spiel Mathe-Wanderung (benutzt Tiere, Töne und Mengen-Bilder von Mathe-Fussball)
+    index.html
+    style.css
+    welten.js              die 14 Welten als Vektorgrafik
     spiel.js
     bilder/
 ```
@@ -46,6 +54,8 @@ Töne in `spiele/mathe-fussball/toene/` von Pixabay (Pixabay Content License, fr
 - `tick.wav` – eine Sekunde aus "sec_mixdown" (freesound_community), verstärkt, pixabay.com/sound-effects/film-special-effects-sec-mixdown-62016/
 
 Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fussball/bilder/mengen/` (Icons wie Hände, Torte, Fussballer, Tiere, Eier, Muffins, Autos, Ballone, Sterne, Flaschen sowie Wüste und Strand) erstellt mit ChatGPT. Kerzen, Ast, Würfel, Domino, Striche, Perlen und Punkte sind als Vektorgrafik im Code gezeichnet (`mengen.js`).
+
+Mathe-Wanderung: Das Bild `spiele/mathe-wanderung/bilder/baer-wandern.png` (Bär mit Rucksack) wurde mit ChatGPT erstellt. Alle Welten, Fahrzeuge, Ortsschilder und der Kran sind als Vektorgrafik im Code gezeichnet (`welten.js`). Das Spiel benutzt die Tierfiguren, den Vogel, die Töne und einige Mengen-Bilder (Kamel, Palme, Fisch) von Mathe-Fussball.
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`

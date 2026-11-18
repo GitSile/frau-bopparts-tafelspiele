@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mathe-Wanderung · Frau Bopparts Tafelspiele</title>
+  <meta name="description" content="Rechnen und wandern: mit 8 richtigen Antworten durch jedes Level">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mathe-Wanderung · Frau Bopparts Tafelspiele">
+  <meta property="og:description" content="Rechnen und wandern: mit 8 richtigen Antworten durch jedes Level">
+  <meta property="og:url" content="https://boppart.info/spiele/mathe-wanderung/">
+  <meta property="og:image" content="https://boppart.info/vorschau.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥾</text></svg>">
+  <link rel="stylesheet" href="../../gemeinsam/filz.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Filzstift-Effekt für alle Ränder -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="filz" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
+      <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <section id="einstellungen" class="seite">
+    <header class="kopf">
+      <h1><img src="bilder/baer-wandern.png" alt="" class="titel-bild"> Mathe-Wanderung</h1>
+      <div>
+        <a href="../../index.html" class="knopf hell filz zur-uebersicht">← Alle Spiele</a>
+        <button id="btn-vollbild-einst" class="knopf hell filz" title="Vollbild ein/aus">⛶</button>
+      </div>
+    </header>
+
+    <div class="raster">
+      <div class="karte tier-karte filz" id="karte-tier"></div>
+
+      <div class="karte halb filz">
+        <h2>Ablauf</h2>
+        <p class="hinweis">Für jedes Level braucht es <b>8 richtige Antworten</b>. Dann hebt der Kran das Tier ins nächste Level.</p>
+        <label class="feld-zeile">Wechselzeit (Sekunden)
+          <span class="zahl-feld filz"><input type="text" id="e-wechsel" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <p class="hinweis">Countdown zwischen den Aufgaben. 0 = die nächste Aufgabe kommt sofort.</p>
+        <label class="schalter-zeile"><input type="checkbox" id="e-zeitlimit-an"><span class="schalter"></span>Zeitlimit pro Aufgabe</label>
+        <label class="feld-zeile eingerueckt" id="zeile-sekunden">Sekunden
+          <span class="zahl-feld filz"><input type="text" id="e-zeitlimit-sek" inputmode="numeric" maxlength="2"></span>
+        </label>
+        <label class="schalter-zeile"><input type="checkbox" id="e-zurueck"><span class="schalter"></span>Bei Fehler einen Schritt zurück</label>
+        <label class="schalter-zeile"><input type="checkbox" id="e-ton"><span class="schalter"></span>Ton</label>
+      </div>
+
+      <div class="karte breit filz" id="karte-aufgaben">
+        <h2>Aufgaben</h2>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Aufgabenart</div>
+          <div class="knopf-raster arten-raster">
+            <button class="wahl filz" data-art="verliebt">Verliebte Zahlen</button>
+            <button class="wahl filz" data-art="doppelt">Verdoppeln</button>
+            <button class="wahl filz" data-art="haelfte">Halbieren</button>
+            <button class="wahl filz" data-art="mengen">Mengen erkennen</button>
+            <button class="wahl filz" data-art="kopfrechnen">Kopfrechnen</button>
+          </div>
+        </div>
+
+        <!-- Nur sichtbar, wenn "Kopfrechnen" gewählt ist -->
+        <div id="kopfrechnen-optionen">
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Zahlenraum bis</div>
+          <div class="knopf-raster">
+            <button class="wahl filz" data-zr="10">10</button>
+            <button class="wahl filz" data-zr="20">20</button>
+            <button class="wahl filz" data-zr="100">100</button>
+            <button class="wahl filz" data-zr="1000">1000</button>
+            <div class="zelle">
+              <label class="eigene filz"><span class="stift" aria-hidden="true">✎</span><input type="text" id="e-zahlenraum" inputmode="numeric" maxlength="4" aria-label="Eigene Zahl für den Zahlenraum"></label>
+              <span class="unter blau">eigene Zahl tippen</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="abschnitt">
+          <div class="abschnitt-titel">Rechenarten</div>
+          <div class="knopf-raster">
+            <button class="wahl filz" data-op="plus">Plus</button>
+            <button class="wahl filz" data-op="minus">Minus</button>
+            <button class="wahl filz" data-op="mal">Mal</button>
+            <button class="wahl filz" data-op="geteilt">Geteilt</button>
+          </div>
+        </div>
+
+        <div class="abschnitt" id="abschnitt-plusminus">
+          <div class="abschnitt-titel">Plus und Minus</div>
+          <div class="knopf-raster">
+            <div class="zelle"><button class="wahl filz" id="e-zueb" title="Zehnerübergang">Z.Üb.</button></div>
+            <div></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="ZE" title="2. Zahl mit Zehnern + Einern">ZE</button></div>
+            <div class="zelle"><button class="wahl filz" data-stellen="E" title="2. Zahl nur Einer">E</button></div>
+          </div>
+        </div>
+
+        <div class="abschnitt" id="abschnitt-reihen">
+          <div class="abschnitt-titel">Einmaleins-Reihen</div>
+          <div class="knopf-raster" id="reihen"></div>
+        </div>
+        </div><!-- /kopfrechnen-optionen -->
+      </div>
+    </div>
+
+    <p id="fehler" class="fehler" role="alert"></p>
+    <div class="start-zeile">
+      <button id="btn-start" class="knopf gross filz">Los geht's! 🥾</button>
+    </div>
+  </section>
+
+  <!-- ============ SPIEL ============ -->
+  <section id="spiel" class="seite versteckt">
+    <div id="buehne">
+
+      <!-- Welt oben über die ganze Breite -->
+      <div id="feld">
+        <div id="hinten"></div>
+        <div id="akteur"><div class="akteur-innen"></div></div>
+        <div id="vorne"></div>
+        <svg id="kran" viewBox="0 0 1600 520" aria-hidden="true">
+          <defs>
+            <pattern id="kran-gitter" width="40" height="34" patternUnits="userSpaceOnUse">
+              <rect width="40" height="34" fill="#fbc02d"/>
+              <path d="M0 34 L20 0 L40 34" fill="none" stroke="#263238" stroke-width="4"/>
+            </pattern>
+            <pattern id="kran-kette" width="14" height="22" patternUnits="userSpaceOnUse">
+              <rect x="2" y="1" width="10" height="13" rx="5" fill="none" stroke="#455a64" stroke-width="3.5"/>
+              <rect x="5.5" y="11" width="3" height="11" fill="#78909c"/>
+            </pattern>
+          </defs>
+          <g id="kran-ausleger">
+            <rect x="0" y="-4" width="2200" height="38" fill="url(#kran-gitter)" stroke="#263238" stroke-width="4"/>
+            <path d="M0 -4 H2200 M0 34 H2200" stroke="#263238" stroke-width="5"/>
+          </g>
+          <g id="kran-katze">
+            <rect id="kran-kette-band" x="-7" y="44" width="14" height="10" fill="url(#kran-kette)"/>
+            <rect x="-34" y="26" width="68" height="26" rx="5" fill="#e65100" stroke="#263238" stroke-width="4"/>
+            <circle cx="-18" cy="28" r="7" fill="#455a64" stroke="#263238" stroke-width="3"/><circle cx="18" cy="28" r="7" fill="#455a64" stroke="#263238" stroke-width="3"/>
+            <g id="kran-haken">
+              <rect x="-16" y="-6" width="32" height="20" rx="5" fill="#ffb300" stroke="#263238" stroke-width="4"/>
+              <path d="M0 14 V30 Q0 52 -16 50 Q-30 48 -28 34" fill="none" stroke="#263238" stroke-width="12" stroke-linecap="round"/>
+              <path d="M0 14 V30 Q0 52 -16 50 Q-30 48 -28 34" fill="none" stroke="#b0bec5" stroke-width="6" stroke-linecap="round"/>
+            </g>
+          </g>
+        </svg>
+
+        <div id="level-anzeige" class="filz">
+          <div id="level-nummer">Level 1</div>
+          <div id="welt-name"></div>
+          <div id="stufen-punkte"></div>
+        </div>
+        <div id="werkzeuge">
+          <button id="btn-pause" class="filz" title="Menü (Spiel pausiert)">Menü</button>
+          <button id="btn-ton" class="filz" title="Ton an/aus">🔊</button>
+          <button id="btn-vollbild" class="filz" title="Vollbild">⛶</button>
+        </div>
+        <div id="geschafft" class="versteckt"></div>
+      </div>
+
+      <!-- Unten: Aufgabe – Tastatur -->
+      <div id="mitte">
+        <div id="aufgabe-box" class="filz">
+          <div id="mengen-bild" class="versteckt"></div>
+          <div id="aufgabe-text"></div>
+          <div id="zeitbalken"><div id="zeitbalken-fuellung"></div></div>
+        </div>
+        <div id="wechsel-box" class="filz versteckt">
+          <svg id="wechsel-kreis" viewBox="-8 -8 116 116" aria-label="Countdown">
+            <circle class="spur" cx="50" cy="50" r="42"></circle>
+            <circle class="rest" id="wechsel-rest" cx="50" cy="50" r="42" pathLength="100" transform="rotate(-90 50 50)"></circle>
+            <text id="wechsel-sek" x="50" y="52" text-anchor="middle" dominant-baseline="middle">3</text>
+            <g id="wechsel-vogel"><g class="vogel-koerper"><image href="../mathe-fussball/bilder/vogel.png" x="-12" y="-12" width="24" height="24"></image></g></g>
+          </svg>
+          <div id="wechsel-hinweis">(Zum Starten antippen)</div>
+        </div>
+      </div>
+
+      <div class="panel filz" id="panel"></div>
+
+      <!-- Overlays -->
+      <div id="pause-menue" class="overlay dunkel versteckt">
+        <div class="menue-box filz">
+          <h2>Pause</h2>
+          <div id="pause-stand"></div>
+          <button id="btn-weiter" class="knopf gross filz">▶ Weiterwandern</button>
+          <button id="btn-neustart" class="knopf hell filz">↻ Neu starten (Level 1)</button>
+          <button id="btn-zu-einst" class="knopf hell filz">⚙ Zu den Einstellungen</button>
+        </div>
+      </div>
+      <div id="konfetti"></div>
+    </div>
+  </section>
+
+  <script src="../../gemeinsam/hilfen.js"></script>
+  <script>const MENGEN_PFAD = '../mathe-fussball/bilder/mengen/';</script>
+  <script src="../mathe-fussball/mengen.js"></script>
+  <script src="../../gemeinsam/mathe-aufgaben.js"></script>
+  <script src="welten.js"></script>
+  <script src="spiel.js"></script>
+</body>
+</html>

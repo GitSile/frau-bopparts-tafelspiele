@@ -1,0 +1,276 @@
+/* =========================================================
+   Mathe-Wanderung – Stil
+   Grundstil, Farben, Filzstift-Rand und Knöpfe: ../../gemeinsam/filz.css
+   Die Einstellungen sehen aus wie bei Mathe-Fussball.
+   ========================================================= */
+body { background: #eef7e8; }
+.zur-uebersicht { text-decoration: none; display: inline-block; }
+
+/* =========================================================
+   Einstellungen
+   ========================================================= */
+#einstellungen { padding: 20px 24px 40px; max-width: 1280px; margin: 0 auto; }
+.kopf { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.kopf h1 { margin: 0; font-size: 40px; display: flex; align-items: center; gap: 10px; }
+.titel-bild { width: 84px; height: 84px; object-fit: contain; }
+.kopf > div { display: flex; gap: 10px; }
+
+.raster { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+.karte { grid-column: span 2; background: #fff; border-radius: var(--wackel); padding: 18px 22px; }
+.karte.breit { grid-column: 1 / -1; }
+.karte.halb, .tier-karte { grid-column: span 3; }
+.tier-karte { --filz-farbe: #e65100; --filz-dicke: 4px; }
+.karte h2 { margin: 0 0 12px; font-size: 26px; }
+@media (max-width: 900px) {
+  .raster { grid-template-columns: 1fr; }
+  .karte, .karte.halb, .tier-karte { grid-column: auto; }
+}
+
+/* Aufgaben-Karte */
+.abschnitt { padding: 14px 0; border-top: 2px dashed #b0bec5; }
+.abschnitt:first-of-type { border-top: 0; padding-top: 0; }
+.abschnitt-titel { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+.abschnitt.aus { opacity: .35; pointer-events: none; filter: grayscale(1); }
+.knopf-raster { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 14px; }
+.zelle { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.unter { font-size: 14px; line-height: 1.25; color: #546e7a; text-align: center; max-width: 140px; font-weight: 600; }
+.unter.blau { color: var(--blau); }
+.wahl {
+  width: 140px; height: 60px; border: 0; border-radius: var(--wackel-klein);
+  background: #fff; color: #78909c; font-size: 22px; font-weight: 800; --filz-farbe: #b0bec5;
+}
+.wahl.an { background: var(--gruen-hell); color: #1b5e20; --filz-farbe: var(--gruen); }
+.arten-raster { grid-template-columns: repeat(auto-fill, 210px); }
+.arten-raster .wahl { width: 210px; font-size: 21px; }
+#kopfrechnen-optionen.versteckt { display: none; }
+#kopfrechnen-optionen > .abschnitt:first-child { border-top: 2px dashed #b0bec5; padding-top: 14px; }
+.wahl.rot { background: var(--rot-hell); color: #8e1b1b; --filz-farbe: var(--rot); }
+.wahl:active { transform: translateY(2px) rotate(-1deg); }
+.eigene {
+  width: 140px; height: 60px; display: flex; align-items: center; gap: 4px; padding: 0 12px;
+  background: #fff; border-radius: var(--wackel-klein); cursor: text; --filz-farbe: var(--blau); --filz-dicke: 3px;
+  background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgba(21,101,192,.08) 6px 12px);
+}
+.eigene.an { background-color: var(--gruen-hell); }
+.stift { font-size: 22px; color: var(--blau); }
+.eigene input, .zahl-feld input {
+  width: 100%; border: 0; background: transparent; outline: none;
+  font: inherit; font-size: 24px; font-weight: 800; text-align: center; color: #1d2733;
+}
+.zahl-feld { display: inline-flex; width: 110px; height: 52px; align-items: center; background: #fff; border-radius: var(--wackel-klein); flex: none; }
+.feld-zeile { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; margin: 12px 0; }
+.feld-zeile.eingerueckt { padding-left: 62px; }
+.feld-zeile.aus { opacity: .4; pointer-events: none; }
+.hinweis { margin: 0 0 6px; color: #546e7a; font-size: 16px; }
+
+/* Schalter */
+.schalter-zeile { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; margin: 14px 0; cursor: pointer; }
+.schalter-zeile input { position: absolute; opacity: 0; pointer-events: none; }
+.schalter { width: 54px; height: 32px; border-radius: 999px; background: #cfd8dc; position: relative; flex: none; border: 2.5px solid var(--strich); }
+.schalter::after { content: ""; position: absolute; top: 2px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--strich); transition: left .15s; }
+.schalter-zeile input:checked + .schalter { background: #81c784; }
+.schalter-zeile input:checked + .schalter::after { left: 24px; }
+.schalter-zeile input:focus-visible + .schalter { outline: 3px solid var(--blau); outline-offset: 2px; }
+
+/* Tier-Karte */
+.team-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.team-kopf h2 { margin: 0; flex: 1; font-size: 34px; font-weight: 900; color: #bf360c; -webkit-text-stroke: 1px currentColor; }
+.wuerfel { border: 0; background: #fff; border-radius: var(--wackel-klein); font-size: 28px; padding: 2px 12px; }
+.tier-wahl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.tier-wahl button {
+  aspect-ratio: 1; border: 0; border-radius: var(--wackel-klein); background: #f1f5f9;
+  display: grid; place-items: center; padding: 6px; --filz-farbe: transparent;
+}
+.tier-wahl button.aktiv { background: #ffe0b2; --filz-farbe: #e65100; --filz-dicke: 4px; }
+.tier-wahl img { width: 100%; height: 100%; object-fit: contain; }
+
+.fehler { color: var(--rot); font-weight: 800; font-size: 22px; min-height: 30px; text-align: center; margin: 20px 0 8px; }
+.start-zeile { text-align: center; }
+
+/* =========================================================
+   Spiel – Bühne 1600 × 900, wird auf das Fenster skaliert
+   ========================================================= */
+#spiel { position: fixed; inset: 0; background: #12301c; overflow: hidden; }
+#buehne { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; overflow: hidden; background: #fdfaf3; }
+
+/* ---------- Welt (oben) ---------- */
+#feld { position: absolute; left: 0; top: 0; width: 1600px; height: 520px; overflow: hidden; background: #cfe8f5; }
+#hinten, #vorne { position: absolute; inset: 0; pointer-events: none; }
+.welt-ebene { position: absolute; inset: 0; transition: opacity .8s ease; }
+.welt-ebene.unsichtbar { opacity: 0; }
+.welt-ebene svg { display: block; overflow: hidden; }
+#vorne { z-index: 3; }
+#kran { position: absolute; left: 0; top: 0; width: 1600px; height: 520px; z-index: 4; pointer-events: none; visibility: hidden; }
+
+/* Das Tier (mit Fahrzeug): Ankerpunkt unten in der Mitte */
+#akteur { position: absolute; left: 0; top: 0; z-index: 2; transform-origin: 0 0; will-change: transform; }
+.akteur-innen { position: absolute; }
+#akteur.links .akteur-innen { transform: scaleX(-1); }
+.akteur-innen > * { position: absolute; left: 0; top: 0; }
+.akteur-innen svg.teil { overflow: visible; }
+.tier-figur { position: absolute; object-fit: contain; object-position: bottom; }
+.oberkoerper { position: absolute; overflow: hidden; }
+.oberkoerper .tier-figur { left: 0; top: 0; }
+
+/* Bewegungen des Tiers */
+#akteur.laeuft .tier-figur, #akteur.joggt .tier-figur { animation: schritt .3s ease-in-out infinite alternate; }
+#akteur.freude .akteur-innen { animation: hopsen .5s ease-in-out 2; }
+#akteur.links.freude .akteur-innen { animation: hopsen-links .5s ease-in-out 2; }
+#akteur.traurig .tier-figur { animation: sacken 1.1s ease-in-out; }
+#akteur.jubel .akteur-innen { animation: jubeln .45s ease-in-out infinite alternate; }
+#akteur.links.jubel .akteur-innen { animation: jubeln-links .45s ease-in-out infinite alternate; }
+@keyframes schritt { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-14px) rotate(3deg); } }
+@keyframes hopsen { 50% { transform: translateY(-26px); } }
+@keyframes hopsen-links { 0%, 100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(-26px); } }
+@keyframes sacken { 20% { transform: translateY(8px) rotate(-6deg); } 40% { transform: translateY(8px) rotate(6deg); } 60% { transform: translateY(8px) rotate(-4deg); } }
+@keyframes jubeln { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-30px) rotate(4deg); } }
+@keyframes jubeln-links { from { transform: scaleX(-1) translateY(0) rotate(-4deg); } to { transform: scaleX(-1) translateY(-30px) rotate(4deg); } }
+/* Fahrzeuge schaukeln leicht */
+#akteur.art-boot .akteur-innen { animation: schaukeln 2.4s ease-in-out infinite; }
+#akteur.art-uboot .akteur-innen, #akteur.art-flugzeug .akteur-innen { animation: schweben 2.8s ease-in-out infinite; }
+#akteur.art-gleitschirm .akteur-innen { animation: pendeln 3.2s ease-in-out infinite; transform-origin: 50% 10%; }
+#akteur.art-motorrad .akteur-innen { animation: ruetteln .18s linear infinite; }
+@keyframes schaukeln { 0%, 100% { transform: rotate(-2.5deg) translateY(0); } 50% { transform: rotate(2.5deg) translateY(5px); } }
+@keyframes schweben { 0%, 100% { transform: translateY(-6px); } 50% { transform: translateY(6px); } }
+@keyframes pendeln { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes ruetteln { 50% { transform: translateY(1.5px); } }
+.propeller { animation: propeller .12s linear infinite; }
+@keyframes propeller { 50% { transform: scaleY(.15); } }
+
+/* Belebte Welten */
+.zieht { animation: wolkeZieht var(--dauer, 80s) linear infinite alternate; }
+@keyframes wolkeZieht { from { transform: translateX(-40px); } to { transform: translateX(60px); } }
+.dreht-langsam { animation: drehen 30s linear infinite; }
+@keyframes drehen { to { transform: rotate(360deg); } }
+.weht { animation: wehen 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: left center; }
+@keyframes wehen { from { transform: skewY(-4deg) scaleX(.96); } to { transform: skewY(4deg) scaleX(1); } }
+.gluehen { animation: gluehen 1.6s ease-in-out infinite alternate; }
+@keyframes gluehen { from { opacity: .65; } to { opacity: 1; } }
+.rauch { animation: rauch 3.6s ease-out infinite; animation-delay: var(--v); transform-box: fill-box; transform-origin: center; opacity: 0; }
+@keyframes rauch { 0% { transform: translate(0, 0) scale(.4); opacity: .9; } 100% { transform: translate(60px, -130px) scale(1.6); opacity: 0; } }
+.lavabrocken { animation: lava 2.1s ease-out infinite; animation-delay: var(--v); opacity: 0; }
+@keyframes lava { 0% { transform: translate(0, 0); opacity: 1; } 50% { transform: translate(calc(var(--dx) * .5), -90px); opacity: 1; } 100% { transform: translate(var(--dx), 30px); opacity: 0; } }
+.schaukelt { animation: schweben 2.6s ease-in-out infinite; }
+.schwimmt { animation: schwimmen var(--dauer) linear infinite; animation-delay: var(--v); }
+@keyframes schwimmen { from { transform: translateX(1680px); } to { transform: translateX(-120px); } }
+.wiegt { animation: wiegen 3s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes wiegen { from { transform: skewX(-6deg); } to { transform: skewX(6deg); } }
+.blase { animation: blase 4s ease-in infinite; animation-delay: var(--v); opacity: 0; }
+@keyframes blase { 0% { transform: translateY(0); opacity: .9; } 100% { transform: translateY(-420px); opacity: 0; } }
+.blinkt { animation: blinken 1s steps(2) infinite; }
+@keyframes blinken { 50% { opacity: .2; } }
+.wellen { animation: wellen 3s ease-in-out infinite alternate; }
+@keyframes wellen { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+.wellen-vorne { animation: wellenVorne 4s linear infinite; }
+@keyframes wellenVorne { from { transform: translateX(0); } to { transform: translateX(-200px); } }
+.flocke { animation: flocke 9s linear infinite; animation-delay: var(--v); }
+@keyframes flocke { from { transform: translate(0, 0); } to { transform: translate(var(--dx), 540px); } }
+.sekunde { animation: drehen 60s steps(60) infinite; }
+.schwebt { animation: schweben 4s ease-in-out infinite; }
+.neon { animation: gluehen 1.2s ease-in-out infinite alternate; }
+
+/* Presse und Schlitten bewegen sich weich */
+.dose-form, .stempel, .schlitten, .seil-gruppe { transition: transform 1s cubic-bezier(.5, 0, .3, 1); }
+.knitter { transition: opacity 1s; }
+.schneemann { animation: wackeln 1.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes wackeln { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+.kran-aktiv .seil-gruppe { opacity: 0; }
+.seil-gruppe { transition: transform 1s cubic-bezier(.5, 0, .3, 1), opacity .3s; }
+/* Spielautomat */
+.birne { fill: #6d4c41; }
+.birne.an { fill: #fff176; }
+.jackpot .birne.an { animation: blinken .4s steps(2) infinite; }
+.hebel { transform-box: view-box; }
+.hebel.ziehen { animation: hebel .8s ease-in-out; }
+@keyframes hebel { 40% { transform: scaleY(-.55); } 100% { transform: scaleY(1); } }
+.muenze { animation: muenze 1.6s ease-in forwards; animation-delay: var(--v); }
+@keyframes muenze { 0% { transform: translate(0, 0); } 40% { transform: translate(calc(var(--dx) * .5), -40px); } 100% { transform: translate(var(--dx), 60px); } }
+
+/* Level-Anzeige oben links */
+#level-anzeige {
+  position: absolute; top: 14px; left: 14px; z-index: 5; background: rgba(255,255,255,.94);
+  padding: 8px 20px 12px; border-radius: var(--wackel); --filz-dicke: 4px; min-width: 250px;
+}
+#level-nummer { font-size: 44px; font-weight: 900; color: #e65100; line-height: 1.05; }
+#welt-name { font-size: 22px; font-weight: 800; color: #455a64; }
+#stufen-punkte { display: flex; gap: 7px; margin-top: 8px; }
+#stufen-punkte span { width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--strich); background: #fff; transition: background .3s; }
+#stufen-punkte span.voll { background: #43a047; }
+
+#werkzeuge { position: absolute; top: 14px; right: 14px; display: flex; gap: 10px; z-index: 5; }
+#werkzeuge button { width: 60px; height: 60px; border: 0; background: rgba(255,255,255,.95); font-size: 28px; border-radius: var(--wackel-klein); }
+#werkzeuge #btn-pause { width: auto; padding: 0 18px; font-size: 26px; }
+
+#geschafft { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none; }
+.geschafft-text {
+  font-size: 96px; font-weight: 900; color: #e65100; -webkit-text-stroke: 3px #fff; paint-order: stroke fill;
+  text-shadow: 0 6px 16px rgba(0,0,0,.3); animation: aufploppen .5s cubic-bezier(.3, 1.6, .5, 1);
+}
+@keyframes aufploppen { from { transform: scale(.3); opacity: 0; } }
+
+/* ---------- Unten: Aufgabe und Tastatur ---------- */
+#mitte { position: absolute; left: 8px; top: 530px; width: 1172px; height: 362px; }
+#aufgabe-box, #wechsel-box {
+  position: absolute; inset: 0; background: #fff; border-radius: var(--wackel);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 30px; --filz-dicke: 5px;
+}
+#aufgabe-text { font-size: 130px; font-weight: 900; line-height: 1.1; white-space: nowrap; }
+#aufgabe-text.loesung { color: var(--gruen); }
+#aufgabe-text.lang { font-size: 84px; }
+#mengen-bild { width: 100%; height: 250px; }
+#mengen-bild svg { width: 100%; height: 100%; display: block; }
+#aufgabe-box.menge { justify-content: flex-start; padding-top: 10px; }
+#aufgabe-box.menge #aufgabe-text { font-size: 60px; margin-top: 2px; }
+#zeitbalken { width: 80%; height: 18px; border-radius: 99px; background: #e3eaf0; overflow: hidden; margin-top: 12px; }
+#zeitbalken-fuellung { height: 100%; width: 100%; background: #1e88e5; border-radius: 99px; }
+#zeitbalken.knapp #zeitbalken-fuellung { background: var(--rot); }
+#wechsel-box { background: #fff8e1; --filz-farbe: #f9a825; cursor: pointer; touch-action: manipulation; }
+#wechsel-kreis { width: 280px; height: 280px; overflow: visible; }
+#wechsel-hinweis { margin-top: 6px; font-size: 20px; color: #8d6e63; }
+#wechsel-kreis .spur, #wechsel-kreis .rest { fill: none; stroke-width: 12; }
+#wechsel-kreis .spur { stroke: #ffe0b2; stroke-dasharray: 2 4; stroke-linecap: round; }
+#wechsel-kreis .rest { stroke: #ffb300; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 0; }
+#wechsel-sek { font-family: var(--schrift); font-size: 46px; font-weight: 900; fill: #e65100; }
+#wechsel-sek.hops { animation: sek-hops .35s ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes sek-hops { 40% { transform: scale(1.25); } }
+#wechsel-vogel .vogel-koerper { animation: gleiten .5s ease-in-out infinite alternate; }
+@keyframes gleiten { from { transform: translateY(-1.8px) rotate(-4deg); } to { transform: translateY(1.8px) rotate(4deg); } }
+
+.panel {
+  position: absolute; top: 530px; right: 8px; width: 404px; height: 362px;
+  background: #ffe0b2; padding: 12px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  --filz-farbe: #e65100; --filz-dicke: 6px;
+}
+.panel.richtig { animation: blitz-gruen .6s; }
+.panel.falsch .tastatur, .panel.falsch .eingabe { animation: schuetteln .45s; }
+@keyframes blitz-gruen { 0%,100% { background: #ffe0b2; } 30% { background: #b9f6ca; } }
+@keyframes schuetteln { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-14px); } 40% { transform: translateX(12px); } 60% { transform: translateX(-8px); } 80% { transform: translateX(5px); } }
+.eingabe {
+  width: 100%; height: 50px; border-radius: var(--wackel-klein); background: #fff; flex: none;
+  font-size: 42px; font-weight: 900; text-align: center; line-height: 50px; color: #1d2733; --filz-farbe: #e65100; --filz-dicke: 3px;
+}
+.tastatur { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; width: 100%; flex: 1; }
+.tastatur button { border: 0; border-radius: var(--wackel-klein); background: #e65100; color: #fff; font-size: 40px; font-weight: 900; --filz-farbe: #8a3000; --filz-dicke: 3px; }
+.tastatur button:active { transform: translateY(3px) scale(.97); }
+.tastatur button.loeschen { background: #eceff1; color: #37474f; --filz-farbe: #37474f; font-size: 36px; }
+.tastatur button.ok { background: var(--gruen); color: #fff; --filz-farbe: #1b5e20; font-size: 32px; }
+.panel.gesperrt .tastatur button { background: #ef9a9a !important; color: #fff !important; opacity: .6; }
+.sperre { position: absolute; left: 18px; right: 18px; bottom: 5px; height: 8px; border-radius: 99px; overflow: hidden; visibility: hidden; }
+.panel.gesperrt .sperre { visibility: visible; }
+.sperre div { height: 100%; width: 100%; background: var(--rot); border-radius: 99px; }
+
+/* ---------- Overlays ---------- */
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 10; }
+.overlay.dunkel { background: rgba(10,30,20,.82); }
+.menue-box { background: #fff; border-radius: var(--wackel); padding: 36px 50px; min-width: 560px; display: flex; flex-direction: column; gap: 16px; align-items: stretch; text-align: center; --filz-dicke: 5px; }
+.menue-box h2 { margin: 0; font-size: 54px; }
+#pause-stand { font-size: 26px; font-weight: 800; color: #546e7a; margin-bottom: 6px; }
+.menue-box .knopf { font-size: 30px; }
+
+#konfetti { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.konfetti-stueck { position: absolute; top: -30px; width: 14px; height: 22px; border-radius: 3px; animation: fallen linear forwards; }
+@keyframes fallen { to { transform: translateY(980px) rotate(720deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zieht, .dreht-langsam, .flocke, .schwimmt, .wellen-vorne { animation: none !important; }
+}
