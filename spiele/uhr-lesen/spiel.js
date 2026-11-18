@@ -43,6 +43,7 @@ const STANDARD = {
   wechselSek: '3',
   ton: true,
   zurueck: false,          // 1 Kind: bei falscher Antwort einen Schritt zurück
+  autoDoppelpunkt: true,   // fehlender Doppelpunkt wird beim OK eingesetzt
   teams: [
     { name: 'Löwen',       tier: 'loewe',        farbe: 'rot' },
     { name: 'Erdmännchen', tier: 'erdmaennchen', farbe: 'blau' }
@@ -68,6 +69,46 @@ function setzeFarbVariablen(el, farbId) {
   el.style.setProperty('--farbe-dunkel', dunkler(f.wert, 0.35));
   el.style.setProperty('--text', farbId === 'gelb' ? '#1d2733' : '#ffffff');
 }
+/* Tierbilder: g = gehend mit erhobener Fackel (bilder/fackel), z = gebückt beim Zünden (bilder/zuenden).
+   Je [Breite, Höhe, Flamme x0, y0, x1, y1] – die Flamme als Bruchteil der Bildgrösse (aus den Bildern gemessen).
+   z_hoehe: Grösse der gebückten Figur im Verhältnis zur gehenden (gleicher Massstab). */
+const FIGUREN = {
+loewe        : { g: [333, 440, 0.757, 0.036, 0.967, 0.248], z: [412, 440, 0.813, 0.684, 0.976, 0.977], z_hoehe: 0.822 },
+  tiger        : { g: [348, 440, 0.756, 0.039, 0.966, 0.25], z: [440, 434, 0.814, 0.652, 0.975, 0.975], z_hoehe: 0.739 },
+  baer         : { g: [324, 440, 0.747, 0.03, 0.963, 0.25], z: [440, 404, 0.811, 0.629, 0.975, 0.975], z_hoehe: 0.750 },
+  wolf         : { g: [329, 440, 0.751, 0.02, 0.973, 0.241], z: [440, 436, 0.814, 0.667, 0.975, 0.975], z_hoehe: 0.736 },
+  fuchs        : { g: [346, 440, 0.746, 0.02, 0.974, 0.255], z: [440, 429, 0.818, 0.66, 0.975, 0.974], z_hoehe: 0.739 },
+  elefant      : { g: [350, 440, 0.763, 0.02, 0.974, 0.236], z: [440, 372, 0.827, 0.645, 0.977, 0.976], z_hoehe: 0.714 },
+  adler        : { g: [298, 440, 0.695, 0.02, 0.977, 0.245], z: [440, 345, 0.775, 0.609, 0.98, 0.974], z_hoehe: 0.535 },
+  hai          : { g: [320, 440, 0.728, 0.039, 0.978, 0.243], z: [440, 392, 0.764, 0.635, 0.977, 0.977], z_hoehe: 0.576 },
+  erdmaennchen : { g: [323, 440, 0.752, 0.041, 0.978, 0.266], z: [440, 312, 0.782, 0.603, 0.977, 0.974], z_hoehe: 0.513 }
+};
+const FIGUR_HOEHE = 228, FIGUR_BREITE = 220;
+const FLAMMEN_BILDER = 6, FLAMME_SEITEN = 166 / 240;   // bilder/flamme/1..6.png
+/** Animierte Flamme über der gezeichneten Flamme (etwas grösser, damit sie diese ganz zudeckt) */
+function flammeStil(f, seiten) {
+  const [x0, y0, x1, y1] = f;
+  const h = (y1 - y0) * 1.45, b = h * FLAMME_SEITEN / seiten;
+  const cx = (x0 + x1) / 2;
+  return `left:${((cx - b / 2) * 100).toFixed(2)}%; top:${((y1 + 0.015 - h) * 100).toFixed(2)}%; width:${(b * 100).toFixed(2)}%; height:${(h * 100).toFixed(2)}%`;
+}
+/** Figur: gehend und gebückt (zum Zünden), je mit flackernder Flamme */
+function figurHtml(tier) {
+  const d = FIGUREN[tier];
+  const [gw, gh] = d.g, [zw, zh] = d.z;
+  const breite = FIGUR_HOEHE * gw / gh;
+  const zH = FIGUR_HOEHE * d.z_hoehe, zB = zH * zw / zh;
+  return `<div class="innen">
+    <div class="koerper gehen" style="height:${FIGUR_HOEHE}px; width:${breite.toFixed(1)}px; left:${((FIGUR_BREITE - breite) / 2).toFixed(1)}px; bottom:0">
+      <img src="${BILD.fackel(tier)}" alt="${tierVon(tier).name}"><div class="flamme" style="${flammeStil(d.g.slice(2), gw / gh)}"></div></div>
+    <div class="koerper zuenden" style="height:${zH.toFixed(1)}px; width:${zB.toFixed(1)}px">
+      <img src="bilder/zuenden/${tier}.png" alt=""><div class="flamme" style="${flammeStil(d.z.slice(2), zw / zh)}"></div></div>
+  </div><span class="zaehler"></span>`;
+}
+// Flammenbilder vorladen und reihum zeigen (wie ein kurzer Film)
+for (let k = 1; k <= FLAMMEN_BILDER; k++) new Image().src = `bilder/flamme/${k}.png`;
+let flammenBild = 0;
+setInterval(() => { flammenBild = (flammenBild + 1) % FLAMMEN_BILDER; const b = document.getElementById('buehne'); if (b) b.dataset.f = flammenBild; }, 85);
 const ringHtml = id => `<span class="ring"><img src="${BILD.kopf(id)}" alt="${tierVon(id).name}"></span>`;
 const istStandardName = name => TIERE.some(t => t.team === name);
 const mitArtikel = name => istStandardName(name) ? `die ${name}` : name;
@@ -226,6 +267,7 @@ function zeigeEinstellungen() {
   baueTeamKarte(0); baueTeamKarte(1);
   zeichneWahlKnoepfe();
   $('e-nachmittag').checked = E.nachmittag;
+  $('e-doppelpunkt').checked = E.autoDoppelpunkt;
   $('e-schritte').value = E.schritte;
   $('e-minuten').value = E.minuten;
   $('e-wechsel').value = E.wechselSek;
@@ -240,6 +282,7 @@ function zeigeEinstellungen() {
 
 function leseFormular() {
   E.nachmittag = $('e-nachmittag').checked;
+  E.autoDoppelpunkt = $('e-doppelpunkt').checked;
   E.schritte = $('e-schritte').value.trim();
   E.minuten = $('e-minuten').value.trim();
   E.wechselSek = $('e-wechsel').value.trim();
@@ -357,6 +400,7 @@ function starteSpiel() {
     rakete: null,
     zeitUm: false,
     zurueck: E.spieler === 1 && E.zurueck,
+    autoDoppelpunkt: E.autoDoppelpunkt,
     pausiert: false, beendet: false
   };
   baueSpielfeld();
@@ -411,7 +455,7 @@ function baueSpielfeld() {
     // Tier mit Fackel
     const fig = $(`figur-${i}`);
     setzeFarbVariablen(fig, team.farbe);
-    fig.innerHTML = `<img src="${BILD.fackel(team.tier)}" alt="${tierVon(team.tier).name}"><span class="zaehler"></span>`;
+    fig.innerHTML = figurHtml(team.tier);
     fig.className = 'figur' + (i === 1 ? ' rechts' : '');
     // Anzeigetafel
     const tafel = $(`tafel-${i}`);
@@ -505,6 +549,7 @@ function taste(i, wert) {
 function pruefe(i) {
   const a = S.aufgabe;
   if (a.art === 'lesen') {
+    if (S.autoDoppelpunkt) { S.eingabe[i] = ergaenzeDoppelpunkt(S.eingabe[i]); zeichneEingaben(); }
     const ergebnis = pruefeEingabe(S.eingabe[i], a.h, a.m);
     if (ergebnis === 'leer') return;
     if (ergebnis === 'doppelpunkt') {   // kein Fehler, nur ein Hinweis
@@ -618,12 +663,20 @@ function starteRakete(zuender, punkt) {
   if (punkt) zuender.forEach(i => { S.raketen[i]++; });
   S.rakete = { ms: 0, zuender, punkt, schritt: 0 };
   setzePhase('rakete', 0, null);
-  // Tiere gehen ganz an die Zündschnur und halten die Fackel hin
+  // Tiere gehen an die Zündschnur, bücken sich und halten die Flamme genau an das Ende der Schnur
   zuender.forEach(i => {
-    const fig = $(`figur-${i}`);
+    const fig = $(`figur-${i}`), d = FIGUREN[S.teams[i].tier];
+    const zH = FIGUR_HOEHE * d.z_hoehe, zB = zH * d.z[0] / d.z[1];
+    const fx = (d.z[2] + d.z[4]) / 2 * zB, fy = (d.z[3] + d.z[5]) / 2 * zH;   // Mitte der Flamme
+    const ziel = { x: SCHNUR_ENDE_X + 4, y: 420 };                           // Ende der Zündschnur (links)
+    const links = ziel.x - fx;                                               // linker Rand der gebückten Figur
+    const mitte = links + zB / 2;
+    const z = fig.querySelector('.koerper.zuenden');
+    z.style.left = ((FIGUR_BREITE - zB) / 2).toFixed(1) + 'px';
+    z.style.top = (ziel.y - 205 - fy).toFixed(1) + 'px';
     fig.classList.add('geht');
-    fig.style.left = (i === 0 ? SCHNUR_ENDE_X - 62 : 1600 - SCHNUR_ENDE_X + 62) + 'px';
-    setTimeout(() => { fig.classList.remove('geht'); fig.classList.add('zuendet'); }, 450);
+    fig.style.left = (i === 0 ? mitte : 1600 - mitte) + 'px';
+    setTimeout(() => { fig.classList.remove('geht'); fig.classList.add('zuendet'); }, 600);
   });
   zeichneStand();
 }
@@ -833,10 +886,9 @@ function zeichneFunken(dt) {
 
 /* =========================================================
    Uhr stellen: Zeiger mit dem Finger ziehen
+   - Die beiden Zeiger sind unabhängig voneinander und werden je einzeln gestellt
    - Minutenzeiger rastet in Viertelstunden ein (:00, :15, :30, :45)
-   - Stundenzeiger rastet ebenfalls in Viertelstunden ein: er steht also wie bei einer
-     echten Uhr je nach Minuten zwischen zwei Zahlen, und der Minutenzeiger dreht mit
-   - Umgekehrt dreht beim Minutenzeiger der Stundenzeiger langsam mit
+   - Stundenzeiger rastet bei den vollen Stunden ein
    ========================================================= */
 function winkelDiff(a, b) { const d = Math.abs(mod(a - b, 360)); return Math.min(d, 360 - d); }
 function verbindeZiehen(i, svg) {
@@ -856,7 +908,7 @@ function verbindeZiehen(i, svg) {
     // Welcher Zeiger? Der näher liegende; liegen beide nah beieinander, entscheidet der Abstand zur Mitte
     let zeiger = dm <= dh ? 'minute' : 'stunde';
     if (Math.abs(dm - dh) < 25) zeiger = r > 50 ? 'minute' : 'stunde';
-    S.ziehen = { i, zeiger, roh: S.uhr[i], minute: mod(S.uhr[i], 60), id: ev.pointerId };
+    S.ziehen = { i, zeiger, id: ev.pointerId };
     try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* egal */ }
     svg.classList.add('zieht', 'zieht-' + zeiger);
     bewege(winkel);
@@ -864,17 +916,9 @@ function verbindeZiehen(i, svg) {
   const bewege = winkel => {
     const z = S.ziehen;
     let neu;
-    if (z.zeiger === 'minute') {
-      let d = winkel / 6 - mod(z.roh, 60);
-      d = mod(d + 30, 60) - 30;
-      z.roh += d;
-      neu = mod(Math.round(z.roh / 15) * 15, 720);
-    } else {
-      let d = winkel / 30 - mod(z.roh / 60, 12);
-      d = mod(d + 6, 12) - 6;
-      z.roh += d * 60;
-      neu = mod(Math.round(z.roh / 15) * 15, 720);
-    }
+    const stunde = Math.floor(S.uhr[i] / 60), minute = S.uhr[i] % 60;
+    if (z.zeiger === 'minute') neu = stunde * 60 + mod(Math.round(winkel / 90) * 15, 60);
+    else neu = mod(Math.round(winkel / 30), 12) * 60 + minute;
     if (neu !== S.uhr[i]) { S.uhr[i] = neu; TON.klick(); stelleUhr(svg, neu); }
   };
   svg.addEventListener('pointermove', ev => {
@@ -991,10 +1035,18 @@ document.querySelectorAll('[data-art]').forEach(b => b.addEventListener('click',
 document.querySelectorAll('[data-zeit]').forEach(b => b.addEventListener('click', () => { E.zeiten[b.dataset.zeit] = !E.zeiten[b.dataset.zeit]; merke(); zeichneWahlKnoepfe(); }));
 document.querySelectorAll('[data-blatt]').forEach(b => b.addEventListener('click', () => { E.blatt = b.dataset.blatt; merke(); zeichneWahlKnoepfe(); }));
 ['e-schritte', 'e-minuten', 'e-wechsel'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
-['e-nachmittag', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
+['e-nachmittag', 'e-doppelpunkt', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
 ['e-zurueck'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
 $('btn-weiss-nicht').addEventListener('click', weissNicht);
+/* Abkürzung zum Testen: Antippen eines Teams auf der Anzeigetafel -> das Tier springt ans Ziel
+   und die Rakete wird gezündet (so lässt sich das Ende schnell anschauen) */
+[0, 1].forEach(i => $(`tafel-${i}`).addEventListener('click', () => {
+  if (!S || S.pausiert || S.phase !== 'spiel' || !aktiv(i)) return;
+  S.schritte[i] = S.ziel;
+  zeichneSchritte(true);
+  starteRakete([i], true);
+}));
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));
