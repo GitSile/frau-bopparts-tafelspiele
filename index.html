@@ -35,7 +35,9 @@
     .kachel-bild { width: 190px; height: 190px; display: grid; place-items: center; }
     .kachel-bild img { width: 100%; height: 100%; object-fit: contain; }
     .kachel h2 { margin: 10px 0 4px; font-size: 32px; font-weight: 900; color: var(--farbe, #1d2733); }
-    .fach { display: inline-block; padding: 4px 14px; border-radius: var(--wackel-klein); background: var(--farbe-hell, #eceff1); font-weight: 800; font-size: 16px; margin-bottom: 10px; }
+    .hinweise { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .fach { display: inline-block; padding: 4px 14px; border-radius: var(--wackel-klein); background: var(--farbe-hell, #eceff1); font-weight: 800; font-size: 16px; }
+    .modus { background: #fff; border: 2px solid var(--farbe, #546e7a); color: var(--farbe, #546e7a); padding: 2px 12px; }
     .kachel p { margin: 0 0 18px; font-size: 18px; color: #455a64; line-height: 1.35; }
     .kachel .knopf { pointer-events: none; }
     .kachel.bald { opacity: .55; pointer-events: none; --filz-farbe: #b0bec5; }
@@ -72,6 +74,7 @@
       {
         name: 'Mathe-Fussball',
         fach: 'Mathematik',
+        modus: '2 Personen',   // Hinweis-Kachel unter dem Titel (leer lassen, wenn keiner)
         text: '',
         link: 'spiele/mathe-fussball/index.html',
         bild: 'spiele/mathe-fussball/bilder/figuren/loewe-jubel.png',
@@ -85,7 +88,10 @@
       <a class="kachel filz" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
         <div class="kachel-bild"><img src="${esc(s.bild)}" alt=""></div>
         <h2>${esc(s.name)}</h2>
-        <span class="fach">${esc(s.fach)}</span>
+        <div class="hinweise">
+          <span class="fach">${esc(s.fach)}</span>
+          ${s.modus ? `<span class="fach modus">Modus: ${esc(s.modus)}</span>` : ''}
+        </div>
         ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
       </a>`).join('') + `
