@@ -860,6 +860,17 @@ $('btn-verlauf-einst').addEventListener('click', () => { leseFormular(); zeigeVe
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));
+/* Test-Abkürzung: Antippen eines Teams (oder seiner Tore) auf der Anzeigetafel = dieses Team schiesst sofort ein Tor.
+   Der Ball liegt dann direkt vor dem Tor, die Figur schiesst, es folgt der Torjubel (bzw. das Spielende). */
+function testTor(i) {
+  if (!S || S.pausiert || S.beendet || !['spiel', 'loesung', 'wechsel'].includes(S.phase)) return;
+  $('wechsel-box').classList.add('versteckt');
+  $('aufgabe-box').classList.remove('versteckt');
+  S.ball = (i === 0 ? 1 : -1) * (MAX_POS - 1);
+  zeichneBall(false);
+  richtig(i);
+}
+[0, 1].forEach(i => ['tafel-' + i, 'tore-' + i].forEach(id => $(id).addEventListener('click', () => testTor(i))));
 // Tippen auf den Kreis-Countdown beendet ihn sofort -> nächste Aufgabe
 $('wechsel-box').addEventListener('pointerdown', () => {
   if (S && !S.pausiert && S.phase === 'wechsel') { S.phaseRestMs = 0; zeichneWechselKreis(0); }

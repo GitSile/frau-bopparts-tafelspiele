@@ -652,6 +652,20 @@ document.querySelectorAll('[data-reihe]').forEach(b => b.addEventListener('click
 ['e-zeitlimit-an', 'e-zurueck', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
 $('btn-weiss-nicht').addEventListener('click', weissNicht);
+/* Test-Abkürzung: Antippen der Level-Anzeige springt ans Ende des Levels.
+   Das Tier steht sofort auf Stufe 7, macht den letzten Schritt, dann folgen "Level geschafft" und der Kran. */
+function testLevelEnde() {
+  if (!S || S.pausiert || !['spiel', 'loesung', 'wechsel'].includes(S.phase)) return;
+  $('wechsel-box').classList.add('versteckt');
+  $('aufgabe-box').classList.remove('versteckt');
+  S.eingabe = ''; zeichneEingabe();
+  S.stufe = STUFEN - 1; S.letzteStufe = STUFEN - 1;
+  if (S.welt.stufe) S.welt.stufe(STUFEN - 1, S.ebenen, true);
+  else { $('akteur').getAnimations().forEach(a => a.cancel()); setzeAkteur(posVon(STUFEN - 1)); }
+  geheZuStufe(STUFEN);
+  setzePhase('schritt', SCHRITT_MS + 150, levelGeschafft);
+}
+$('level-anzeige').addEventListener('click', testLevelEnde);
 
 // Spiel
 $('btn-pause').addEventListener('click', () => pause(true));

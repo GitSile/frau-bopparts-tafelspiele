@@ -233,6 +233,7 @@ body { background: #e8f4fb; }
 .tafel-team { display: inline-flex; align-items: center; gap: 12px; font-size: 39px; font-weight: 800; min-width: 260px; justify-content: flex-end; white-space: nowrap; }
 .tafel-team.rechts { justify-content: flex-start; }
 .tafel-team .ring { width: 48px; height: 48px; font-size: 36px; box-shadow: 0 0 0 4px var(--farbe); }
+.tafel-team, #tore-0, #tore-1 { cursor: pointer; }   /* Antippen = Test-Abkürzung: Tor für dieses Team */
 #torstand { font-size: 60px; font-weight: 900; display: inline-flex; gap: 10px; }
 #torstand .doppelpunkt { color: #9aa7b3; }
 #tore-0 { color: var(--farbe-0); }
