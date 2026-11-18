@@ -189,31 +189,31 @@ body { background: #f3f7ee; }
   display: grid; place-items: center; overflow: hidden;
 }
 #anzeige-text {
-  font-family: "Consolas", "Courier New", monospace; font-size: 38px; font-weight: 700; color: #69f0ae;
+  font-family: "Consolas", "Courier New", monospace; font-size: 32px; font-weight: 700; color: #69f0ae;
   text-shadow: 0 0 8px rgba(105,240,174,.8); white-space: nowrap; letter-spacing: 1px;
 }
 #anzeige-text.blinkt { animation: langsam-blinken 1.6s ease-in-out infinite; }
-#anzeige-text.loesung { color: #ffeb3b; text-shadow: 0 0 8px rgba(255,235,59,.8); font-size: 34px; }
+#anzeige-text.loesung { color: #ffeb3b; text-shadow: 0 0 8px rgba(255,235,59,.8); }
 @keyframes langsam-blinken { 0%, 100% { opacity: 1; } 50% { opacity: .1; } }
 #sprechblase {
-  position: absolute; left: 1010px; top: 22px; width: 380px; z-index: 6;
+  position: absolute; left: 880px; top: 40px; width: 350px; z-index: 6;
   background: #fff; border: 4px solid #263238; border-radius: 26px; padding: 12px 18px;
   font-size: 34px; font-weight: 900; text-align: center; color: #1d2733; box-shadow: 0 5px 0 rgba(0,0,0,.12);
 }
 #sprechblase::after {
-  content: ""; position: absolute; right: 26px; bottom: -24px; width: 34px; height: 34px;
+  content: ""; position: absolute; right: 18px; bottom: -24px; width: 34px; height: 34px;
   background: #fff; border-right: 4px solid #263238; border-bottom: 4px solid #263238;
   transform: skewX(-38deg) rotate(30deg);
 }
 
 /* Produkte auf dem Band */
-#band-bereich { position: absolute; left: 850px; top: 130px; width: 515px; height: 295px; z-index: 6; touch-action: manipulation; }
+#band-bereich { position: absolute; left: 850px; top: 130px; width: 515px; height: 297px; z-index: 6; touch-action: manipulation; overflow: hidden; }
 .band-ware {
   position: absolute; bottom: 106px; display: flex; flex-direction: column; align-items: center;
   transition: transform .9s cubic-bezier(.3,.7,.3,1), opacity .5s;
 }
 .band-ware img { display: block; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 4px 3px rgba(0,0,0,.3)); }
-.band-ware.rein { transform: translateX(-560px); opacity: 0; }
+.band-ware.rein { transform: translateX(-560px); }
 .band-ware.raus { transform: translateX(420px); opacity: 0; transition: transform .9s ease-in, opacity .6s .3s; }
 /* Preisschild hängt vorne an der Theke */
 .preis {
@@ -230,7 +230,7 @@ body { background: #f3f7ee; }
 
 /* Countdown über dem leeren Band */
 #wechsel-box {
-  position: absolute; left: 990px; top: 70px; width: 240px; z-index: 7;
+  position: absolute; left: 990px; top: 120px; width: 240px; z-index: 7;
   display: flex; flex-direction: column; align-items: center; cursor: pointer; touch-action: manipulation;
 }
 #wechsel-kreis { width: 220px; height: 220px; overflow: visible; }
@@ -273,7 +273,7 @@ body { background: #f3f7ee; }
 .eingabe .zahl { min-width: 60px; text-align: center; }
 .eingabe .zahl:empty::before { content: "?"; color: #cfd8dc; }
 .eingabe.zeigt .zahl { color: var(--gruen); }
-.sack-zahl { font-family: var(--schrift); font-size: 58px; font-weight: 900; }
+.sack-zahl { font-family: var(--schrift); font-size: 72px; font-weight: 900; }
 .tastatur { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; flex: 1; }
 .tastatur button {
   border: 0; border-radius: var(--wackel-klein); background: var(--farbe); color: var(--text);
