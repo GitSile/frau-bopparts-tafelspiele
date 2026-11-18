@@ -644,11 +644,11 @@ function akteur(welt, tier) {
 
 /* =========================================================
    Reihenfolge der Welten
-   Level 1 = Zuzwil, Level 2 = Presse, danach zufällig aus den übrigen,
+   Level 1 = Zuzwil, Level 2 = Presse, danach zufällig aus allen 14 Welten (auch Zuzwil und Presse),
    jede kommt einmal dran, bevor sich eine wiederholt, und nie dieselbe zweimal hintereinander.
    ========================================================= */
 const WELT_START = ['zuzwil', 'presse'];
-const WELT_LOOP = ['vulkan', 'wueste', 'berge', 'aadorf', 'boot', 'motorrad', 'uboot', 'joggen', 'flugzeug', 'schlitten', 'gleitschirm', 'spielautomat'];
+const WELT_LOOP = ['zuzwil', 'presse', 'vulkan', 'wueste', 'berge', 'aadorf', 'boot', 'motorrad', 'uboot', 'joggen', 'flugzeug', 'schlitten', 'gleitschirm', 'spielautomat'];
 
 /** Gibt die Welt für ein Level zurück. stand = { beutel: [], letzte: null } wird dabei weitergeführt. */
 function weltFuerLevel(level, stand) {
