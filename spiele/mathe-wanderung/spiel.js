@@ -1,6 +1,6 @@
 'use strict';
 /* =========================================================
-   Mathe-Wanderung – Spiellogik
+   Mathe-Erlebnisse – Spiellogik
    Aufgaben (Erzeugen, Prüfen): ../../gemeinsam/mathe-aufgaben.js
    Welten und Reihenfolge der Welten: welten.js
    ========================================================= */
@@ -119,7 +119,7 @@ const merke = () => speichern(SPEICHER_EINST, E);
 function baueTierKarte() {
   const karte = $('karte-tier');
   karte.innerHTML = `
-    <div class="team-kopf"><h2>Wer wandert?</h2><button class="wuerfel filz" title="Zufälliges Tier" data-wuerfel>🎲</button></div>
+    <div class="team-kopf"><h2>Wer ist dabei?</h2><button class="wuerfel filz" title="Zufälliges Tier" data-wuerfel>🎲</button></div>
     <div class="tier-wahl">${TIERE.map(t => `<button data-tier="${t.id}" class="filz ${t.id === E.tier ? 'aktiv' : ''}" title="${t.name}">
       <img src="${FIGUREN}${t.id}-stehen.png" alt="${t.name}"></button>`).join('')}</div>`;
   karte.querySelector('[data-wuerfel]').addEventListener('click', () => { E.tier = waehle(TIERE.filter(t => t.id !== E.tier)).id; merke(); baueTierKarte(); });
@@ -395,7 +395,11 @@ function taste(wert) {
 }
 
 function richtig() {
-  TON.richtig();
+  const letzte = S.stufe + 1 >= STUFEN;
+  // Der Jubelton kommt genau dann, wenn sich das Tier zu freuen beginnt (beim Hebel erst nach dem Ziehen)
+  if (!letzte) TON.richtig();
+  else if (S.welt.stufe && hebelLage(S.welt, S.tier)) { TON.richtig(); spaeter(HEBEL_ZEIT.freuen, () => TON.geschafft()); }
+  else TON.geschafft();
   blinke($('panel'), 'richtig');
   zeigeAufgabe(S.ergebnis);
   $('aufgabe-text').classList.add('loesung');
@@ -415,18 +419,35 @@ function geheZuStufe(n) {
   zeichneLevel();
   const welt = S.welt;
   if (welt.stufe) {
+    if (vor && hebelLage(welt, S.tier)) { zieheHebel(n); return; }
     welt.stufe(n, S.ebenen, false);
     if (S.weltId === 'presse') TON.presse();
-    if (S.weltId === 'spielautomat' && vor) {
-      setzePose('jubel', 900);
-      const ak = $('akteur'); ak.classList.remove('hebelzug'); void ak.offsetWidth; ak.classList.add('hebelzug');
-      setTimeout(() => ak.classList.remove('hebelzug'), 900);
-    } else setzePose(vor ? 'freude' : 'traurig', 1100);
+    setzePose(vor ? 'freude' : 'traurig', 1100);
   } else {
     bewegeZu(n, SCHRITT_MS);
-    if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
+    if (n >= STUFEN) setzePose('jubel');
+    else if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
     else setzePose(vor ? 'freude' : 'traurig', SCHRITT_MS);
   }
+}
+
+/* Hebel umlegen (Presse, Spielautomat): zuerst greifen, dann herunterziehen – erst danach freut sich das Tier */
+const HEBEL_ZEIT = { ziehen: 260, loslassen: 700, freuen: 880 };
+function zieheHebel(n) {
+  const feld = $('feld'), welt = S.welt;
+  feld.classList.remove('zieht-b'); feld.classList.add('zieht-a');
+  setzePose('stehen');
+  spaeter(HEBEL_ZEIT.ziehen, () => {
+    feld.classList.remove('zieht-a'); feld.classList.add('zieht-b');
+    TON.klack();
+    welt.stufe(n, S.ebenen, false);
+    if (S.weltId === 'presse') TON.presse();
+  });
+  spaeter(HEBEL_ZEIT.loslassen, () => { feld.classList.remove('zieht-b'); feld.classList.add('zieht-a'); });
+  spaeter(HEBEL_ZEIT.freuen, () => {
+    feld.classList.remove('zieht-a');
+    if (n >= STUFEN) setzePose('jubel'); else setzePose('freude', 1100);
+  });
 }
 
 function falsch() {
@@ -454,7 +475,6 @@ function weissNicht() {
 
 /* ---------- Level geschafft und Kran ---------- */
 function levelGeschafft() {
-  TON.geschafft();
   setzePose('jubel');
   const g = $('geschafft');
   g.innerHTML = `<div class="geschafft-text">Level ${S.level} geschafft!</div>`;
@@ -649,7 +669,12 @@ function feiern(art) {
       }
     }
   } else if (art === 'muenzen') {
-    for (let i = 0; i < 30; i++) teil('muenze-faellt', `left:${zufallX()}px;animation-delay:${Math.random() * 1.2}s;animation-duration:${1.6 + Math.random()}s`, 3600, `<img src="${TEILE}muenze.png" alt="">`);
+    // aus dem Ausgabeschacht unten am Automaten (Bild: x 165, y 335)
+    const sx = AUTOMAT.x + 165 * AUTOMAT.s, sy = AUTOMAT.y + 335 * AUTOMAT.s + DY;
+    for (let i = 0; i < 34; i++) {
+      const dx = (Math.random() - 0.35) * 420, hoch = 120 + Math.random() * 200;
+      teil('muenze-fliegt', `left:${r1(sx)}px;top:${r1(sy)}px;--dx:${r1(dx)}px;--hoch:${r1(-hoch)}px;--fall:${r1(hoehe - sy + 40)}px;animation-delay:${(i * 0.045).toFixed(2)}s`, 3200, `<img src="${TEILE}muenze.png" alt="">`);
+    }
   } else if (art === 'blasen') {
     for (let i = 0; i < 26; i++) teil('blase-steigt', `left:${zufallX()}px;top:${hoehe - 20}px;width:${14 + Math.random() * 26}px;height:${14 + Math.random() * 26}px;animation-delay:${Math.random() * 1.2}s`, 3600);
   } else if (art === 'schnee') {

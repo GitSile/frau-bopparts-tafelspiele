@@ -185,9 +185,6 @@ body { background: #eef7e8; }
 .birne { fill: #6d4c41; }
 .birne.an { fill: #fff176; }
 .jackpot .birne.an { animation: blinken .4s steps(2) infinite; }
-.hebel { transform-box: view-box; }
-.hebel.ziehen { animation: hebel .8s ease-in-out; }
-@keyframes hebel { 40% { transform: scaleY(-.55); } 100% { transform: scaleY(1); } }
 .muenze { animation: muenze 1.6s ease-in forwards; animation-delay: var(--v); }
 @keyframes muenze { 0% { transform: translate(0, 0); } 40% { transform: translate(calc(var(--dx) * .5), -40px); } 100% { transform: translate(var(--dx), 60px); } }
 
@@ -292,23 +289,19 @@ body { background: #eef7e8; }
 /* =========================================================
    Gemalte Teile (ChatGPT): sitzende Tiere, Fahrzeuge, Bullauge
    ========================================================= */
-.tier-sitzt, .teil-bild { position: absolute; object-fit: contain; }
+.teil-bild { position: absolute; object-fit: contain; }
 .bullauge { position: absolute; border-radius: 50%; overflow: hidden; background: #81d4fa; }
 .bullauge img { position: absolute; left: -12%; top: -6%; width: 124%; height: 124%; object-fit: contain; }
 .bullauge::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.55) 0 18%, rgba(255,255,255,0) 40%), rgba(129,212,250,.18); }
 #akteur.art-buggy .akteur-innen { animation: ruetteln .18s linear infinite; }
-#akteur.art-schlitten .akteur-innen { animation: schweben 3s ease-in-out infinite; }
+#akteur.art-schlitten .akteur-innen { animation: ruetteln .3s linear infinite; }
 /* Spielautomat: Tier zieht den Hebel nach unten */
-.hebel.ziehen { animation: hebelZiehen .8s ease-in-out; }
-@keyframes hebelZiehen { 40% { transform: rotate(-58deg); } 100% { transform: rotate(0); } }
-#akteur.hebelzug .tier-figur { animation: hebelzug .8s ease-in-out; }
-@keyframes hebelzug { 0% { transform: translate(0, 0); } 15% { transform: translate(-10px, -6px); } 45% { transform: translate(-8px, 36px); } 100% { transform: translate(0, 0); } }
 /* Möwen mit Flügelschlag, die das Zielband tragen */
 .moewe .fluegel-oben { animation: fluegelOben .36s steps(1) infinite; animation-delay: var(--v); }
 .moewe .fluegel-unten { animation: fluegelUnten .36s steps(1) infinite; animation-delay: var(--v); }
 @keyframes fluegelOben { 0% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes fluegelUnten { 0% { opacity: 0; } 50% { opacity: 1; } }
-.zielband { animation: schweben 1.4s ease-in-out infinite; }
+.moewe-gruppe { animation: schweben 1.4s ease-in-out infinite; animation-delay: var(--v); }
 
 /* =========================================================
    Level geschafft: kleine Zusatz-Effekte
@@ -330,3 +323,35 @@ body { background: #eef7e8; }
 @keyframes tropfen { 0% { opacity: 1; transform: translate(0, 0); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 260px)); } }
 .stern-glitzert { color: #ffd600; text-shadow: 0 0 10px #fff176, 0 0 2px #263238; opacity: 0; animation: glitzern 1.4s ease-in-out 2; }
 @keyframes glitzern { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(40deg); } }
+
+/* U-Boot: Schiffsschraube dreht sich, dahinter steigen kleine Blasen auf */
+.propeller { transform-origin: 50% 47%; animation: schraube .32s linear infinite; }
+@keyframes schraube { 0% { transform: scaleY(1); } 25% { transform: scaleY(.2); } 50% { transform: scaleY(-1); } 75% { transform: scaleY(-.2); } 100% { transform: scaleY(1); } }
+.schrauben-blasen { position: absolute; width: 1px; height: 1px; }
+.schrauben-blasen span { position: absolute; left: 0; top: var(--dy); width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgba(255,255,255,.85);
+  background: rgba(255,255,255,.25); opacity: 0; animation: schraubenBlase 2.2s ease-out infinite; animation-delay: var(--v); }
+.schrauben-blasen span:nth-child(odd) { width: 6px; height: 6px; }
+@keyframes schraubenBlase { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translate(-70px, -60px); opacity: 0; } }
+/* Zeichnungen dürfen über den Rand der Spielfläche hinaus (z. B. Boje) */
+.welt-ebene svg { overflow: visible; }
+
+/* Windsack beim Gleitschirm: bewegt sich leicht im Wind */
+.windsack { transform-box: view-box; transform-origin: 0 0; animation: windsack 2.6s ease-in-out infinite; }
+@keyframes windsack { 0%, 100% { transform: rotate(4deg) scaleX(1); } 30% { transform: rotate(-3deg) scaleX(.94); } 60% { transform: rotate(7deg) scaleX(.98) skewY(3deg); } 80% { transform: rotate(1deg) scaleX(.92); } }
+
+/* Hebel umlegen: während des Ziehens sieht man die Zieh-Posen statt der normalen Figur */
+.pose-a, .pose-b { display: none; }
+#feld.zieht-a .pose-a, #feld.zieht-b .pose-b { display: inline; }
+#feld.zieht-a #akteur, #feld.zieht-b #akteur { visibility: hidden; }
+.hebel-stange { transform-box: view-box; transition: transform .22s ease-in-out; }
+.hebel-knauf { transition: transform .22s ease-in-out; }
+#feld.zieht-b .hebel-stange { transform: var(--zug); }
+#feld.zieht-b .hebel-knauf { transform: var(--weg); }
+/* Münzen fliegen im Bogen aus dem Automaten */
+.muenze-fliegt { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; opacity: 0; animation: muenzeFliegt 1.9s cubic-bezier(.3, 0, .7, 1) forwards; }
+.muenze-fliegt img { width: 100%; height: 100%; animation: drehen .5s linear infinite; }
+@keyframes muenzeFliegt {
+  0% { opacity: 1; transform: translate(0, 0); }
+  35% { transform: translate(calc(var(--dx) * .45), var(--hoch)); animation-timing-function: ease-in; }
+  100% { opacity: 1; transform: translate(var(--dx), var(--fall)); }
+}

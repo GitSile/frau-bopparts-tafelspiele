@@ -1,6 +1,6 @@
 'use strict';
 /* =========================================================
-   Mathe-Wanderung – die Welten (Wanderungen)
+   Mathe-Erlebnisse – die Welten (Wanderungen)
    Jede Welt hat ein gemaltes Hintergrundbild (bilder/welten/, ChatGPT),
    1536 × 1024, unten bündig auf 1600 Breite skaliert. Die eigentliche
    Spielfläche ist 1600 × 520 (unterer Teil des Bildes); auf höheren
@@ -18,7 +18,6 @@
 const K = '#263238';                       // Filzstift-Kontur
 const FIGUREN = '../mathe-fussball/bilder/figuren/';
 const KOEPFE = '../mathe-fussball/bilder/tiere/';
-const SITZEN = 'bilder/sitzen/';           // sitzende Tiere (ChatGPT) für Fahrzeuge
 const TEILE = 'bilder/teile/';             // Maschinen, Fahrzeuge, Münze … (ChatGPT)
 const STUFEN = 8;                           // richtige Antworten pro Level
 
@@ -75,6 +74,56 @@ function karoBand(x, y, b, h, feld = 16) {
 }
 
 /* =========================================================
+   Hebel: das Tier legt den Hebel wirklich mit der Faust um (Spielautomat, Presse).
+   Pose A = greift den Knauf oben, Pose B = zieht ihn herunter (ChatGPT, bilder/hebel/).
+   Die Posen werden so hingestellt, dass die Faust genau am Knauf liegt.
+   ========================================================= */
+const HEBEL_BILDER = 'bilder/hebel/';
+/* Masse der Posen in Spiel-Pixeln: Breite, Höhe, Faust (von oben links, Tier schaut nach rechts) */
+const HEBEL_MASSE = {"baer":{"a":{"b":156.0,"h":200.0,"fx":142.0,"fy":58.7},"b":{"b":152.4,"h":195.9,"fx":127.0,"fy":118.7}},"loewe":{"a":{"b":181.3,"h":200.0,"fx":167.1,"fy":63.3},"b":{"b":159.1,"h":194.2,"fx":134.2,"fy":112.2}},"tiger":{"a":{"b":170.5,"h":200.0,"fx":156.6,"fy":59.7},"b":{"b":155.3,"h":191.9,"fx":123.0,"fy":121.0}},"elefant":{"a":{"b":176.2,"h":200.0,"fx":161.8,"fy":64.1},"b":{"b":162.2,"h":196.3,"fx":137.5,"fy":112.1}},"fuchs":{"a":{"b":174.9,"h":200.0,"fx":160.3,"fy":68.3},"b":{"b":150.4,"h":198.6,"fx":122.9,"fy":99.8}},"wolf":{"a":{"b":181.0,"h":200.0,"fx":166.2,"fy":66.2},"b":{"b":154.8,"h":199.5,"fx":127.1,"fy":117.1}},"adler":{"a":{"b":174.2,"h":193.1,"fx":160.9,"fy":76.6},"b":{"b":148.8,"h":200.0,"fx":135.5,"fy":103.9}},"hai":{"a":{"b":177.7,"h":197.3,"fx":163.6,"fy":76.6},"b":{"b":168.6,"h":200.0,"fx":154.5,"fy":103.3}},"erdmaennchen":{"a":{"b":159.6,"h":194.3,"fx":145.9,"fy":76.3},"b":{"b":150.8,"h":200.0,"fx":120.4,"fy":120.9}}};
+const tierJetzt = () => (typeof S !== 'undefined' && S ? S.tier : null);
+/** Lage von Posen und Hebel in der Welt.
+    welt.hebel = { x, y: Drehpunkt; kipp: Knauf oben seitlich versetzt; boden: Füsse (oder faustOben: Höhe des Knaufs oben); links: Tier schaut nach links } */
+function hebelLage(welt, tier) {
+  const m = tier && HEBEL_MASSE[tier]; if (!m || !welt.hebel) return null;
+  const { x, y, kipp = 0, links } = welt.hebel;
+  const boden = welt.hebel.boden != null ? welt.hebel.boden : welt.hebel.faustOben - m.a.fy + m.a.h;
+  const knaufX = x + kipp;
+  const faust = (p, left) => left + (links ? p.b - p.fx : p.fx);
+  // Pose A: Faust am Knauf oben. Pose B: Körper bleibt am selben Ort, der Knauf geht mit der Faust zum Tier hin und nach unten
+  const a = { left: knaufX - faust(m.a, 0), top: boden - m.a.h, b: m.a.b, h: m.a.h };
+  const mitte = a.left + a.b / 2;
+  const b = { left: mitte - m.b.b / 2, top: boden - m.b.h, b: m.b.b, h: m.b.h };
+  const knaufA = a.top + m.a.fy, knaufBX = faust(m.b, b.left), knaufB = b.top + m.b.fy;
+  // Drehung und Länge der Stange von oben nach unten (um den Drehpunkt)
+  const wA = Math.atan2(knaufA - y, knaufX - x), wB = Math.atan2(knaufB - y, knaufBX - x);
+  let dreh = (wB - wA) * 180 / Math.PI; if (dreh > 180) dreh -= 360; if (dreh < -180) dreh += 360;
+  const streck = Math.hypot(knaufBX - x, knaufB - y) / Math.hypot(knaufX - x, knaufA - y);
+  return { a, b, knaufX, knaufA, knaufBX, knaufB, drehX: x, drehY: y, dreh, streck, boden, mitte, links: !!links };
+}
+/** Hebelstange mit rotem Knauf; beim Ziehen schwenkt die Stange um den Drehpunkt zum Tier hin, der Knauf folgt der Faust */
+function hebelSvg(L) {
+  const st = (dx, w, farbe, extra = '') => `<path d="M${r1(L.drehX + dx)} ${r1(L.drehY)} L${r1(L.knaufX + dx)} ${r1(L.knaufA)}" stroke="${farbe}" stroke-width="${w}" stroke-linecap="round" vector-effect="non-scaling-stroke"${extra}/>`;
+  return `<g class="hebel-stange" style="transform-origin:${r1(L.drehX)}px ${r1(L.drehY)}px;--zug:rotate(${r1(L.dreh)}deg) scale(${L.streck.toFixed(3)})">
+      ${st(0, 12, K)}${st(0, 6, '#cfd8dc')}${st(-1.5, 1.5, '#fff', ' opacity=".8"')}</g>
+    <g class="hebel-knauf" style="--weg:translate(${r1(L.knaufBX - L.knaufX)}px, ${r1(L.knaufB - L.knaufA)}px)" stroke="${K}" stroke-width="3">
+      <circle cx="${r1(L.knaufX)}" cy="${r1(L.knaufA)}" r="14" fill="#e53935"/><circle cx="${r1(L.knaufX - 4)}" cy="${r1(L.knaufA - 5)}" r="4" fill="#fff" stroke="none" opacity=".7"/></g>`;
+}
+/** Die beiden Posen (nur beim Ziehen sichtbar). nurFaust = id: nur die Faust zeigen (vor dem Steuerpult) */
+function hebelPosen(L, tier, nurFaust) {
+  return ['a', 'b'].map(n => {
+    const p = L[n], spiegel = L.links ? ` transform="translate(${r1(2 * p.left + p.b)} 0) scale(-1 1)"` : '';
+    let clip = '';
+    if (nurFaust) {
+      const kx = n === 'a' ? L.knaufX : L.knaufBX, ky = n === 'a' ? L.knaufA : L.knaufB;
+      clip = ` clip-path="url(#${nurFaust}-${n})"`;
+      return `<clipPath id="${nurFaust}-${n}"><circle cx="${r1(kx)}" cy="${r1(ky)}" r="22"/></clipPath><g class="pose-${n}"${clip}><image href="${HEBEL_BILDER}${tier}-${n}.png" x="${r1(p.left)}" y="${r1(p.top)}" width="${r1(p.b)}" height="${r1(p.h)}"${spiegel}/></g>`;
+    }
+    return `<image class="pose-${n}" href="${HEBEL_BILDER}${tier}-${n}.png" x="${r1(p.left)}" y="${r1(p.top)}" width="${r1(p.b)}" height="${r1(p.h)}"${spiegel}/>`;
+  }).join('');
+}
+
+/* =========================================================
    Die Welten
    ========================================================= */
 const WELTEN = {};
@@ -100,17 +149,20 @@ function ortsschild(x, y, name, s = 1) {
 
 /* ---------- 2. Die Presse (kommt immer als zweites) ---------- */
 /* Rahmen 460×420 → 420 breit (0.913); Innenraum x 831–1064, Grundplatte oben bei y 382 */
-const PRESSE = { mitte: 950, boden: 450, rs: 420 / 460, amboss: 382, doseH: 150, doseB: 64, schritt: 15 };
+const PRESSE = { mitte: 950, boden: 450, rs: 420 / 460, amboss: 388, doseH: 150, doseB: 64, schritt: 15, druck: 5 };   // amboss = Oberkante Grundplatte (gemessen); druck = Stempel liegt so viel auf der Dose auf
 WELTEN.presse = {
   name: 'Die Presse', art: 'fest', feier: 'funken',
   bild: 'bilder/welten/presse.jpg', himmelOben: '#7d8a96',
-  wege: strecke(420, 412, 420, 412),
+  // Hebel im Schlitz des Steuerpults (Drehpunkt unten im Schlitz, Knauf oben); das Tier steht hinter dem Pult
+  hebel: { x: 465, y: 356, kipp: 2, faustOben: 252 },   // Schlitz im Pult: x 465, y 334–363
+  get wege() { const L = hebelLage(this, tierJetzt()); return L ? strecke(r1(L.mitte), r1(L.boden), r1(L.mitte), r1(L.boden)) : strecke(420, 412, 420, 412); },
   hinten() {
     const { mitte, boden, rs, amboss, doseH, doseB } = PRESSE;
+    const L = hebelLage(this, tierJetzt());
     const rb = 460 * rs, rh = 420 * rs, rx = mitte - rb / 2, ry = boden - rh;
     const balkenUnten = ry + 135 * rs;
     // Pressplatte: 420×387 → so breit wie der Innenraum; die Stange verschwindet hinter dem Querbalken
-    const pb = 233, ph = 387 * pb / 420, plattenUnten = amboss - doseH;
+    const pb = 233, ph = 387 * pb / 420, plattenUnten = amboss - doseH + PRESSE.druck;
     let skala = '';
     for (let s = 1; s <= STUFEN; s++) {
       const y = plattenUnten + s * PRESSE.schritt;
@@ -127,19 +179,30 @@ WELTEN.presse = {
         <g class="knitter" fill="none" stroke="${K}" stroke-width="2.5" stroke-linejoin="round" opacity="0">
           <path d="M-32 -120 L-20 -110 L-30 -98 L-18 -88 L-31 -74 L-19 -62 L-32 -48"/>
           <path d="M32 -126 L22 -114 L31 -102 L21 -92 L32 -78 L23 -66 L32 -52"/>
-          <path d="M-8 -116 L2 -106 L-6 -92 M6 -80 L14 -70 L8 -58"/></g></g></g>`;
+          <path d="M-8 -116 L2 -106 L-6 -92 M6 -80 L14 -70 L8 -58"/></g></g></g>
+      ${L ? hebelPosen(L, tierJetzt()) : ''}`;
   },
   vorne() {
-    // Steuerpult (360×260 → 240 breit) mit dickem Kabel, das in der Steckdose an der Presse steckt
-    const pb = 240, ph = 260 * pb / 360, px = 290, py = 455 - ph;
-    const kx = px + 322 * pb / 360, ky = py + 222 * pb / 360;       // Kabelausgang am Pult
+    // Steuerpult ohne Hebel (1295×804 → 240 breit; der Hebel ist eine eigene Zeichnung) mit dickem Kabel zur Steckdose an der Presse
+    const pb = 240, ph = 804 * pb / 1295, px = 290, py = 455 - ph;
+    const kx = px + 1290 * pb / 1295, ky = py + 770 * pb / 1295;    // Ende des gemalten Kabelstücks rechts am Pult
     const zx = PRESSE.mitte - 205, zy = 436;                          // Anschlussdose an der Grundplatte der Presse
-    const kabel = `M${kx} ${ky} C ${kx + 40} ${ky + 40}, ${kx + 120} 470, ${(kx + zx) / 2 + 40} 466 S ${zx - 40} ${zy + 8}, ${zx - 6} ${zy}`;
-    return `<path d="${kabel}" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round"/>
-      <path d="${kabel}" fill="none" stroke="#455a64" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 30" opacity=".7"/>
+    // Kabel: dunkle Kontur, Gummi-Körper mit Glanzlicht; an beiden Enden ein Knickschutz, vorne ein Stecker in der Steckdose
+    const kabel = `M${kx - 4} ${ky} C ${kx + 40} ${ky + 2}, ${kx + 60} 472, ${(kx + zx) / 2 + 10} 468 S ${zx - 70} ${zy}, ${zx - 34} ${zy}`;
+    const rippen = n => Array.from({ length: n }, (_, i) => `<line x1="${4 + i * 5}" y1="-7" x2="${4 + i * 5}" y2="7" stroke="#11171a" stroke-width="1.5"/>`).join('');
+    return `<path d="${kabel}" fill="none" stroke="#11171a" stroke-width="14" stroke-linecap="round"/>
+      <path d="${kabel}" fill="none" stroke="#37474f" stroke-width="9" stroke-linecap="round"/>
+      <path d="${kabel}" fill="none" stroke="#90a4ae" stroke-width="2" stroke-linecap="round" opacity=".55" transform="translate(-1 -2.5)"/>
+      <g transform="translate(${kx - 8} ${ky})" stroke="#11171a" stroke-width="2.5" stroke-linejoin="round">
+        <rect x="-2" y="-9" width="26" height="18" rx="5" fill="#263238"/><g>${rippen(4)}</g></g>
+      <g transform="translate(${zx - 40} ${zy})" stroke="#11171a" stroke-width="2.5" stroke-linejoin="round">
+        <rect x="0" y="-9" width="24" height="18" rx="5" fill="#263238"/>${rippen(4)}
+        <rect x="22" y="-11" width="16" height="22" rx="3" fill="#ffb300"/><rect x="25" y="-7" width="3" height="14" fill="#ffe082" stroke="none"/></g>
       <g stroke="${K}" stroke-width="3" stroke-linejoin="round">
-        <rect x="${zx - 12}" y="${zy - 13}" width="24" height="24" rx="4" fill="#ffb300"/><rect x="${zx - 4}" y="${zy - 6}" width="12" height="10" rx="2" fill="#263238"/></g>
-      ${bildSvg(TEILE + 'presse-pult.png', px, py, pb, ph)}`;
+        <rect x="${zx - 3}" y="${zy - 16}" width="14" height="32" rx="3" fill="#78909c"/>
+        <circle cx="${zx + 4}" cy="${zy - 10}" r="2" fill="#cfd8dc" stroke-width="1"/><circle cx="${zx + 4}" cy="${zy + 10}" r="2" fill="#cfd8dc" stroke-width="1"/></g>
+      ${bildSvg(TEILE + 'presse-pult.png', px, py, pb, ph)}
+      ${(() => { const L = hebelLage(this, tierJetzt()); return L ? hebelSvg(L) + hebelPosen(L, tierJetzt(), 'w-pr-faust') : ''; })()}`;
   },
   stufe(n, el) {
     const { doseH, schritt } = PRESSE;
@@ -189,9 +252,8 @@ WELTEN.aadorf = {
       // Ortsname auf der blauen Tafel des Bahnhofs (genau, nicht gemalt)
       + `<rect x="1101" y="113" width="184" height="42" rx="9" fill="#1d3f9e"/>
          <rect x="1106" y="118" width="174" height="32" rx="6" fill="none" stroke="#fff" stroke-width="2.5"/>
-         <text x="1193" y="145" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="28" fill="#fff">Aadorf</text>`
-      // Beschriftung am Zug
-      + `<text x="1468" y="312" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-style="italic" font-size="19" fill="#fff" stroke="#8e0000" stroke-width="0.6">Zuzi-Bahn</text>`;
+         <text x="1193" y="145" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="28" fill="#fff">Aadorf</text>`;
+      // der Schriftzug «Zuzi-Bahn» ist direkt auf den Zug gemalt (im Bild, ChatGPT)
   }
 };
 
@@ -211,7 +273,7 @@ WELTEN.motorrad = {
   name: 'Buggy-Sprung', art: 'fahren', fahrzeug: 'buggy', feier: 'sterne',
   bild: 'bilder/welten/motorrad.jpg', himmelOben: '#1e88e5',
   wege: [...Array.from({ length: 7 }, (_, i) => [300 + i * 75, 458, 0, 1]),   // vor der Schanze (Vorderrad noch nicht auf der Rampe)
-    [1018, 402, -20.5, 1],                                              // auf der Schanze: beide Räder auf der Rampenkante (gemessen)
+    [990, 408, -21.3, 1],                                               // auf der Schanze: beide Räder auf der Rampenkante (Räder auf der Mitte der Holzbahn, geprüft)
     [1470, 458, 0, 1]],                                                 // nach dem Sprung auf der Strasse
   bogen: { 8: 190 },
   hinten() {
@@ -231,12 +293,12 @@ WELTEN.uboot = {
   wege: strecke(370, 340, 1080, 270),
   hinten() {
     return zeichen(this.wege, ([x, y]) => `<g class="marke" fill="none" stroke="#e1f5fe" stroke-width="2.5"><circle cx="${x + 30}" cy="${y - 190}" r="6"/><circle cx="${x + 42}" cy="${y - 206}" r="4"/></g>`)
-      + `<path d="M1300 505 Q1312 300 1300 66" fill="none" stroke="#455a64" stroke-width="5" stroke-dasharray="10 5"/>
+      + `<path d="M1300 505 Q1312 300 1300 74" fill="none" stroke="#455a64" stroke-width="5" stroke-dasharray="10 5"/>
          <rect x="1272" y="495" width="56" height="26" rx="4" fill="#78909c" stroke="${K}" stroke-width="3"/>
-         <g class="schaukelt" stroke="${K}" stroke-width="3.5" stroke-linejoin="round">
-          <path d="M1272 60 Q1300 84 1328 60 L1319 36 L1281 36 Z" fill="#e53935"/>
-          <rect x="1287" y="14" width="26" height="22" fill="#fff"/><rect x="1291" y="0" width="18" height="15" fill="#e53935"/>
-          <circle cx="1300" cy="-6" r="6" fill="#ffeb3b" class="blinkt"/></g>`;
+         <g class="schaukelt" stroke="${K}" stroke-width="3" stroke-linejoin="round">
+          <path d="M1276 68 Q1300 88 1324 68 L1316 48 L1284 48 Z" fill="#e53935"/>
+          <rect x="1289" y="30" width="22" height="18" fill="#fff"/><rect x="1292" y="18" width="16" height="13" fill="#e53935"/>
+          <circle cx="1300" cy="12" r="5" fill="#ffeb3b" class="blinkt"/></g>`;
   }
 };
 
@@ -244,30 +306,36 @@ WELTEN.uboot = {
 WELTEN.joggen = {
   name: 'Jogging', art: 'laufen', joggt: true, feier: 'ballone',
   bild: 'bilder/welten/joggen.jpg', himmelOben: '#1e88e5',
-  wege: strecke(330, 452, 1330, 452),
+  wege: strecke(330, 452, 1440, 452),   // Stufe 8: das Tier steht auf der Ziellinie
   hinten() {
     return zeichen(this.wege, ([x]) => `<path class="marke" d="M${x + 60} 330 l-12 190" stroke="#fff" stroke-width="4" opacity=".6"/>`)
+      // die karierte Ziellinie ist auf die Bahn gesprüht (im Bild, bei x ≈ 1453); darüber das Zielband
       + `<g stroke="${K}" stroke-width="4" stroke-linejoin="round">
-          <rect x="1420" y="220" width="20" height="260" fill="#eceff1"/><rect x="1560" y="220" width="20" height="260" fill="#eceff1"/>
-          <rect x="1404" y="204" width="192" height="60" rx="8" fill="#1e88e5"/></g>
-         <text x="1500" y="249" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="40" fill="#fff">ZIEL</text>
-         <g opacity=".85">${Array.from({ length: 12 }, (_, i) => `<rect x="${1440 - i * 2}" y="${330 + i * 16}" width="120" height="16" fill="${i % 2 ? K : '#fff'}"/>`).join('')}</g>`;
+          <rect x="1365" y="220" width="20" height="200" fill="#eceff1"/><rect x="1525" y="220" width="20" height="200" fill="#eceff1"/>
+          <rect x="1359" y="204" width="192" height="60" rx="8" fill="#1e88e5"/></g>
+         <text x="1455" y="249" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="40" fill="#fff">ZIEL</text>`;
   }
 };
 
-/* ---------- Kunstflug: zwei Möwen tragen das karierte Zielband (vor dem Ballon) ---------- */
+/* ---------- Kunstflug: zwei Möwen tragen je ein kariertes Zielfähnchen ---------- */
+/** kariertes Fähnchen an einem Stab, den die Möwe in den Krallen hält (x, y = Krallen) */
+function moewenFahne(x, y) {
+  let felder = '';
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) if ((r + c) % 2 === 0) felder += `<rect x="${3 + c * 11}" y="${8 + r * 10}" width="11" height="10" fill="${K}"/>`;
+  return `<g transform="translate(${x} ${y})">
+    <rect x="-2" y="-4" width="5" height="70" rx="2" fill="#8d6e63" stroke="${K}" stroke-width="2"/>
+    <g class="weht"><rect x="3" y="8" width="44" height="30" fill="#fff" stroke="${K}" stroke-width="2.5"/>${felder}</g></g>`;
+}
 WELTEN.flugzeug = {
   name: 'Kunstflug', art: 'fahren', fahrzeug: 'flugzeug', looping: true, feier: 'sterne',
   bild: 'bilder/welten/flugzeug.jpg', himmelOben: '#1e88e5',
   wege: Array.from({ length: STUFEN + 1 }, (_, i) => [360 + i * 88, i % 2 ? 270 : 295, 0, 1]),
   hinten() {
-    const moewe = (x, y, verz) => `<g class="moewe" style="--v:${verz}s">
+    const moewe = (x, y, verz) => `<g class="moewe-gruppe" style="--v:${verz}s">${moewenFahne(x - 2, y + 30)}<g class="moewe" style="--v:${verz}s">
         ${bildSvg(TEILE + 'moewe-oben.png', x - 46, y - 50, 92, 100, 'class="fluegel-oben"')}
-        ${bildSvg(TEILE + 'moewe-unten.png', x - 50, y - 33, 100, 84, 'class="fluegel-unten"')}</g>`;
+        ${bildSvg(TEILE + 'moewe-unten.png', x - 50, y - 33, 100, 84, 'class="fluegel-unten"')}</g></g>`;
     return zeichen(this.wege, ([x, y]) => `<g class="marke" fill="#fff" stroke="${K}" stroke-width="1.5" opacity=".8"><circle cx="${x}" cy="${y - 130}" r="6"/><circle cx="${x + 10}" cy="${y - 133}" r="4.5"/></g>`)
-      + `<g class="zielband">${karoBand(1270, 150, 44, 230, 11)}
-          <path d="M1272 150 L1262 118 M1312 150 L1322 118" stroke="#8d6e63" stroke-width="3"/>
-          ${moewe(1258, 98, 0)}${moewe(1330, 92, 0.17)}</g>`;
+      + moewe(1240, 110, 0) + moewe(1255, 360, 0.17);
   }
 };
 
@@ -278,10 +346,8 @@ WELTEN.schlitten = {
   wege: strecke(330, 470, 1300, 470),
   hinten() {
     const flocken = Array.from({ length: 24 }, (_, i) => `<circle class="flocke" style="--v:${-(i * 1.7) % 9}s;--dx:${(i % 5) * 12 - 24}px" cx="${(i * 97) % 1600}" cy="-10" r="${2.5 + i % 3}" fill="#fff"/>`).join('');
-    // rote Ziellinie in den Schnee gezeichnet, mit zwei Fähnchen
+    // die rote Ziellinie ist in den Schnee gesprüht (im Bild, ChatGPT)
     return zeichen(this.wege, ([x]) => faehnchen(x + 40, 372, 0.55))
-      + `<path d="M1452 330 L1420 520" stroke="#d32f2f" stroke-width="12" stroke-dasharray="26 12" opacity=".85"/>
-         ${faehnchen(1454, 334, 1.1)}${faehnchen(1418, 520, 1.1)}`
       + `<g class="flocken">${flocken}</g>`;
   }
 };
@@ -290,37 +356,52 @@ WELTEN.schlitten = {
 WELTEN.gleitschirm = {
   name: 'Gleitschirm', art: 'fahren', fahrzeug: 'gleitschirm', feier: 'sterne',
   bild: 'bilder/welten/gleitschirm.jpg', himmelOben: '#1e88e5',
-  wege: Array.from({ length: STUFEN + 1 }, (_, i) => { const t = i / STUFEN; return [r1(380 + 840 * t), r1(260 + 110 * Math.pow(t, 1.3)), 0, r1(0.8 + 0.12 * t)]; }),
+  // Landeplatz ist ins Gras gesprüht (im Bild, Mitte bei x 1299, y 347)
+  wege: Array.from({ length: STUFEN + 1 }, (_, i) => { const t = i / STUFEN; return [r1(380 + 920 * t), r1(260 + 94 * Math.pow(t, 1.3)), 0, r1(0.8 + 0.08 * t)]; }),
   hinten() {
     return zeichen(this.wege, ([x, y, , s]) => `<circle class="marke" cx="${x + 20}" cy="${y - 260 * s}" r="4" fill="#fff" opacity=".7"/>`)
-      + `<g opacity=".9" stroke="${K}" stroke-width="3"><ellipse cx="1220" cy="374" rx="70" ry="12" fill="#fff"/><ellipse cx="1220" cy="374" rx="44" ry="7" fill="#ff7043"/><ellipse cx="1220" cy="374" rx="18" ry="3" fill="#fff"/></g>`;
+      + windsack(1490, 372);
   }
 };
+/** Windsack an einem Mast, der sich leicht im Wind bewegt (x, y = Fuss des Masts) */
+function windsack(x, y) {
+  const streifen = [0, 1, 2, 3, 4].map(i => {
+    const x0 = 6 + i * 16, h0 = 15 - i * 2, h1 = 15 - (i + 1) * 2;
+    return `<path d="M${x0} ${-h0} L${x0 + 16} ${-h1} L${x0 + 16} ${h1} L${x0} ${h0} Z" fill="${i % 2 ? '#fff' : '#e53935'}"/>`;
+  }).join('');
+  return `<g transform="translate(${x} ${y})">
+    <rect x="-3" y="-120" width="6" height="120" fill="#b0bec5" stroke="${K}" stroke-width="2"/>
+    <g transform="translate(0 -112)"><g class="windsack">${streifen}
+      <path d="M6 -15 L86 -5 L86 5 L6 15 Z" fill="none" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/>
+      <ellipse cx="6" cy="0" rx="4" ry="15" fill="#c62828" stroke="${K}" stroke-width="2"/></g></g></g>`;
+}
 
 /* ---------- Spielautomat (Gewinn erst am Ende des Levels) ---------- */
 /* Automat 328×380 → 200 hoch (normale Grösse, das Tier reicht an den Hebel). Walzenfenster bei x 90/166/242 (Bild) */
-const AUTOMAT = { x: 760, y: 270, s: 200 / 380 };
+const AUTOMAT = { x: 680, y: 270, s: 200 / 380 };   // Automat und Tier zusammen in der Bildmitte
 const WALZEN = ['🍒', '🍋', '🔔', '⭐', '💎', '7'];
 WELTEN.spielautomat = {
   name: 'Spielautomat', art: 'fest', blickLinks: true, feier: 'muenzen',
   bild: 'bilder/welten/spielautomat.jpg', himmelOben: '#0d1b4f',
-  wege: strecke(962, 472, 962, 472, 0.9),
+  // Hebel rechts am Automaten; das Tier steht rechts davon und schaut nach links
+  hebel: { x: 680 + 328 * 200 / 380 + 4, y: 382, kipp: 6, boden: 472, links: true },
+  get wege() { const L = hebelLage(this, tierJetzt()); const x = L ? r1(L.mitte) : 930; return strecke(x, 472, x, 472); },
   hinten() {
     const { x, y, s } = AUTOMAT;
     const walze = bx => `<text class="walze" x="${r1(x + bx * s)}" y="${r1(y + 196 * s)}" text-anchor="middle" font-size="${r1(54 * s)}" font-family="Arial, sans-serif" font-weight="900" fill="#d50000">7</text>`;
     const birnen = Array.from({ length: STUFEN }, (_, i) => `<circle class="birne marke" cx="${r1(x + 44 * s + i * 30 * s)}" cy="${r1(y - 8)}" r="5" stroke="${K}" stroke-width="2"/>`).join('');
     return bildSvg(TEILE + 'automat.png', x, y, 328 * s, 380 * s)
       + [90, 166, 242].map(walze).join('') + birnen
-      // Hebel 157×260 → 120 hoch; Drehpunkt unten rechts an der Seite des Automaten
-      + `<g class="hebel" style="transform-origin:${r1(x + 328 * s + 18)}px ${r1(y + 205 * s)}px">${bildSvg(TEILE + 'hebel.png', x + 328 * s - 14, y + 205 * s - 86, 54, 90)}</g>`
+      // Hebel (eigene Zeichnung) mit Halterung am Automaten, davor die beiden Zieh-Posen des Tiers
+      + (() => { const L = hebelLage(this, tierJetzt()); if (!L) return '';
+        return `<rect x="${r1(L.drehX - 8)}" y="${r1(L.drehY - 14)}" width="16" height="28" rx="4" fill="#ffb300" stroke="${K}" stroke-width="3"/>`
+          + hebelSvg(L) + hebelPosen(L, tierJetzt()); })()
       + `<g class="muenzen"></g>`;
   },
   stufe(n, el, sofort) {
     el.hinten.querySelectorAll('.birne').forEach((b, i) => b.classList.toggle('an', i < n));
     const walzen = [...el.hinten.querySelectorAll('.walze')];
     if (sofort) { walzen.forEach((w, i) => { w.textContent = WALZEN[i % 5]; }); return; }
-    const hebel = el.hinten.querySelector('.hebel');
-    hebel.classList.remove('ziehen'); void hebel.getBoundingClientRect(); hebel.classList.add('ziehen');
     // Walzen drehen sich kurz – erst bei Stufe 8 kommt dreimal die 7
     let ziel;
     if (n >= STUFEN) ziel = ['7', '7', '7'];
@@ -341,37 +422,42 @@ WELTEN.spielautomat = {
    Kranhaken hinten am Rücken ein (der Kran liegt hinter dem Tier).
    Ankerpunkt ist immer unten in der Mitte.
    ========================================================= */
-const sitzt = (tier, x, y, gr) => `<img class="tier-sitzt" src="${SITZEN}${tier}.png" alt="" style="left:${r1(x)}px;top:${r1(y)}px;width:${gr}px;height:${gr}px">`;
 const teil = (datei, x, y, b, h, klasse = '') => `<img class="teil-bild ${klasse}" src="${TEILE}${datei}" alt="" style="left:${r1(x)}px;top:${r1(y)}px;width:${r1(b)}px;height:${r1(h)}px">`;
+/** Fahrzeug mit Tier als ein Bild (bilder/fahrzeuge/<art>-<tier>.png), unten bündig */
+const FAHRZEUGE = 'bilder/fahrzeuge/';
+const fahrt = (art, tier, b, x = 0, klasse = '') => `<img class="teil-bild fahrt ${klasse}" src="${FAHRZEUGE}${art}-${tier}.png" alt="" style="left:${r1(x)}px;bottom:0;width:${r1(b)}px;height:auto">`;
 function figur(tier, b, h, x = 0, y = 0) {
   return `<img class="tier-figur" src="${FIGUREN}${tier}-stehen.png" alt="" style="left:${x}px;top:${y}px;width:${b}px;height:${h}px">`;
 }
 function akteur(welt, tier) {
   const art = welt.fahrzeug || welt.art;
-  if (art === 'buggy') {        // Buggy 420×293 → 260 breit; Tier sitzt hinter der Karosserie im Sitz
-    const b = 260, h = 181;
-    return { b, h, haken: 112, html: sitzt(tier, 48, 0, 118) + teil('buggy.png', 0, 0, b, h) };
+  if (art === 'buggy') {        // Tier sitzt vorne am Steuer und lehnt sich leicht hinaus (ein Bild pro Tier, ChatGPT, 420 breit)
+    const b = 260, h = 202;
+    return { b, h, haken: 118, html: fahrt('buggy', tier, b) };
   }
-  if (art === 'boot') {         // Boot 440×196 → 300 breit; Tier sitzt im Sitz, der Rumpf verdeckt die Beine
-    const b = 300, h = 170, oben = 36;
-    return { b, h, haken: 128, html: sitzt(tier, 60, 0, 118) + teil('boot.png', 0, oben, b, 134) };
+  if (art === 'boot') {         // Tier sitzt am Steuer (ein Bild pro Tier, ChatGPT, 440 breit)
+    const b = 300, h = 222;
+    return { b, h, haken: 150, html: fahrt('boot', tier, b) };
   }
-  if (art === 'schlitten') {    // Schlitten 400×169 → 250 breit; Tier sitzt obendrauf
-    const b = 250, h = 210, sh = 106;
-    return { b, h, haken: 120, html: teil('schlitten.png', 0, h - sh, b, sh) + sitzt(tier, 40, 8, 128) };
+  if (art === 'schlitten') {    // Tier sitzt mit Schal auf dem Schlitten (ein Bild pro Tier, ChatGPT, 420 breit)
+    const b = 250, h = 266;
+    return { b, h, haken: 170, html: fahrt('schlitten', tier, b) };
   }
-  if (art === 'flugzeug') {     // Doppeldecker 440×270 → 260 breit; Kopf schaut unter dem oberen Flügel aus dem Cockpit
-    const b = 260, h = 160;
-    return { b, h, haken: 118, html: sitzt(tier, 64, 26, 92) + teil('flugzeug.png', 0, 0, b, h) };
+  if (art === 'flugzeug') {     // Pilot mit Fliegerbrille und Schal im Cockpit (ein Bild pro Tier, ChatGPT, 440 breit)
+    const b = 260, h = 183;
+    return { b, h, haken: 120, html: fahrt('flug', tier, b) };
   }
   if (art === 'uboot') {        // U-Boot 440×319 → 300 breit; Kopf im grossen Bullauge
     const b = 300, h = 218, cx = 242, cy = 157, r = 40;
-    return { b, h, haken: 160, html: teil('uboot.png', 0, 0, b, h)
+    const k = b / 440;          // Propeller (eigenes Bild) dreht sich hinter der Nabe, dahinter steigen Blasen auf
+    const blasen = Array.from({ length: 6 }, (_, i) => `<span style="--v:${(i * 0.37).toFixed(2)}s;--dy:${(i % 3) * 7 - 7}px"></span>`).join('');
+    return { b, h, haken: 160, html: `<div class="schrauben-blasen" style="left:${r1(-14)}px;top:${r1(212 * k)}px">${blasen}</div>`
+      + teil('propeller.png', 0, 155 * k, 38 * k, 135 * k, 'propeller') + teil('uboot.png', 0, 0, b, h)
       + `<div class="bullauge" style="left:${cx - r}px;top:${cy - r}px;width:${2 * r}px;height:${2 * r}px"><img src="${KOEPFE}${tier}.png" alt=""></div>` };
   }
-  if (art === 'gleitschirm') {  // Gleitschirm 420×373 → 280 breit; Tier sitzt im Gurtzeug
-    const b = 280, h = 270;
-    return { b, h, haken: 250, html: teil('gleitschirm.png', 0, 0, b, 249) + sitzt(tier, 82, 140, 116) };   // Tier sitzt vorne im Gurtzeug
+  if (art === 'gleitschirm') {  // Tier sitzt im Gurtzeug unter dem Schirm (ein Bild pro Tier, ChatGPT, 420 breit)
+    const b = 280, h = 345;
+    return { b, h, haken: 330, html: fahrt('gleit', tier, b) };
   }
   // zu Fuss (laufen, joggen) oder fest an einem Ort (Presse, Spielautomat)
   const b = 210, h = 210;
@@ -392,7 +478,9 @@ function weltFuerLevel(level, stand) {
   if (level <= WELT_START.length) id = WELT_START[level - 1];
   else {
     if (!stand.beutel.length) {
-      stand.beutel = mischen(WELT_LOOP);
+      // erste Runde: die Welten, die noch nicht dran waren; danach immer alle 14
+      stand.beutel = mischen(stand.ersteRunde === false ? WELT_LOOP : WELT_LOOP.filter(w => !WELT_START.includes(w)));
+      stand.ersteRunde = false;
       // nicht dieselbe Welt direkt nach der letzten (Beutel wird von hinten geleert)
       if (stand.beutel[stand.beutel.length - 1] === stand.letzte) stand.beutel.unshift(stand.beutel.pop());
     }
