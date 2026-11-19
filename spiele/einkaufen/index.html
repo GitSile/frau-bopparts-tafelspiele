@@ -25,28 +25,11 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="rauschen"/>
       <feDisplacementMap in="SourceGraphic" in2="rauschen" scale="5" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
-    <!-- Samt der Säckchen -->
-    <filter id="samt" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0" result="dunkel"/>
-      <feComposite in="dunkel" in2="SourceGraphic" operator="in" result="korn"/>
-      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="korn"/></feMerge>
-    </filter>
     <!-- Stickerei: weisse Fäden schräg -->
     <pattern id="faden" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
       <rect width="5" height="5" fill="#ffffff"/>
-      <rect width="1.2" height="5" fill="#d9d4cc"/>
+      <rect width="1.4" height="5" fill="#e0d6c8"/>
     </pattern>
-    <radialGradient id="samt-rot" cx="40%" cy="38%" r="70%">
-      <stop offset="0" stop-color="#ef5350"/>
-      <stop offset=".45" stop-color="#c62828"/>
-      <stop offset="1" stop-color="#6d0c0c"/>
-    </radialGradient>
-    <linearGradient id="gold-kordel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff59d"/>
-      <stop offset=".5" stop-color="#fbc02d"/>
-      <stop offset="1" stop-color="#b8860b"/>
-    </linearGradient>
     <radialGradient id="gold-muenze" cx="38%" cy="34%" r="75%">
       <stop offset="0" stop-color="#fffde7"/>
       <stop offset=".35" stop-color="#ffd54f"/>
@@ -114,6 +97,7 @@
         <div class="abschnitt">
           <div class="abschnitt-titel">Produkte auf der Kasse: höchstens</div>
           <div class="zr-zeile" id="anzahl-zeile"></div>
+          <label class="schalter-zeile"><input type="checkbox" id="e-selbst"><span class="schalter"></span>Die Kinder legen die Produkte selbst aufs Band (antippen, mindestens 2)</label>
         </div>
       </div>
 
@@ -149,23 +133,30 @@
   <section id="spiel" class="seite versteckt">
     <div id="buehne">
 
-      <!-- Oben: der Laden (wird bei höheren Bildschirmen nach oben grösser) -->
+      <!-- Der Laden füllt die ganze Bühne; bei höheren Bildschirmen wird oben mehr vom Hintergrund sichtbar -->
       <div id="szene">
         <div id="laden">
-          <div id="schild">Markt</div>
           <div id="regal"><div class="regal-schild">Lebensmittel &amp; Haushalt</div></div>
           <div id="kuehlschrank"><div class="kuehl-schild">❄ Kühlregal</div><div class="kuehl-glas"></div></div>
           <div id="regal-produkte"></div>
 
+          <div id="theke"><div id="band"><div id="band-streifen"></div></div><div id="scanner"></div></div>
           <img id="kassiererin" src="bilder/kassiererin.png" alt="Kassiererin">
-          <div id="sprechblase">Was kostet der Einkauf?</div>
           <div id="kassen-stange"></div>
-          <div id="kassen-anzeige"><span id="anzeige-text">???</span></div>
-          <div id="theke">
-            <div id="band"><div id="band-streifen"></div></div>
-            <div id="scanner"></div>
+          <div id="kassen-anzeige"><span id="anzeige-text">??? Fr.</span></div>
+          <div id="sprechblase" title="Doppeltippen: Aufgabe überspringen">
+            <svg viewBox="0 0 380 150" aria-hidden="true">
+              <path d="M 30 8 H 350 Q 372 8 372 30 V 84 Q 372 106 350 106 H 92 L 18 146 L 52 106 H 30 Q 8 106 8 84 V 30 Q 8 8 30 8 Z" fill="#fff" stroke="#263238" stroke-width="5" stroke-linejoin="round"/>
+            </svg>
+            <span>Was kostet der Einkauf?</span>
           </div>
           <div id="band-bereich"></div>
+          <div id="hinweis" class="versteckt"><span class="pfeil">⬅</span>Wähle, was Du einkaufen möchtest.</div>
+          <button id="btn-zur-kasse" class="filz versteckt">Zur Kasse ✓</button>
+          <div id="meldung"></div>
+          <div class="saecke" id="saecke-0"></div>
+          <div class="saecke" id="saecke-1"></div>
+          <button id="btn-weiss-nicht" class="filz versteckt">Ich weiss es nicht</button>
           <div id="wechsel-box" class="versteckt">
             <svg id="wechsel-kreis" viewBox="-8 -8 116 116" aria-label="Countdown">
               <circle class="hinten" cx="50" cy="50" r="50"></circle>
@@ -188,13 +179,8 @@
         </div>
       </div>
 
-      <!-- Unten: Eingabe – Goldsäckchen – Eingabe -->
+      <!-- Eingabe links (und rechts bei 2 Kindern) -->
       <div class="panel filz" id="panel-0"></div>
-      <div id="mitte" class="filz">
-        <div class="zone" id="zone-0"></div>
-        <div class="zone" id="zone-1"></div>
-        <button id="btn-weiss-nicht" class="filz versteckt">Ich weiss es nicht</button>
-      </div>
       <div class="panel filz" id="panel-1"></div>
 
       <div id="flieger"></div>

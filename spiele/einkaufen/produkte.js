@@ -71,35 +71,59 @@ function zufallsAufteilung(einheiten, n) {
   return teile;
 }
 
+/** Kleinste und grösste Anzahl Produkte, die zum Zahlenraum passt */
+function anzahlBereich(maxFranken, stufe, maxProdukte) {
+  const st = STUFEN[stufe];
+  const nMax = Math.max(1, Math.min(maxProdukte, Math.floor(maxFranken * 100 / st.minPreis), PRODUKTE.length));
+  return { min: Math.min(2, nMax), max: nMax };
+}
+
 /**
- * Einen Einkauf erzeugen.
- * maxFranken: höchstes Total in Franken, stufe: 'franken'|'zehn'|'fuenf', maxProdukte: 1..5
- * Rückgabe: { produkte: [{ id, name, preis (Rp) }], total (Rp) }
+ * Preise für n Produkte erzeugen.
+ * maxFranken: höchstes Total in Franken, stufe: 'franken'|'zehn'|'fuenf'
+ * Rückgabe: { preise: [Rp, …], total: Rp } oder null, wenn es nicht geht
  */
-function erzeugeEinkauf(maxFranken, stufe, maxProdukte, vorher) {
+function erzeugePreise(maxFranken, stufe, n, vorherTotal) {
   const st = STUFEN[stufe];
   const maxRp = maxFranken * 100;
-  const nMax = Math.max(1, Math.min(maxProdukte, Math.floor(maxRp / st.minPreis), PRODUKTE.length));
-  const nMin = Math.min(2, nMax);
-  for (let versuch = 0; versuch < 200; versuch++) {
-    const n = zufall(nMin, nMax);
+  if (n < 1 || n * st.minPreis > maxRp) return null;
+  for (let versuch = 0; versuch < 300; versuch++) {
     // Total: zufälliges Vielfaches des Schritts, nicht zu klein (mind. ~35 % des Zahlenraums)
     const unten = Math.max(n * st.minPreis, Math.ceil(maxRp * 0.35 / st.schritt) * st.schritt);
     const oben = Math.floor(maxRp / st.schritt) * st.schritt;
-    if (unten > oben) continue;
-    const total = unten + zufall(0, (oben - unten) / st.schritt) * st.schritt;
+    const u = Math.min(unten, oben);
+    const total = u + zufall(0, (oben - u) / st.schritt) * st.schritt;
     // Jedes Produkt bekommt den kleinsten Preis, der Rest wird in Schritten zufällig verteilt
     const rest = (total - n * st.minPreis) / st.schritt;
     const preise = zufallsAufteilung(rest, n).map(t => st.minPreis + t * st.schritt);
     // Rappen sollen auch wirklich vorkommen
-    if (stufe === 'zehn' && !preise.some(p => p % 100 !== 0)) continue;
-    if (stufe === 'fuenf' && !preise.some(p => p % 10 === 5)) continue;
+    if (versuch < 250 && stufe === 'zehn' && !preise.some(p => p % 100 !== 0)) continue;
+    if (versuch < 250 && stufe === 'fuenf' && !preise.some(p => p % 10 === 5)) continue;
     // nicht genau dasselbe Total wie bei der letzten Aufgabe
-    if (vorher && vorher.total === total && versuch < 150) continue;
-    const auswahl = mischen(PRODUKTE).slice(0, n);
-    return { produkte: auswahl.map((p, k) => ({ id: p.id, name: p.name, preis: preise[k] })), total };
+    if (versuch < 200 && total === vorherTotal) continue;
+    return { preise, total };
   }
-  // Notlösung (sehr kleiner Zahlenraum): ein Produkt zum kleinsten Preis
-  const p = waehle(PRODUKTE);
-  return { produkte: [{ id: p.id, name: p.name, preis: st.minPreis }], total: st.minPreis };
+  return null;
+}
+
+/**
+ * Einen Einkauf erzeugen: n Produkte (zufällig oder die gewählten ids) mit Preisen.
+ * Rückgabe: { produkte: [{ id, name, preis (Rp) }], total (Rp) }
+ */
+function erzeugeEinkauf(maxFranken, stufe, n, vorher, ids) {
+  const auswahl = ids ? ids.map(id => PRODUKTE.find(p => p.id === id)) : mischen(PRODUKTE).slice(0, n);
+  const pr = erzeugePreise(maxFranken, stufe, auswahl.length, vorher && vorher.total)
+          || erzeugePreise(maxFranken, stufe, 1) ;
+  if (pr.preise.length !== auswahl.length) auswahl.length = pr.preise.length;
+  return { produkte: auswahl.map((p, k) => ({ id: p.id, name: p.name, preis: pr.preise[k] })), total: pr.total };
+}
+
+/** Anzahl Produkte regelmässig abwechseln: jede mögliche Anzahl kommt gleich oft dran
+    (gemischt, wie ein Kartenstapel), nie zweimal dieselbe direkt nacheinander, wenn es anders geht */
+function neuerAnzahlStapel(bereich, letzte) {
+  const werte = [];
+  for (let n = bereich.min; n <= bereich.max; n++) werte.push(n);
+  let st = mischen(werte);
+  if (st.length > 1 && st[st.length - 1] === letzte) st.unshift(st.pop());
+  return st;
 }
