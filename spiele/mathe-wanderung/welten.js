@@ -259,7 +259,7 @@ WELTEN.aadorf = {
 
 /* ---------- Boot zur Insel (fährt nach hinten auf den Strand zu, wird kleiner) ---------- */
 WELTEN.boot = {
-  name: 'Bootsfahrt', art: 'fahren', fahrzeug: 'boot', feier: 'wasser',
+  name: 'Bootsfahrt', art: 'fahren', fahrzeug: 'boot',
   bild: 'bilder/welten/boot.jpg', himmelOben: '#1e88e5',
   wege: Array.from({ length: STUFEN + 1 }, (_, i) => { const t = i / STUFEN; return [r1(380 + 720 * t), r1(470 - 262 * Math.pow(t, 1.15)), 0, r1(1 - 0.47 * t)]; }),
   hinten() {
@@ -425,6 +425,8 @@ WELTEN.spielautomat = {
 const teil = (datei, x, y, b, h, klasse = '') => `<img class="teil-bild ${klasse}" src="${TEILE}${datei}" alt="" style="left:${r1(x)}px;top:${r1(y)}px;width:${r1(b)}px;height:${r1(h)}px">`;
 /** Fahrzeug mit Tier als ein Bild (bilder/fahrzeuge/<art>-<tier>.png), unten bündig */
 const FAHRZEUGE = 'bilder/fahrzeuge/';
+/* Lage der Schiffsschraube im Bootsbild (Bild-Pixel, 440 breit): x, y, Breite, Höhe */
+const BOOT_SCHRAUBE = {"baer":[0,259,26,57],"loewe":[0,263,26,61],"tiger":[0,253,26,61],"elefant":[0,249,26,55],"fuchs":[0,255,26,55],"wolf":[0,255,26,54],"adler":[0,252,26,51],"hai":[0,247,26,51],"erdmaennchen":[0,248,26,51]};
 const fahrt = (art, tier, b, x = 0, klasse = '') => `<img class="teil-bild fahrt ${klasse}" src="${FAHRZEUGE}${art}-${tier}.png" alt="" style="left:${r1(x)}px;bottom:0;width:${r1(b)}px;height:auto">`;
 function figur(tier, b, h, x = 0, y = 0) {
   return `<img class="tier-figur" src="${FIGUREN}${tier}-stehen.png" alt="" style="left:${x}px;top:${y}px;width:${b}px;height:${h}px">`;
@@ -436,8 +438,9 @@ function akteur(welt, tier) {
     return { b, h, haken: 118, html: fahrt('buggy', tier, b) };
   }
   if (art === 'boot') {         // Tier sitzt am Steuer (ein Bild pro Tier, ChatGPT, 440 breit)
-    const b = 300, h = 222;
-    return { b, h, haken: 150, html: fahrt('boot', tier, b) };
+    const b = 300, h = 222, k = b / 440, [sx, sy, sb, sh] = BOOT_SCHRAUBE[tier] || [0, 0, 0, 0];
+    // die Schiffsschraube am Aussenborder ist ein eigenes Bildstück und dreht sich
+    return { b, h, haken: 150, html: (sb ? `<img class="teil-bild propeller" src="${FAHRZEUGE}boot-${tier}-schraube.png" alt="" style="left:${r1(sx * k)}px;top:${r1(sy * k)}px;width:${r1(sb * k)}px;height:${r1(sh * k)}px">` : '') + fahrt('boot', tier, b) };
   }
   if (art === 'schlitten') {    // Tier sitzt mit Schal auf dem Schlitten (ein Bild pro Tier, ChatGPT, 420 breit)
     const b = 250, h = 266;
