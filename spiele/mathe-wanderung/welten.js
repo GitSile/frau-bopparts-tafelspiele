@@ -318,24 +318,18 @@ WELTEN.joggen = {
 };
 
 /* ---------- Kunstflug: zwei Möwen tragen je ein kariertes Zielfähnchen ---------- */
-/** kariertes Fähnchen an einem Stab, den die Möwe in den Krallen hält (x, y = Krallen) */
-function moewenFahne(x, y) {
-  let felder = '';
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) if ((r + c) % 2 === 0) felder += `<rect x="${3 + c * 11}" y="${8 + r * 10}" width="11" height="10" fill="${K}"/>`;
-  return `<g transform="translate(${x} ${y})">
-    <rect x="-2" y="-4" width="5" height="70" rx="2" fill="#8d6e63" stroke="${K}" stroke-width="2"/>
-    <g class="weht"><rect x="3" y="8" width="44" height="30" fill="#fff" stroke="${K}" stroke-width="2.5"/>${felder}</g></g>`;
-}
 WELTEN.flugzeug = {
   name: 'Kunstflug', art: 'fahren', fahrzeug: 'flugzeug', looping: true, feier: 'sterne',
   bild: 'bilder/welten/flugzeug.jpg', himmelOben: '#1e88e5',
   wege: Array.from({ length: STUFEN + 1 }, (_, i) => [360 + i * 88, i % 2 ? 270 : 295, 0, 1]),
   hinten() {
-    const moewe = (x, y, verz) => `<g class="moewe-gruppe" style="--v:${verz}s">${moewenFahne(x - 2, y + 30)}<g class="moewe" style="--v:${verz}s">
-        ${bildSvg(TEILE + 'moewe-oben.png', x - 46, y - 50, 92, 100, 'class="fluegel-oben"')}
-        ${bildSvg(TEILE + 'moewe-unten.png', x - 50, y - 33, 100, 84, 'class="fluegel-unten"')}</g></g>`;
+    // Möwe mit Zielfähnchen (ChatGPT): 4 Bilder eines Flügelschlags im Wechsel; Stab-Ende bei (x, y)
+    const moewe = (x, y, verz) => {
+      const b = 120, h = 123, ax = 54.7, ay = 121;
+      return `<g class="moewe4" style="--v:${verz}s">${[1, 2, 3, 4].map(i => bildSvg(TEILE + `moewe-${i}.png`, x - ax, y - ay, b, h, `class="m${i}"`)).join('')}</g>`;
+    };
     return zeichen(this.wege, ([x, y]) => `<g class="marke" fill="#fff" stroke="${K}" stroke-width="1.5" opacity=".8"><circle cx="${x}" cy="${y - 130}" r="6"/><circle cx="${x + 10}" cy="${y - 133}" r="4.5"/></g>`)
-      + moewe(1240, 110, 0) + moewe(1255, 360, 0.17);
+      + moewe(1240, 190, 0) + moewe(1262, 440, -0.21);
   }
 };
 
@@ -426,6 +420,10 @@ const teil = (datei, x, y, b, h, klasse = '') => `<img class="teil-bild ${klasse
 /** Fahrzeug mit Tier als ein Bild (bilder/fahrzeuge/<art>-<tier>.png), unten bündig */
 const FAHRZEUGE = 'bilder/fahrzeuge/';
 /* Lage der Schiffsschraube im Bootsbild (Bild-Pixel, 440 breit): x, y, Breite, Höhe */
+/* Propeller im Flugzeugbild (Bild-Pixel, 440 breit): x, y, Breite, Höhe, Höhe der Nabe im Stück */
+const FLUG_PROPELLER = {"baer":[397,46,43,206,102],"loewe":[397,46,43,207,102],"tiger":[397,46,43,206,102],"elefant":[395,34,45,212,109],"fuchs":[395,35,45,211,108],"wolf":[394,35,46,210,107],"adler":[392,36,48,206,108],"hai":[391,36,49,206,108],"erdmaennchen":[392,35,48,207,110]};
+/* Höhe der Fahrzeugbilder (Bild-Pixel), damit die Teile genau sitzen (die Bilder stehen unten bündig) */
+const FLUG_HOEHE = {"baer":311,"loewe":312,"tiger":311,"elefant":306,"fuchs":306,"wolf":305,"adler":305,"hai":305,"erdmaennchen":306}, BOOT_HOEHE = {"baer":322,"loewe":330,"tiger":320,"elefant":308,"fuchs":314,"wolf":313,"adler":305,"hai":300,"erdmaennchen":301};
 const BOOT_SCHRAUBE = {"baer":[0,259,26,57],"loewe":[0,263,26,61],"tiger":[0,253,26,61],"elefant":[0,249,26,55],"fuchs":[0,255,26,55],"wolf":[0,255,26,54],"adler":[0,252,26,51],"hai":[0,247,26,51],"erdmaennchen":[0,248,26,51]};
 const fahrt = (art, tier, b, x = 0, klasse = '') => `<img class="teil-bild fahrt ${klasse}" src="${FAHRZEUGE}${art}-${tier}.png" alt="" style="left:${r1(x)}px;bottom:0;width:${r1(b)}px;height:auto">`;
 function figur(tier, b, h, x = 0, y = 0) {
@@ -440,15 +438,17 @@ function akteur(welt, tier) {
   if (art === 'boot') {         // Tier sitzt am Steuer (ein Bild pro Tier, ChatGPT, 440 breit)
     const b = 300, h = 222, k = b / 440, [sx, sy, sb, sh] = BOOT_SCHRAUBE[tier] || [0, 0, 0, 0];
     // die Schiffsschraube am Aussenborder ist ein eigenes Bildstück und dreht sich
-    return { b, h, haken: 150, html: (sb ? `<img class="teil-bild propeller" src="${FAHRZEUGE}boot-${tier}-schraube.png" alt="" style="left:${r1(sx * k)}px;top:${r1(sy * k)}px;width:${r1(sb * k)}px;height:${r1(sh * k)}px">` : '') + fahrt('boot', tier, b) };
+    return { b, h, haken: 150, html: (sb ? `<img class="teil-bild propeller" src="${FAHRZEUGE}boot-${tier}-schraube.png" alt="" style="left:${r1(sx * k)}px;top:${r1(h - (BOOT_HOEHE[tier] || 322) * k + sy * k)}px;width:${r1(sb * k)}px;height:${r1(sh * k)}px">` : '') + fahrt('boot', tier, b) };
   }
   if (art === 'schlitten') {    // Tier sitzt mit Schal auf dem Schlitten (ein Bild pro Tier, ChatGPT, 420 breit)
     const b = 250, h = 266;
     return { b, h, haken: 170, html: fahrt('schlitten', tier, b) };
   }
   if (art === 'flugzeug') {     // Pilot mit Fliegerbrille und Schal im Cockpit (ein Bild pro Tier, ChatGPT, 440 breit)
-    const b = 260, h = 183;
-    return { b, h, haken: 120, html: fahrt('flug', tier, b) };
+    const b = 260, k = b / 440, h = 183, [px, py, pb, ph, nabe] = FLUG_PROPELLER[tier] || [0, 0, 0, 0, 0];
+    const H = Math.round((FLUG_HOEHE[tier] || 311) * k);
+    // Propeller ist ein eigenes Bildstück hinter der Nase und dreht sich (Achse waagrecht → wird abwechselnd schmal)
+    return { b, h, haken: 120, html: (pb ? `<img class="teil-bild propeller" src="${FAHRZEUGE}flug-${tier}-propeller.png" alt="" style="left:${r1(px * k)}px;top:${r1(h - H + py * k)}px;width:${r1(pb * k)}px;height:${r1(ph * k)}px;transform-origin:50% ${r1(nabe * k)}px">` : '') + fahrt('flug', tier, b) };
   }
   if (art === 'uboot') {        // U-Boot 440×319 → 300 breit; Kopf im grossen Bullauge
     const b = 300, h = 218, cx = 242, cy = 157, r = 40;
