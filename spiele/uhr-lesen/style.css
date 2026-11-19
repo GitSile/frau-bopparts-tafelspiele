@@ -117,6 +117,8 @@ body { background: #eef3fb; }
 #rakete.weg { opacity: 0; transition: none; }
 #schnur-bild, #schnur { transition: opacity .6s; }
 #schnur-bild.weg, #schnur.weg { opacity: 0; transition: opacity .25s; }
+/* 1 Kind: nur die Zündschnur zum Tier hin (linke Bildhälfte) */
+#buehne.allein #schnur-bild { clip-path: inset(0 50% 0 0); }
 .funke {
   position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; z-index: 4; border-radius: 50%;
   background: radial-gradient(circle, #fff 0 18%, #ffeb3b 30%, #ff9800 55%, rgba(255,87,34,0) 72%);

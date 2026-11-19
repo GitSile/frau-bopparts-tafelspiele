@@ -33,9 +33,12 @@ function zeigerStellung(minutenGesamt) {
   const t = ((minutenGesamt % 720) + 720) % 720;
   return { s: t / 15, m: (t % 60) / 15 };
 }
-function stellungRichtig(z, minutenGesamt) {
+/* hilfe: der Stundenzeiger darf eine Viertelstunde daneben stehen, solange er in derselben Stunde bleibt */
+function stellungRichtig(z, minutenGesamt, hilfe = false) {
   const soll = zeigerStellung(minutenGesamt);
-  return z.s === soll.s && z.m === soll.m;
+  if (z.m !== soll.m) return false;
+  if (z.s === soll.s) return true;
+  return hilfe && Math.abs(z.s - soll.s) === 1 && Math.floor(z.s / 4) === Math.floor(soll.s / 4);
 }
 function stelleZeiger(svg, z) {
   svg.querySelector('.zeiger-stunde').setAttribute('transform', `rotate(${(z.s * 7.5).toFixed(2)})`);
