@@ -197,12 +197,13 @@ function entzerren(stapel, vorher) {
     vorherige Aufgabe, wird stattdessen die nächstbeste Aufgabe mit einem anderen Ergebnis
     genommen. So kommt nie zweimal hintereinander dasselbe Ergebnis (z. B. zweimal 10).
     Liegen nur noch Aufgaben mit demselben Ergebnis auf dem Stapel, wird mit dem
-    neu gemischten Pool aufgefüllt (pool). Mengen-Bilder bleiben, wo sie sind:
-    ihre Reihenfolge ist schon geprüft (entzerren). */
+    neu gemischten Pool aufgefüllt (pool). Das gilt auch für Mengen-Bilder; ein Mengen-Bild
+    kommt dabei nie direkt nach demselben oder einem ähnlichen Bild (wie beim Entzerren). */
 function naechsteAusStapel(stapel, vorher, pool) {
-  const passt = a => !mengenThema(a) && rechne(a) !== rechne(vorher);
+  const bildPasst = a => { const t = mengenThema(a), v = mengenThema(vorher); return !t || !v || (t !== v && !zuAehnlich(t, v)); };
+  const passt = a => rechne(a) !== rechne(vorher) && bildPasst(a);
   const letzte = stapel.length - 1;
-  if (vorher && letzte >= 0 && !mengenThema(stapel[letzte]) && rechne(stapel[letzte]) === rechne(vorher)) {
+  if (vorher && letzte >= 0 && rechne(stapel[letzte]) === rechne(vorher)) {
     let j = letzte - 1;
     while (j >= 0 && !passt(stapel[j])) j--;
     if (j < 0 && pool && pool.length) {

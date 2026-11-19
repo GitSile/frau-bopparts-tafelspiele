@@ -823,9 +823,14 @@ function zeigeVerlauf(von) {
 function zeigeSeite(id) {
   ['einstellungen', 'spiel', 'verlauf'].forEach(s => $(s).classList.toggle('versteckt', s !== id));
 }
+/* Die Bühne ist 1600 breit; auf höheren Bildschirmen (z. B. 4:3-Tafeln) wird sie bis 1400 hoch:
+   oben wächst der Himmel, alles andere rutscht nach unten (CSS-Variable --h, --dy = --h − 900). */
 function skaliere() {
-  const s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
-  $('buehne').style.transform = `translate(-50%, -50%) scale(${s})`;
+  const w = window.innerWidth, h = window.innerHeight;
+  const H = Math.round(Math.min(1400, Math.max(900, 1600 * h / w)));
+  const b = $('buehne');
+  b.style.setProperty('--h', H + 'px');
+  b.style.transform = `translate(-50%, -50%) scale(${Math.min(w / 1600, h / H)})`;
 }
 window.addEventListener('resize', skaliere);
 

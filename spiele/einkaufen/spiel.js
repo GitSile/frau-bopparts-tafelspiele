@@ -260,7 +260,7 @@ function pruefeEinstellungen() {
   if (ganzzahlIn(E[saeckeSchluessel()], 1, 5) === null) return 'Säckchen bis zum Ziel: bitte eine Zahl von 1 bis 5.';
   if (E.spieler === 2 && ganzzahlIn(E.wechselSek, 0, 30) === null) return 'Wechselzeit: bitte 0 bis 30 Sekunden.';
   if (E.selbst && anzahlBereich(Number(E.zahlenraum), E.stufe, E.produkte).max < 2)
-    return 'Wenn die Kinder selbst wählen, braucht es höchstens mindestens 2 Produkte auf der Kasse.';
+    return 'Wenn die Kinder selbst wählen, müssen mindestens 2 Produkte aufs Band passen. Bitte den Zahlenraum oder die Anzahl Produkte erhöhen.';
   return null;
 }
 

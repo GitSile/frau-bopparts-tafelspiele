@@ -133,16 +133,20 @@ body { background: #e8f4fb; }
 #spiel { position: fixed; inset: 0; background: #0f2a3f; overflow: hidden; }
 #buehne {
   position: absolute; left: 50%; top: 50%;
-  width: 1600px; height: 900px; overflow: hidden;
+  width: 1600px; height: var(--h, 900px); overflow: hidden;
   background: #fdfaf3;
+  --dy: calc(var(--h, 900px) - 900px);   /* zusätzliche Höhe auf höheren Bildschirmen */
 }
 
 /* ---------- Feld (oben, volle Breite) ---------- */
 #feld {
-  position: absolute; left: 0; top: 0; width: 1600px; height: 520px; overflow: hidden;
+  position: absolute; left: 0; top: 0; width: 1600px; height: calc(520px + var(--dy)); overflow: hidden;
   background: linear-gradient(#5ec2ff, #bfe8ff 80%);
 }
-#feld.mit-bild { background: var(--feld-bild) 50% 60% / 100% auto no-repeat; }
+/* Bild 1600 × 1067: steht wie früher (−328 px), auf höheren Bildschirmen weiter unten; darüber Himmelblau */
+#feld.mit-bild { background: var(--feld-bild) 50% calc(-328px + var(--dy)) / 100% auto no-repeat, #27a8fc; }
+/* Spielfeld-Inhalt rutscht mit dem Bild nach unten; Anzeigetafel und Knöpfe bleiben oben */
+#feld > :not(#oben):not(#werkzeuge):not(.figur) { translate: 0 var(--dy); }   /* .figur steht schon unten bündig */
 #feld.mit-bild #rasen, #feld.mit-bild .tor { display: none; }
 
 #rasen {
@@ -249,7 +253,7 @@ body { background: #e8f4fb; }
 
 /* ---------- Unten: Tastaturen und Aufgabe ---------- */
 .panel {
-  position: absolute; top: 530px; width: 400px; height: 362px;
+  position: absolute; top: calc(530px + var(--dy)); width: 400px; height: 362px;
   background: var(--farbe-hell); padding: 12px 18px;
   display: flex; flex-direction: column; align-items: center;
   --filz-farbe: var(--farbe); --filz-dicke: 6px;
@@ -284,7 +288,7 @@ body { background: #e8f4fb; }
 .panel.gesperrt .sperre { visibility: visible; }
 .sperre div { height: 100%; width: 100%; background: var(--rot); border-radius: 99px; }
 
-#mitte { position: absolute; left: 420px; top: 530px; width: 760px; height: 362px; }
+#mitte { position: absolute; left: 420px; top: calc(530px + var(--dy)); width: 760px; height: 362px; }
 #aufgabe-box, #wechsel-box {
   position: absolute; inset: 0; background: #fff; border-radius: var(--wackel);
   display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 30px;

@@ -102,13 +102,17 @@ body { background: #eef3fb; }
    Spiel – Bühne 1600 × 900, wird auf das Fenster skaliert
    ========================================================= */
 #spiel { position: fixed; inset: 0; background: #0b1530; overflow: hidden; }
-#buehne { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; overflow: hidden; background: #fdfaf3; }
+#buehne { position: absolute; left: 50%; top: 50%; width: 1600px; height: var(--h, 900px); overflow: hidden; background: #fdfaf3;
+  --dy: calc(var(--h, 900px) - 900px); }   /* zusätzliche Höhe auf höheren Bildschirmen: oben mehr Himmel */
 
 /* ---------- Szene oben ---------- */
 #szene {
-  position: absolute; left: 0; top: 0; width: 1600px; height: 450px; overflow: hidden;
-  background: #2a2f6b url("bilder/hintergrund.jpg") 50% 75% / cover no-repeat;
+  position: absolute; left: 0; top: 0; width: 1600px; height: calc(450px + var(--dy)); overflow: hidden;
+  /* Bild 1600 × 1067: steht wie früher (−463 px), auf höheren Bildschirmen weiter unten; darüber Nachthimmel */
+  background: url("bilder/hintergrund.jpg") 50% calc(-463px + var(--dy)) / 1600px auto no-repeat, #0a2286;
 }
+/* Wiese, Rakete und Tiere rutschen mit dem Bild nach unten; Anzeigetafel und Knöpfe bleiben oben */
+#szene > :not(#oben):not(#werkzeuge) { translate: 0 var(--dy); }
 #schnur { position: absolute; left: 0; top: 0; width: 1600px; height: 450px; z-index: 2; pointer-events: none; }
 .brand { fill: none; stroke: #2a2220; stroke-width: 7.5; stroke-linecap: round; stroke-linejoin: round; opacity: .92; }
 #rakete, #schnur-bild { position: absolute; z-index: 3; pointer-events: none; }
@@ -187,7 +191,7 @@ body { background: #eef3fb; }
 
 /* ---------- Unten ---------- */
 .panel {
-  position: absolute; top: 458px; width: 430px; height: 434px;
+  position: absolute; top: calc(458px + var(--dy)); width: 430px; height: 434px;
   background: var(--farbe-hell); padding: 10px 16px 14px;
   display: flex; flex-direction: column;
   --filz-farbe: var(--farbe); --filz-dicke: 6px;
@@ -246,7 +250,7 @@ body { background: #eef3fb; }
 }
 
 /* Aufgabe in der Mitte */
-#mitte { position: absolute; left: 450px; top: 458px; width: 700px; height: 434px; }
+#mitte { position: absolute; left: 450px; top: calc(458px + var(--dy)); width: 700px; height: 434px; }
 #buehne.allein #mitte { width: 1142px; }
 #aufgabe-box, #wechsel-box {
   position: absolute; inset: 0; background: #fff; border-radius: var(--wackel);
@@ -294,9 +298,9 @@ body { background: #eef3fb; }
 @keyframes gleiten { from { transform: translateY(-1.8px) rotate(-4deg); } to { transform: translateY(1.8px) rotate(4deg); } }
 
 /* ---------- Flug und Feuerwerk ---------- */
-#feuerwerk { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; z-index: 20; pointer-events: none; }
-#flug-rakete { position: absolute; left: 0; top: 0; z-index: 21; pointer-events: none; transform-origin: center; }
-#jubel { position: absolute; left: 0; right: 0; top: 520px; z-index: 22; text-align: center; pointer-events: none; }
+#feuerwerk { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; z-index: 20; pointer-events: none; translate: 0 var(--dy); }
+#flug-rakete { position: absolute; left: 0; top: 0; translate: 0 var(--dy); z-index: 21; pointer-events: none; transform-origin: center; }
+#jubel { position: absolute; left: 0; right: 0; top: calc(520px + var(--dy)); z-index: 22; text-align: center; pointer-events: none; }
 #jubel-text {
   display: inline-block; font-size: 84px; font-weight: 900; color: var(--farbe); background: rgba(255,255,255,.92);
   padding: 4px 40px; border-radius: var(--wackel); box-shadow: 0 8px 30px rgba(0,0,0,.35);
