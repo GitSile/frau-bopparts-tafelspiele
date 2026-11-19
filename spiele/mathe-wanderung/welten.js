@@ -253,7 +253,7 @@ WELTEN.aadorf = {
       + `<rect x="1101" y="113" width="184" height="42" rx="9" fill="#1d3f9e"/>
          <rect x="1106" y="118" width="174" height="32" rx="6" fill="none" stroke="#fff" stroke-width="2.5"/>
          <text x="1193" y="145" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="28" fill="#fff">Aadorf</text>`;
-      // der Schriftzug «Zuzi-Bahn» ist direkt auf den Zug gemalt (im Bild, ChatGPT)
+      // der Schriftzug «Zuzi-Bahn» ist perspektivisch auf das rote Band des Zugs gesetzt (im Bild)
   }
 };
 
