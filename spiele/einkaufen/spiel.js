@@ -42,7 +42,7 @@ const STANDARD = {
   selbst: false,        // die Kinder legen die Produkte selbst aufs Band
   saeckeEinzel: '3',    // Säckchen bis zum Ziel bei 1 Kind
   saeckeDuell: '1',     // … und bei 2 Kindern
-  wechselSek: '3',
+  wechselSek: '0',     // Countdown zwischen den Aufgaben (nur bei 2 Kindern)
   ton: true,
   teams: [
     { name: 'Löwen',       tier: 'loewe',        farbe: 'rot' },
@@ -50,6 +50,7 @@ const STANDARD = {
   ]
 };
 const SPEICHER_EINST = 'einkaufen.einstellungen.v2';
+const EINST_STAND = 2;   // erhöhen, wenn gespeicherte Werte einmalig auf einen neuen Standard sollen
 const MAX_PRODUKTE = 5;
 const PRO_SACK = 10;          // Münzen pro Säckchen
 const SPERRE_MS = 1500;       // Sperre nach falscher Antwort
@@ -170,6 +171,9 @@ if (!(E.produkte >= 1 && E.produkte <= MAX_PRODUKTE)) E.produkte = STANDARD.prod
 if (ganzzahlIn(E.saeckeEinzel, 1, 5) === null) E.saeckeEinzel = STANDARD.saeckeEinzel;
 if (ganzzahlIn(E.saeckeDuell, 1, 5) === null) E.saeckeDuell = STANDARD.saeckeDuell;
 if (ganzzahlIn(E.wechselSek, 0, 30) === null) E.wechselSek = STANDARD.wechselSek;
+// Einmalig: neuer Standard «Wechselzeit 0» auch auf Geräten mit alten Einstellungen
+if (!(E.stand >= 2)) E.wechselSek = '0';
+E.stand = EINST_STAND;
 if (E.spieler !== 1 && E.spieler !== 2) E.spieler = 2;
 E.selbst = !!E.selbst;
 const merke = () => speichern(SPEICHER_EINST, E);
