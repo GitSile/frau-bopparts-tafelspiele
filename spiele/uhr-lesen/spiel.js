@@ -44,6 +44,7 @@ const STANDARD = {
   ton: true,
   zurueck: false,          // 1 Kind: bei falscher Antwort einen Schritt zurück
   autoDoppelpunkt: true,   // fehlender Doppelpunkt wird beim OK eingesetzt
+  hilfe: true,             // Uhr stellen: Stundenzeiger darf eine Viertelstunde daneben sein
   teams: [
     { name: 'Löwen',       tier: 'loewe',        farbe: 'rot' },
     { name: 'Erdmännchen', tier: 'erdmaennchen', farbe: 'blau' }
@@ -269,6 +270,7 @@ function zeigeEinstellungen() {
   zeichneWahlKnoepfe();
   $('e-nachmittag').checked = E.nachmittag;
   $('e-doppelpunkt').checked = E.autoDoppelpunkt;
+  $('e-hilfe').checked = E.hilfe;
   $('e-schritte').value = E.schritte;
   $('e-minuten').value = E.minuten;
   $('e-wechsel').value = E.wechselSek;
@@ -284,6 +286,7 @@ function zeigeEinstellungen() {
 function leseFormular() {
   E.nachmittag = $('e-nachmittag').checked;
   E.autoDoppelpunkt = $('e-doppelpunkt').checked;
+  E.hilfe = $('e-hilfe').checked;
   E.schritte = $('e-schritte').value.trim();
   E.minuten = $('e-minuten').value.trim();
   E.wechselSek = $('e-wechsel').value.trim();
@@ -402,6 +405,7 @@ function starteSpiel() {
     zeitUm: false,
     zurueck: E.spieler === 1 && E.zurueck,
     autoDoppelpunkt: E.autoDoppelpunkt,
+    hilfe: E.hilfe,
     pausiert: false, beendet: false
   };
   baueSpielfeld();
@@ -563,7 +567,7 @@ function pruefe(i) {
     if (ergebnis === 'richtig') richtig(i); else falsch(i);
   } else {
     if (S.ziehen && S.ziehen.i === i) return;
-    if (stellungRichtig(S.uhr[i], minutenVon(a.h, a.m))) richtig(i); else falsch(i);
+    if (stellungRichtig(S.uhr[i], minutenVon(a.h, a.m), S.hilfe)) richtig(i); else falsch(i);
   }
 }
 
@@ -578,6 +582,9 @@ function richtig(i) {
     l.classList.remove('versteckt');
   } else {
     p.classList.add('geloest');
+    // mit Hilfe: Stundenzeiger rutscht zur Kontrolle auf die genaue Stellung
+    S.uhr[i] = zeigerStellung(minutenVon(a.h, a.m));
+    stelleZeiger(p.querySelector('.uhr-teil svg'), S.uhr[i]);
   }
   S.eingabe = ['', ''];
   zeichneEingaben();
@@ -1040,7 +1047,7 @@ document.querySelectorAll('[data-art]').forEach(b => b.addEventListener('click',
 document.querySelectorAll('[data-zeit]').forEach(b => b.addEventListener('click', () => { E.zeiten[b.dataset.zeit] = !E.zeiten[b.dataset.zeit]; merke(); zeichneWahlKnoepfe(); }));
 document.querySelectorAll('[data-blatt]').forEach(b => b.addEventListener('click', () => { E.blatt = b.dataset.blatt; merke(); zeichneWahlKnoepfe(); }));
 ['e-schritte', 'e-minuten', 'e-wechsel'].forEach(id => $(id).addEventListener('input', ev => { ev.target.value = ev.target.value.replace(/\D/g, ''); leseFormular(); }));
-['e-nachmittag', 'e-doppelpunkt', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
+['e-nachmittag', 'e-doppelpunkt', 'e-hilfe', 'e-ton'].forEach(id => $(id).addEventListener('change', leseFormular));
 ['e-zurueck'].forEach(id => $(id).addEventListener('change', leseFormular));
 $('btn-start').addEventListener('click', starteSpiel);
 $('btn-weiss-nicht').addEventListener('click', weissNicht);
