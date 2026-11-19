@@ -42,7 +42,10 @@ const TON_DATEIEN = {
   jubel:   { von: 1.0, dauer: 3.0, laut: 0.45, ausblenden: 1.0 },
   richtig: { von: 0.3, dauer: 1.8, laut: 0.9 },
   falsch:  { von: 0.0, dauer: 0.9, laut: 0.5 },
-  tick:    { von: 0.0, dauer: 0.95, laut: 1.0, datei: 'tick.wav' }
+  tick:    { von: 0.0, dauer: 0.95, laut: 1.0, datei: 'tick.wav' },
+  // Hydraulik-Hebezeug (Pixabay, Quelle im README). Aufbau der Datei: 0–0.9 s Stimme (wird nie gespielt),
+  // 1.1–9.3 s erster Hub mit Anschlag, 9.4–10.1 s Pause, 10.2–18.3 s zweiter Hub mit Anschlag
+  kran:    { pfad: 'toene/kran-hydraulik.mp3', laut: 0.9 }
 };
 const tonPuffer = {};
 function audio() {
@@ -52,7 +55,7 @@ function audio() {
     tonAusgang.threshold.value = -14; tonAusgang.ratio.value = 4;
     tonAusgang.connect(audioCtx.destination);
     Object.keys(TON_DATEIEN).forEach(name => {
-      fetch(`../mathe-fussball/toene/${TON_DATEIEN[name].datei || name + '.mp3'}`).then(r => r.arrayBuffer())
+      fetch(TON_DATEIEN[name].pfad || `../mathe-fussball/toene/${TON_DATEIEN[name].datei || name + '.mp3'}`).then(r => r.arrayBuffer())
         .then(b => new Promise((ok, fehler) => audioCtx.decodeAudioData(b, ok, fehler)))
         .then(p => { tonPuffer[name] = p; }).catch(() => {});
     });
@@ -69,6 +72,16 @@ function spieleDatei(name) {
   src.buffer = p; g.gain.setValueAtTime(t.laut, t0);
   if (t.ausblenden) { g.gain.setValueAtTime(t.laut, t0 + t.dauer - t.ausblenden); g.gain.linearRampToValueAtTime(0.0001, t0 + t.dauer); }
   src.connect(g).connect(tonAusgang); src.start(t0, t.von, t.dauer);
+  return true;
+}
+/** spielt ein Stück aus einer Tondatei: ab Sekunde 'von' für 'dauer' Sekunden, 'wann' Sekunden ab jetzt, weich ein- und ausgeblendet */
+function spieleStueck(name, wann, von, dauer, laut = 1) {
+  const ac = audio(), p = tonPuffer[name]; if (!ac || !p) return false;
+  const t0 = ac.currentTime + wann, src = ac.createBufferSource(), g = ac.createGain(), l = laut * (TON_DATEIEN[name].laut || 1);
+  src.buffer = p;
+  g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(l, t0 + 0.04);
+  g.gain.setValueAtTime(l, t0 + dauer - 0.12); g.gain.linearRampToValueAtTime(0.0001, t0 + dauer);
+  src.connect(g).connect(tonAusgang); src.start(t0, von, dauer);
   return true;
 }
 function piep(freq, dauer, { typ = 'sine', start = 0, laut = 0.2, bis = null } = {}) {
@@ -89,9 +102,17 @@ const TON = {
     piep(1047, 0.7, { typ: 'triangle', start: 0.5, laut: 0.22 });
     spieleDatei('jubel');
   },
-  /** Kran: Motorbrummen mit Rattern der Kette */
+  /** Kran: echtes Hydraulik-Geräusch, nur während sich der Haken bewegt (Zeiten wie im Kran-Zeitplan KZ) */
   kran(sek) {
     if (!tonAn()) return;
+    if (tonPuffer.kran) {
+      const s = ms => ms / 1000;
+      spieleStueck('kran', s(KZ.runter[0]), 1.1, s(KZ.hoch[1] - KZ.runter[0]));          // Haken runter und Tier hoch: erster Hub
+      spieleStueck('kran', s(KZ.hoch[1] - 120), 9.05, 0.38, 0.8);                        // Anschlag oben
+      spieleStueck('kran', s(KZ.ab[0]), 10.2, s(KZ.hochLeer[1] - KZ.ab[0]));             // absenken und leerer Haken hoch: zweiter Hub
+      spieleStueck('kran', s(KZ.hochLeer[1] - 120), 18.0, 0.42, 0.8);                    // Anschlag am Schluss
+      return;
+    }
     const ac = audio(); if (!ac) return;
     const t0 = ac.currentTime, o = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain(), f = ac.createBiquadFilter(), g = ac.createGain();
     o.type = 'sawtooth'; o.frequency.value = 70; lfo.frequency.value = 9; lg.gain.value = 12;
@@ -556,8 +577,9 @@ function zeichneKran(t) {
     p.r = (A.r || 0) + Math.sin(t / 200) * 4 * glatt(KZ.hoch[0], KZ.hoch[0] + 300, t) * (1 - glatt(KZ.ab[1] - 250, KZ.ab[1], t));
     setzeAkteur(p);
   } else if (t >= KZ.los && !K2.abgesetzt) { K2.abgesetzt = true; setzeAkteur(posVon(0)); setzePose('stehen'); }
-  if (t >= KZ.greifen && !K2.klack[0]) { K2.klack[0] = true; TON.klack(); }
-  if (t >= KZ.los && !K2.klack[1]) { K2.klack[1] = true; TON.klack(); }
+  // ohne Hydraulik-Datei: kurzes Klacken beim Greifen und Loslassen
+  if (t >= KZ.greifen && !K2.klack[0]) { K2.klack[0] = true; if (!tonPuffer.kran) TON.klack(); }
+  if (t >= KZ.los && !K2.klack[1]) { K2.klack[1] = true; if (!tonPuffer.kran) TON.klack(); }
   $('kran-ausleger').setAttribute('transform', `translate(${r1(katzeX - 300 + auslegerX)} ${-DY})`);
   $('kran-katze').setAttribute('transform', `translate(${r1(katzeX + auslegerX)} ${-DY})`);
   $('kran-kette-band').setAttribute('height', Math.max(0, r1(hakenY + DY - 50)));
