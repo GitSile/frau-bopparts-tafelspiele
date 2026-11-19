@@ -1,6 +1,6 @@
 'use strict';
 /* =========================================================
-   Mathe-Wanderung – Spiellogik
+   Mathe-Erlebnisse – Spiellogik
    Aufgaben (Erzeugen, Prüfen): ../../gemeinsam/mathe-aufgaben.js
    Welten und Reihenfolge der Welten: welten.js
    ========================================================= */
@@ -32,7 +32,7 @@ const SPERRE_MS = 1500;      // Sperre nach falscher Antwort
 const SCHRITT_MS = 1150;     // Tier geht eine Stufe weiter
 const JUBEL_MS = 2300;       // Level geschafft
 const LOESUNG_MS = 2000;     // Lösung zeigen (Zeitlimit)
-const KRAN_MS = 4700;        // Kran-Animation beim Levelwechsel
+const KRAN_MS = 2750;        // Kran-Animation beim Levelwechsel (kurz: der leere Haken ist nur kurz zu sehen)
 
 /* =========================================================
    Töne: echte Töne aus Mathe-Fussball, sonst im Code erzeugt
@@ -42,7 +42,10 @@ const TON_DATEIEN = {
   jubel:   { von: 1.0, dauer: 3.0, laut: 0.45, ausblenden: 1.0 },
   richtig: { von: 0.3, dauer: 1.8, laut: 0.9 },
   falsch:  { von: 0.0, dauer: 0.9, laut: 0.5 },
-  tick:    { von: 0.0, dauer: 0.95, laut: 1.0, datei: 'tick.wav' }
+  tick:    { von: 0.0, dauer: 0.95, laut: 1.0, datei: 'tick.wav' },
+  // Hydraulik-Hebezeug (Pixabay, Quelle im README). Aufbau der Datei: 0–0.9 s Stimme (wird nie gespielt),
+  // 1.1–9.3 s erster Hub mit Anschlag, 9.4–10.1 s Pause, 10.2–18.3 s zweiter Hub mit Anschlag
+  kran:    { pfad: 'toene/kran-hydraulik.mp3', laut: 0.9 }
 };
 const tonPuffer = {};
 function audio() {
@@ -52,7 +55,7 @@ function audio() {
     tonAusgang.threshold.value = -14; tonAusgang.ratio.value = 4;
     tonAusgang.connect(audioCtx.destination);
     Object.keys(TON_DATEIEN).forEach(name => {
-      fetch(`../mathe-fussball/toene/${TON_DATEIEN[name].datei || name + '.mp3'}`).then(r => r.arrayBuffer())
+      fetch(TON_DATEIEN[name].pfad || `../mathe-fussball/toene/${TON_DATEIEN[name].datei || name + '.mp3'}`).then(r => r.arrayBuffer())
         .then(b => new Promise((ok, fehler) => audioCtx.decodeAudioData(b, ok, fehler)))
         .then(p => { tonPuffer[name] = p; }).catch(() => {});
     });
@@ -69,6 +72,16 @@ function spieleDatei(name) {
   src.buffer = p; g.gain.setValueAtTime(t.laut, t0);
   if (t.ausblenden) { g.gain.setValueAtTime(t.laut, t0 + t.dauer - t.ausblenden); g.gain.linearRampToValueAtTime(0.0001, t0 + t.dauer); }
   src.connect(g).connect(tonAusgang); src.start(t0, t.von, t.dauer);
+  return true;
+}
+/** spielt ein Stück aus einer Tondatei: ab Sekunde 'von' für 'dauer' Sekunden, 'wann' Sekunden ab jetzt, weich ein- und ausgeblendet */
+function spieleStueck(name, wann, von, dauer, laut = 1) {
+  const ac = audio(), p = tonPuffer[name]; if (!ac || !p) return false;
+  const t0 = ac.currentTime + wann, src = ac.createBufferSource(), g = ac.createGain(), l = laut * (TON_DATEIEN[name].laut || 1);
+  src.buffer = p;
+  g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(l, t0 + 0.04);
+  g.gain.setValueAtTime(l, t0 + dauer - 0.12); g.gain.linearRampToValueAtTime(0.0001, t0 + dauer);
+  src.connect(g).connect(tonAusgang); src.start(t0, von, dauer);
   return true;
 }
 function piep(freq, dauer, { typ = 'sine', start = 0, laut = 0.2, bis = null } = {}) {
@@ -89,9 +102,17 @@ const TON = {
     piep(1047, 0.7, { typ: 'triangle', start: 0.5, laut: 0.22 });
     spieleDatei('jubel');
   },
-  /** Kran: Motorbrummen mit Rattern der Kette */
+  /** Kran: echtes Hydraulik-Geräusch, nur während sich der Haken bewegt (Zeiten wie im Kran-Zeitplan KZ) */
   kran(sek) {
     if (!tonAn()) return;
+    if (tonPuffer.kran) {
+      const s = ms => ms / 1000;
+      spieleStueck('kran', s(KZ.runter[0]), 1.1, s(KZ.hoch[1] - KZ.runter[0]));          // Haken runter und Tier hoch: erster Hub
+      spieleStueck('kran', s(KZ.hoch[1] - 120), 9.05, 0.38, 0.8);                        // Anschlag oben
+      spieleStueck('kran', s(KZ.ab[0]), 10.2, s(KZ.hochLeer[1] - KZ.ab[0]));             // absenken und leerer Haken hoch: zweiter Hub
+      spieleStueck('kran', s(KZ.hochLeer[1] - 120), 18.0, 0.42, 0.8);                    // Anschlag am Schluss
+      return;
+    }
     const ac = audio(); if (!ac) return;
     const t0 = ac.currentTime, o = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain(), f = ac.createBiquadFilter(), g = ac.createGain();
     o.type = 'sawtooth'; o.frequency.value = 70; lfo.frequency.value = 9; lg.gain.value = 12;
@@ -119,7 +140,7 @@ const merke = () => speichern(SPEICHER_EINST, E);
 function baueTierKarte() {
   const karte = $('karte-tier');
   karte.innerHTML = `
-    <div class="team-kopf"><h2>Wer wandert?</h2><button class="wuerfel filz" title="Zufälliges Tier" data-wuerfel>🎲</button></div>
+    <div class="team-kopf"><h2>Wer ist dabei?</h2><button class="wuerfel filz" title="Zufälliges Tier" data-wuerfel>🎲</button></div>
     <div class="tier-wahl">${TIERE.map(t => `<button data-tier="${t.id}" class="filz ${t.id === E.tier ? 'aktiv' : ''}" title="${t.name}">
       <img src="${FIGUREN}${t.id}-stehen.png" alt="${t.name}"></button>`).join('')}</div>`;
   karte.querySelector('[data-wuerfel]').addEventListener('click', () => { E.tier = waehle(TIERE.filter(t => t.id !== E.tier)).id; merke(); baueTierKarte(); });
@@ -258,7 +279,7 @@ function baueEbenen(id, sichtbar) {
     if (ebene === 'hinten') {
       if (welt.bild) {
         // gemaltes Bild (ChatGPT): unten bündig, 1600 breit; bei höheren Bildschirmen sieht man oben mehr Himmel
-        div.style.background = `url("${welt.bild}") center bottom / 1600px auto no-repeat, ${welt.himmelOben || '#9fd3f5'}`;
+        div.style.background = `url("${welt.bild}") center bottom -${welt.bildVersatz || 0}px / 1600px auto no-repeat, ${welt.himmelOben || '#9fd3f5'}`;
       } else { const stop = div.querySelector('stop'); if (stop) div.style.background = stop.getAttribute('stop-color'); }
     }
     $(ebene).appendChild(div);
@@ -287,10 +308,12 @@ function ladeWelt(id, sofort, ebenen) {
 }
 /** alte Ebenen ausblenden und entfernen */
 function blendeWeltUm(neu) {
+  // Behalten: die neue Welt, die aktuelle Welt und eine schon vorbereitete nächste Welt
+  const bleibt = (div, ebene) => div === neu[ebene] || (S && S.ebenen && div === S.ebenen[ebene]) || (S && S.naechste && div === S.naechste.ebenen[ebene]);
   ['hinten', 'vorne'].forEach(ebene => {
     [...$(ebene).children].forEach(div => {
       if (div === neu[ebene]) div.classList.remove('unsichtbar');
-      else { div.classList.add('unsichtbar'); setTimeout(() => div.remove(), 800); }
+      else if (!bleibt(div, ebene)) { div.classList.add('unsichtbar'); setTimeout(() => { if (!bleibt(div, ebene)) div.remove(); }, 800); }
     });
   });
 }
@@ -318,6 +341,10 @@ function bewegeZu(stufe, ms) {
     frames.push({ transform: transformVon(p) });
   }
   S.letzteStufe = stufe;
+  if (S.welt.art === 'laufen') {
+    el.classList.toggle('links', nach.x < von.x);
+    clearTimeout(el._richtung); el._richtung = setTimeout(() => el.classList.toggle('links', !!S.welt.blickLinks), ms);
+  }
   el.getAnimations().forEach(a => a.cancel());
   el.animate(frames, { duration: ms, easing: 'linear' });
   setzeAkteur(nach);
@@ -389,7 +416,11 @@ function taste(wert) {
 }
 
 function richtig() {
-  TON.richtig();
+  const letzte = S.stufe + 1 >= STUFEN;
+  // Der Jubelton kommt genau dann, wenn sich das Tier zu freuen beginnt (beim Hebel erst nach dem Ziehen)
+  if (!letzte) TON.richtig();
+  else if (S.welt.stufe && hebelLage(S.welt, S.tier)) { TON.richtig(); spaeter(HEBEL_ZEIT.freuen, () => TON.geschafft()); }
+  else TON.geschafft();
   blinke($('panel'), 'richtig');
   zeigeAufgabe(S.ergebnis);
   $('aufgabe-text').classList.add('loesung');
@@ -409,14 +440,35 @@ function geheZuStufe(n) {
   zeichneLevel();
   const welt = S.welt;
   if (welt.stufe) {
+    if (vor && hebelLage(welt, S.tier)) { zieheHebel(n); return; }
     welt.stufe(n, S.ebenen, false);
     if (S.weltId === 'presse') TON.presse();
     setzePose(vor ? 'freude' : 'traurig', 1100);
   } else {
     bewegeZu(n, SCHRITT_MS);
-    if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
+    if (n >= STUFEN) setzePose('jubel');
+    else if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
     else setzePose(vor ? 'freude' : 'traurig', SCHRITT_MS);
   }
+}
+
+/* Hebel umlegen (Presse, Spielautomat): zuerst greifen, dann herunterziehen – erst danach freut sich das Tier */
+const HEBEL_ZEIT = { ziehen: 260, loslassen: 700, freuen: 880 };
+function zieheHebel(n) {
+  const feld = $('feld'), welt = S.welt;
+  feld.classList.remove('zieht-b'); feld.classList.add('zieht-a');
+  setzePose('stehen');
+  spaeter(HEBEL_ZEIT.ziehen, () => {
+    feld.classList.remove('zieht-a'); feld.classList.add('zieht-b');
+    TON.klack();
+    welt.stufe(n, S.ebenen, false);
+    if (S.weltId === 'presse') TON.presse();
+  });
+  spaeter(HEBEL_ZEIT.loslassen, () => { feld.classList.remove('zieht-b'); feld.classList.add('zieht-a'); });
+  spaeter(HEBEL_ZEIT.freuen, () => {
+    feld.classList.remove('zieht-a');
+    if (n >= STUFEN) setzePose('jubel'); else setzePose('freude', 1100);
+  });
 }
 
 function falsch() {
@@ -444,12 +496,12 @@ function weissNicht() {
 
 /* ---------- Level geschafft und Kran ---------- */
 function levelGeschafft() {
-  TON.geschafft();
   setzePose('jubel');
   const g = $('geschafft');
   g.innerHTML = `<div class="geschafft-text">Level ${S.level} geschafft!</div>`;
   g.classList.remove('versteckt');
-  konfetti(['#e53935', '#fdd835', '#43a047', '#1e88e5', '#ffffff'], 120);
+  konfetti(['#e53935', '#fdd835', '#43a047', '#1e88e5', '#ffffff'], 90);
+  feiern(S.welt.feier);
   $('aufgabe-box').classList.add('versteckt');
   // Die nächste Welt schon jetzt (unsichtbar) zeichnen, damit der Kran später nicht ruckelt
   const id = weltFuerLevel(S.level + 1, S.weltStand);
@@ -474,12 +526,24 @@ function starteKran() {
 const glatt = (a, b, t) => { const x = Math.max(0, Math.min(1, (t - a) / (b - a))); return x * x * (3 - 2 * x); };
 const HAKEN_OBEN = 70;        // Haken ganz oben (Kette kurz)
 const HAKEN_DX = 15;          // tiefster Punkt des Hakens liegt so weit links der Kette
+/* Zeitplan des Krans (ms) */
+const KZ = {
+  reinBis: 450,                    // Ausleger fährt herein
+  runter: [120, 620],              // Haken senkt sich zum Tier (gleichzeitig mit dem Hereinfahren)
+  greifen: 620,                    // Haken greift hinten am Rücken
+  hoch: [700, 1180],               // Tier wird hochgehoben
+  wechsel: 1180,                   // neue Welt
+  fahren: [1180, 1680],            // Katze fährt zum neuen Startplatz
+  ab: [1600, 2080],                // Tier wird abgesenkt
+  los: 2100,                       // Haken lässt los
+  hochLeer: [2120, 2420],          // leerer Haken fährt schnell hoch
+  raus: [2300, 2750]               // Ausleger fährt weg
+};
 function zeichneKran(t) {
   const K2 = S.kran;
   // Tier blendet oben kurz aus und wieder ein, während die Welt wechselt
-  $('akteur').style.opacity = r1(1 - glatt(2050, 2300, t) + glatt(2300, 2600, t));
-  // Welt wechseln, sobald das Tier oben hängt
-  if (!K2.gewechselt && t >= 2300) {
+  $('akteur').style.opacity = r1(1 - glatt(KZ.wechsel - 130, KZ.wechsel, t) + glatt(KZ.wechsel, KZ.wechsel + 180, t));
+  if (!K2.gewechselt && t >= KZ.wechsel) {
     K2.gewechselt = true;
     S.level++;
     S.stufe = 0; S.letzteStufe = 0;
@@ -491,34 +555,31 @@ function zeichneKran(t) {
     setzePose('freude');
   }
   const A = K2.gewechselt ? K2.neu : K2.alt, M = K2.gewechselt ? K2.neuMass : K2.altMass;
-  // Aufhängepunkt am Tier (oben), in Bühnen-Koordinaten
-  const hakenAmTier = p => p.y - M.haken * p.s;
-  // Ausleger fährt rein (0–800 ms) und am Ende wieder raus
-  const rein = glatt(0, 800, t), raus = glatt(4250, 4700, t);
+  const hakenAmTier = (p, m) => p.y - m.haken * p.s - 46;     // Haken-Höhe, wenn er hinten am Rücken greift
+  const rein = glatt(0, KZ.reinBis, t), raus = glatt(KZ.raus[0], KZ.raus[1], t);
   const auslegerX = (1 - rein) * 1700 + raus * 1700;
-  // Katze steht über dem alten Tier, fährt dann zum neuen Startplatz
-  // (der Haken hängt etwas links von der Kette: HAKEN_DX)
-  const katzeX = K2.alt.x + HAKEN_DX + (K2.neu ? (K2.neu.x - K2.alt.x) * glatt(2300, 3100, t) : 0);
-  // Haken: runter (800–1400), hoch mit Tier (1600–2300), runter mit Tier (3100–3800), hoch ohne Tier (3950–4500)
-  const hakenTief1 = hakenAmTier(K2.alt) - 46;
-  const oben = HAKEN_OBEN - DY;   // ganz oben im Feld (über der Welt kann Platz sein)
-  let hakenY = oben;
-  if (t < 1600) hakenY = oben + (hakenTief1 - oben) * glatt(800, 1400, t);
-  else if (t < 2300) hakenY = hakenTief1 + (oben - hakenTief1) * glatt(1600, 2300, t);
-  else if (t < 3950) { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = oben + (tief2 - oben) * glatt(3100, 3800, t); }
-  else { const tief2 = hakenAmTier(K2.neu) - 46; hakenY = tief2 + (oben - tief2) * glatt(3950, 4500, t); }
-  // Tier hängt am Haken zwischen 1600 und 3800 ms
-  const haengt = t >= 1600 && t < 3850;
+  const katzeX = K2.alt.x + HAKEN_DX + (K2.neu ? (K2.neu.x - K2.alt.x) * glatt(KZ.fahren[0], KZ.fahren[1], t) : 0);
+  const oben = HAKEN_OBEN - DY;
+  const tief1 = hakenAmTier(K2.alt, K2.altMass);
+  let hakenY;
+  if (t < KZ.hoch[0]) hakenY = oben + (tief1 - oben) * glatt(KZ.runter[0], KZ.runter[1], t);
+  else if (t < KZ.wechsel) hakenY = tief1 + (oben - tief1) * glatt(KZ.hoch[0], KZ.hoch[1], t);
+  else {
+    const tief2 = hakenAmTier(K2.neu, K2.neuMass);
+    hakenY = t < KZ.hochLeer[0] ? oben + (tief2 - oben) * glatt(KZ.ab[0], KZ.ab[1], t)
+      : tief2 + (oben - tief2) * glatt(KZ.hochLeer[0], KZ.hochLeer[1], t);
+  }
+  const haengt = t >= KZ.greifen && t < KZ.los;
   if (haengt) {
     const p = Object.assign({}, A);
     p.x = katzeX - HAKEN_DX;
     p.y = hakenY + 46 + M.haken * p.s;
-    p.r = (A.r || 0) + Math.sin(t / 260) * 4 * glatt(1600, 2000, t) * (1 - glatt(3500, 3800, t));
+    p.r = (A.r || 0) + Math.sin(t / 200) * 4 * glatt(KZ.hoch[0], KZ.hoch[0] + 300, t) * (1 - glatt(KZ.ab[1] - 250, KZ.ab[1], t));
     setzeAkteur(p);
-  } else if (t >= 3850 && !K2.abgesetzt) { K2.abgesetzt = true; setzeAkteur(posVon(0)); setzePose('stehen'); }
-  if (t >= 1450 && !K2.klack[0]) { K2.klack[0] = true; TON.klack(); }
-  if (t >= 3850 && !K2.klack[1]) { K2.klack[1] = true; TON.klack(); }
-  // zeichnen
+  } else if (t >= KZ.los && !K2.abgesetzt) { K2.abgesetzt = true; setzeAkteur(posVon(0)); setzePose('stehen'); }
+  // ohne Hydraulik-Datei: kurzes Klacken beim Greifen und Loslassen
+  if (t >= KZ.greifen && !K2.klack[0]) { K2.klack[0] = true; if (!tonPuffer.kran) TON.klack(); }
+  if (t >= KZ.los && !K2.klack[1]) { K2.klack[1] = true; if (!tonPuffer.kran) TON.klack(); }
   $('kran-ausleger').setAttribute('transform', `translate(${r1(katzeX - 300 + auslegerX)} ${-DY})`);
   $('kran-katze').setAttribute('transform', `translate(${r1(katzeX + auslegerX)} ${-DY})`);
   $('kran-kette-band').setAttribute('height', Math.max(0, r1(hakenY + DY - 50)));
@@ -612,6 +673,47 @@ function konfetti(farben, anzahl) {
     setTimeout(() => s.remove(), 5000);
   }
 }
+/* Kleine Zusatz-Effekte zum Level-Ende (je nach Welt) */
+function feiern(art) {
+  const c = $('konfetti'), hoehe = $('feld').clientHeight;
+  const teil = (cls, stil, ms, inhalt = '') => {
+    const d = document.createElement('div'); d.className = 'effekt ' + cls; d.style.cssText = stil; d.innerHTML = inhalt;
+    c.appendChild(d); setTimeout(() => d.remove(), ms);
+  };
+  const zufallX = () => 200 + Math.random() * 1200;
+  if (art === 'feuerwerk' || art === 'funken') {
+    const farben = art === 'funken' ? ['#ff6d00', '#ffab00', '#ffd54f'] : ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#ab47bc', '#fff'];
+    for (let k = 0; k < (art === 'funken' ? 3 : 5); k++) {
+      const x = zufallX(), y = 60 + Math.random() * Math.max(80, hoehe - 300), verz = k * 0.35;
+      for (let i = 0; i < 18; i++) {
+        const w = i / 18 * Math.PI * 2, d = 90 + Math.random() * 50;
+        teil('funke', `left:${x}px;top:${y}px;background:${waehle(farben)};--dx:${Math.cos(w) * d}px;--dy:${Math.sin(w) * d}px;animation-delay:${verz}s`, 2600);
+      }
+    }
+  } else if (art === 'muenzen') {
+    // aus dem Ausgabeschacht unten am Automaten (Bild: x 165, y 335)
+    const sx = AUTOMAT.x + 165 * AUTOMAT.s, sy = AUTOMAT.y + 335 * AUTOMAT.s + DY;
+    for (let i = 0; i < 34; i++) {
+      const dx = (Math.random() - 0.35) * 420, hoch = 120 + Math.random() * 200;
+      teil('muenze-fliegt', `left:${r1(sx)}px;top:${r1(sy)}px;--dx:${r1(dx)}px;--hoch:${r1(-hoch)}px;--fall:${r1(hoehe - sy + 40)}px;animation-delay:${(i * 0.045).toFixed(2)}s`, 3200, `<img src="${TEILE}muenze.png" alt="">`);
+    }
+  } else if (art === 'blasen') {
+    for (let i = 0; i < 26; i++) teil('blase-steigt', `left:${zufallX()}px;top:${hoehe - 20}px;width:${14 + Math.random() * 26}px;height:${14 + Math.random() * 26}px;animation-delay:${Math.random() * 1.2}s`, 3600);
+  } else if (art === 'schnee') {
+    for (let i = 0; i < 40; i++) teil('flocke-faellt', `left:${Math.random() * 1600}px;animation-delay:${Math.random() * 1.2}s;font-size:${18 + Math.random() * 20}px`, 3800, '❄');
+  } else if (art === 'ballone') {
+    const farben = ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#ab47bc', '#ff7043'];
+    for (let i = 0; i < 14; i++) teil('ballon-steigt', `left:${zufallX()}px;top:${hoehe}px;--farbe:${waehle(farben)};animation-delay:${Math.random() * 1}s`, 4200);
+  } else if (art === 'wasser') {
+    for (let i = 0; i < 30; i++) {
+      const w = -Math.PI / 2 + (Math.random() - 0.5) * 1.6, d = 120 + Math.random() * 140;
+      teil('tropfen', `left:${S.akteurPos.x}px;top:${S.akteurPos.y - 40 + DY}px;--dx:${Math.cos(w) * d}px;--dy:${Math.sin(w) * d}px;animation-delay:${Math.random() * 0.4}s`, 2400);
+    }
+  } else if (art === 'sterne') {
+    for (let i = 0; i < 22; i++) teil('stern-glitzert', `left:${zufallX()}px;top:${40 + Math.random() * (hoehe - 160)}px;animation-delay:${Math.random() * 1.4}s;font-size:${22 + Math.random() * 26}px`, 3400, '★');
+  }
+}
+
 function pause(an) {
   if (!S || S.beendet) return;
   S.pausiert = an;

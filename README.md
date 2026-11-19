@@ -8,7 +8,7 @@ Lernspiele für die digitale Schultafel. Alle Spiele laufen direkt im Browser, o
 | --- | --- | --- |
 | [Mathe-Fussball](spiele/mathe-fussball/index.html) | Mathematik, 1.–4. Klasse | Zwei Teams rechnen um die Wette. Wer zuerst richtig antwortet, schiesst den Ball Richtung gegnerisches Tor. |
 | [Uhr lesen](spiele/uhr-lesen/index.html) | Mathematik | Für 1 oder 2 Kinder: Uhrzeiten ablesen und eintippen oder die Zeiger einer Uhr stellen. Jede richtige Antwort bringt das Tier mit der Fackel näher an die Zündschnur – dann startet die Rakete. |
-| [Mathe-Wanderung](spiele/mathe-wanderung/index.html) | Mathematik, 1.–4. Klasse | Für eine Person: Mit jeder richtigen Antwort kommt das Tier einen Schritt weiter. 8 richtige Antworten = Level geschafft, dann hebt der Kran das Tier in die nächste Welt. |
+| [Mathe-Erlebnisse](spiele/mathe-wanderung/index.html) | Mathematik, 1.–4. Klasse | Für eine Person: Mit jeder richtigen Antwort kommt das Tier einen Schritt weiter. 8 richtige Antworten = Level geschafft, dann hebt der Kran das Tier in die nächste von 14 Welten (jede kommt einmal dran, bevor sich eine wiederholt). |
 | [Einkaufen](spiele/einkaufen/index.html) | Mathematik | Für 1 oder 2 Kinder: Im Markt liegen Produkte mit Preisschild auf dem Kassenband (auf Wunsch legen die Kinder sie selbst aufs Band). Wer das Total in Franken richtig ausrechnet, bekommt eine Goldmünze ins Samtsäckchen. Sind alle Säckchen voll, ist das Spiel fertig. |
 
 ## Aufbau
@@ -18,7 +18,7 @@ index.html                 Startseite mit allen Spielen
 gemeinsam/                 Stil und Hilfsfunktionen für alle Spiele
   filz.css                 Grundstil im Filzstift-Look
   hilfen.js                kleine Werkzeuge (Zufall, Speichern, Farben …)
-  mathe-aufgaben.js        Rechenaufgaben für Mathe-Fussball und Mathe-Wanderung
+  mathe-aufgaben.js        Rechenaufgaben für Mathe-Fussball und Mathe-Erlebnisse
 spiele/
   mathe-fussball/          das Spiel Mathe-Fussball
     index.html
@@ -31,10 +31,10 @@ spiele/
     uhr.js                 Uhren (Zifferblatt, Zeiger, Digitalanzeige) und Prüfung der Eingabe
     spiel.js
     bilder/
-  mathe-wanderung/         das Spiel Mathe-Wanderung (benutzt Tiere, Töne und Mengen-Bilder von Mathe-Fussball)
+  mathe-wanderung/         das Spiel Mathe-Erlebnisse (benutzt Tiere, Töne und Mengen-Bilder von Mathe-Fussball)
     index.html
     style.css
-    welten.js              die 14 Welten als Vektorgrafik
+    welten.js              die 14 Welten (gemalte Hintergründe + Zeichnungen darüber)
     spiel.js
     bilder/
   einkaufen/               das Spiel Einkaufen
@@ -71,7 +71,7 @@ Bild `spiele/mathe-fussball/bilder/vogel.png` und die Bilder in `spiele/mathe-fu
 
 Bilder in `spiele/uhr-lesen/bilder/` (Tiere mit Fackel, gebückte Tiere beim Zünden, Flammenbilder für die flackernde Fackel, Rakete mit Zündschnüren, Wecker, Abendlandschaft, Fuchs mit Uhr für die Startseite) erstellt mit ChatGPT. Uhren, Zeiger, rote Segment-Ziffern, Zündschnur und Feuerwerk sind im Code gezeichnet (`uhr.js`, `spiel.js`). Uhr lesen verwendet zusätzlich die Töne `richtig.mp3`, `falsch.mp3` und `tick.wav`, die Tierköpfe, die jubelnden Figuren und den Vogel aus Mathe-Fussball; Zischen, Heulen und Knall der Rakete werden im Code erzeugt.
 
-Mathe-Wanderung: Das Bild `spiele/mathe-wanderung/bilder/baer-wandern.png` (Bär mit Rucksack) wurde mit ChatGPT erstellt. Alle Welten, Fahrzeuge, Ortsschilder und der Kran sind als Vektorgrafik im Code gezeichnet (`welten.js`). Das Spiel benutzt die Tierfiguren, den Vogel, die Töne und einige Mengen-Bilder (Kamel, Palme, Fisch) von Mathe-Fussball.
+Mathe-Erlebnisse: Mit ChatGPT erstellt sind der Bär-Wanderer (`spiele/mathe-wanderung/bilder/baer-wandern.png`), die 14 Welt-Hintergründe (`bilder/welten/`, mit den aufgesprühten Ziellinien, dem Landeplatz im Gras und dem Schriftzug «Zuzi-Bahn»), die Maschinen, das Steuerpult, das U-Boot, Möwen und die Münze (`bilder/teile/`), die Fahrzeuge mit jedem Tier am Steuer (Buggy, Boot, Flugzeug mit Fliegerbrille, Schlitten, Gleitschirm mit Gurtzeug; `bilder/fahrzeuge/`) und die Posen zum Hebelziehen (`bilder/hebel/`). Ortsnamen («Zuzwil», «Aadorf»), Fahnen, Stufen-Zeichen, Zielband, Windsack, Hebel, Kabel und Kran sind im Code gezeichnet (`welten.js`, `index.html`). Das Spiel benutzt die Tierfiguren, Tierköpfe, den Vogel und die Töne von Mathe-Fussball. Das Kran-Geräusch `spiele/mathe-wanderung/toene/kran-hydraulik.mp3` ist «Homemade hydraulic hoist» von chainsaw_dinner_party (Freesound) über Pixabay (https://pixabay.com/sound-effects/technology-homemade-hydraulic-hoist-30527/, Pixabay Content License); das Spiel spielt nur Ausschnitte daraus, ohne die gesprochenen Worte am Anfang.
 
 Einkaufen: Die Bilder in `spiele/einkaufen/bilder/` (Laden-Hintergrund, 30 Produkte in `produkte/`, Kassiererin, Goldsäckchen, Elefant mit Einkaufskorb) wurden mit ChatGPT erstellt. Regal, Kühlschrank, Kasse, Preisschilder, die aufgestickten Zahlen und die Münzen sind im Code gezeichnet (`style.css`, `spiel.js`). Das Spiel benutzt die Töne `richtig.mp3`, `falsch.mp3`, `tick.wav` und `jubel.mp3`, die Tierköpfe, die jubelnden Figuren und den Vogel von Mathe-Fussball; das Klimpern der Münzen wird im Code erzeugt.
 

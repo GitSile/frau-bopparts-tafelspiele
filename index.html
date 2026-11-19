@@ -43,14 +43,8 @@
     .kachel p { margin: 0 0 18px; font-size: 18px; color: #455a64; line-height: 1.35; }
     .kachel .knopf { pointer-events: none; }
     .kachel.bald { opacity: .55; pointer-events: none; --filz-farbe: #b0bec5; }
-    /* Spiel in Arbeit: anklickbar, aber grau mit rotem Querband «Bald verfügbar» */
-    .kachel.in-arbeit { position: relative; overflow: hidden; background: #eceff1; --filz-farbe: #90a4ae; }
-    .kachel.in-arbeit > :not(.band) { filter: grayscale(1); opacity: .6; }
-    .kachel.in-arbeit .band {
-      position: absolute; left: -25%; right: -25%; top: 26%; transform: rotate(-20deg);
-      background: #d32f2f; color: #fff; font-weight: 900; font-size: 30px; text-align: center;
-      padding: 8px 0; box-shadow: 0 4px 10px rgba(0,0,0,.25); letter-spacing: .5px; pointer-events: none;
-    }
+    /* Spiel im Testmodus: normal anklickbar, mit rotem Hinweis «Testmodus» bei den Fächern */
+    .test { background: #d32f2f; color: #fff; }
     .kachel.bald .kachel-bild { font-size: 110px; }
     footer { margin-top: 48px; text-align: center; color: #78909c; font-size: 14px; }
   </style>
@@ -80,7 +74,7 @@
        Liste aller Spiele.
        Für ein neues Spiel einfach einen weiteren Eintrag ergänzen.
        modus: Hinweis-Kachel mit der Anzahl Personen, z. B. «1 Person» (leer lassen, wenn keiner)
-       bald: true = Spiel noch in Arbeit: anklickbar, aber grau mit rotem Querband «Bald verfügbar»
+       bald: true = Spiel noch im Test: anklickbar, mit rotem Hinweis «Testmodus»
        ========================================================= */
     const SPIELE = [
       {
@@ -94,7 +88,7 @@
         farbe: '#2e7d32'
       },
       {
-        name: 'Mathe-Wanderung',
+        name: 'Mathe-Erlebnisse',
         fach: 'Mathematik',
         modus: '1 Person',
         text: '',
@@ -128,16 +122,16 @@
     const kacheln = document.getElementById('kacheln');
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     kacheln.innerHTML = SPIELE.map(s => `
-      <a class="kachel filz${s.bald ? ' in-arbeit' : ''}" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
+      <a class="kachel filz" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
         <div class="kachel-bild"><img src="${esc(s.bild)}" alt="">${s.vorne ? `<img class="vorne" src="${esc(s.vorne)}" alt="">` : ''}</div>
         <h2>${esc(s.name)}</h2>
         <div class="hinweise">
           <span class="fach">${esc(s.fach)}</span>
           ${s.modus ? `<span class="fach modus">${esc(s.modus)}</span>` : ''}
+          ${s.bald ? '<span class="fach test">Testmodus</span>' : ''}
         </div>
         ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
-        ${s.bald ? '<span class="band">Bald verfügbar</span>' : ''}
       </a>`).join('') + `
       <div class="kachel bald filz" aria-hidden="true">
         <div class="kachel-bild">✨</div>

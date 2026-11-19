@@ -1,7 +1,7 @@
 'use strict';
 /* =========================================================
    Frau Bopparts Tafelspiele – Mathe-Aufgaben (gemeinsam)
-   Wird von Mathe-Fussball und Mathe-Wanderung benutzt.
+   Wird von Mathe-Fussball und Mathe-Erlebnisse benutzt.
    Vorher laden: hilfen.js und spiele/mathe-fussball/mengen.js
    ========================================================= */
 const POOL_GROESSE = 100;     // so viele verschiedene Aufgaben kommen in einen Pool
