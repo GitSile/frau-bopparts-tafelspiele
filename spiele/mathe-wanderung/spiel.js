@@ -418,9 +418,8 @@ function taste(wert) {
 function richtig() {
   const letzte = S.stufe + 1 >= STUFEN;
   // Der Jubelton kommt genau dann, wenn sich das Tier zu freuen beginnt (beim Hebel erst nach dem Ziehen)
-  if (!letzte) TON.richtig();
-  else if (S.welt.stufe && hebelLage(S.welt, S.tier)) { TON.richtig(); spaeter(HEBEL_ZEIT.freuen, () => TON.geschafft()); }
-  else TON.geschafft();
+  // (beim letzten Schritt spielt geheZuStufe den Jubelton, genau wenn sich das Tier freut)
+  if (!letzte || (S.welt.stufe && hebelLage(S.welt, S.tier))) TON.richtig();
   blinke($('panel'), 'richtig');
   zeigeAufgabe(S.ergebnis);
   $('aufgabe-text').classList.add('loesung');
@@ -443,10 +442,11 @@ function geheZuStufe(n) {
     if (vor && hebelLage(welt, S.tier)) { zieheHebel(n); return; }
     welt.stufe(n, S.ebenen, false);
     if (S.weltId === 'presse') TON.presse();
-    setzePose(vor ? 'freude' : 'traurig', 1100);
+    if (n >= STUFEN) { setzePose('jubel'); TON.geschafft(); }
+    else setzePose(vor ? 'freude' : 'traurig', 1100);
   } else {
     bewegeZu(n, SCHRITT_MS);
-    if (n >= STUFEN) setzePose('jubel');
+    if (n >= STUFEN) { setzePose('jubel'); TON.geschafft(); }
     else if (welt.art === 'laufen' && vor) setzePose('sprung', SCHRITT_MS);
     else setzePose(vor ? 'freude' : 'traurig', SCHRITT_MS);
   }
@@ -467,7 +467,7 @@ function zieheHebel(n) {
   spaeter(HEBEL_ZEIT.loslassen, () => { feld.classList.remove('zieht-b'); feld.classList.add('zieht-a'); });
   spaeter(HEBEL_ZEIT.freuen, () => {
     feld.classList.remove('zieht-a');
-    if (n >= STUFEN) setzePose('jubel'); else setzePose('freude', 1100);
+    if (n >= STUFEN) { setzePose('jubel'); TON.geschafft(); } else setzePose('freude', 1100);
   });
 }
 
