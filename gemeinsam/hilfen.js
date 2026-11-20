@@ -91,3 +91,36 @@ function schuetze(obj, name) {
     obj[k] = function (...a) { try { return f.apply(this, a); } catch (e) { meldeFehler(e, `${name}.${k}`); } };
   });
 }
+
+/* ---------- Testmodus für Tafeln: Adresse mit «?diagnose» öffnen ----------
+   Zeigt oben links, welche Berührungen beim Spiel ankommen, wie flüssig es läuft
+   und ob ein Fehler passiert ist. Ändert am Spiel nichts. */
+(function () {
+  if (!/[?&]diagnose/.test(location.search)) return;
+  const z = { pointer: 0, touch: 0, maus: 0, klick: 0, bilder: 0, fps: 0, haenger: 0, fehler: '' };
+  let letzte = '', box = null, t0 = performance.now(), letzterFrame = performance.now();
+  const notiere = (art, ev) => { z[art]++; letzte = `${art} ${ev.pointerType || ''} ${Math.round(performance.now() / 1000)}s`; };
+  window.addEventListener('pointerdown', ev => notiere('pointer', ev), true);
+  window.addEventListener('touchstart', ev => notiere('touch', ev), { capture: true, passive: true });
+  window.addEventListener('mousedown', ev => notiere('maus', ev), true);
+  window.addEventListener('click', ev => notiere('klick', ev), true);
+  window.addEventListener('error', ev => { z.fehler = String(ev.message).slice(0, 60); });
+  const alt = window.meldeFehler;
+  window.meldeFehler = function (e, wo) { z.fehler = `${wo}: ${String((e && e.message) || e).slice(0, 50)}`; return alt(e, wo); };
+  function bild(jetzt) {
+    z.bilder++;
+    if (jetzt - letzterFrame > 1500) z.haenger++;
+    letzterFrame = jetzt;
+    if (jetzt - t0 >= 1000) { z.fps = Math.round(z.bilder * 1000 / (jetzt - t0)); z.bilder = 0; t0 = jetzt; }
+    if (!box && document.body) {
+      box = document.createElement('div');
+      box.style.cssText = 'position:fixed;left:4px;top:4px;z-index:99999;background:rgba(0,0,0,.75);color:#0f0;font:20px/1.3 monospace;padding:4px 8px;border-radius:6px;pointer-events:none;white-space:pre';
+      document.body.appendChild(box);
+    }
+    if (box) box.textContent = `Berührungen: pointer ${z.pointer} · touch ${z.touch} · maus ${z.maus} · klick ${z.klick}\n`
+      + `letzte: ${letzte}\nBilder/s: ${z.fps} · Hänger: ${z.haenger} · Zeit: ${Math.round(jetzt / 1000)}s\n`
+      + `Fehler: ${z.fehler || 'keiner'}`;
+    requestAnimationFrame(bild);
+  }
+  requestAnimationFrame(bild);
+})();
