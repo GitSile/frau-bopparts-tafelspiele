@@ -92,6 +92,69 @@ function schuetze(obj, name) {
   });
 }
 
+/* ---------- Ersatz für fehlende Pointer-Signale bei Berührung ----------
+   Auf manchen Wandtafeln (Windows-PC an Touch-Tafel) liefert der Browser nach kurzer Zeit
+   nur noch «touch»-Signale, aber keine «pointer»-Signale und keine Klicks mehr.
+   Fehlt bei einer Berührung das echte pointerdown, erzeugen wir pointerdown/-move/-up
+   und den Klick selbst. Funktioniert alles normal, greift dieser Teil nie ein. */
+const beruehrung = { echtZuletzt: -1e9, ersatzZuletzt: -1e9, ersatzKlickZuletzt: -1e9, anzahlErsatz: 0 };
+(function () {
+  const offen = new Map();   // Finger-Nummer -> { ziel, ersatz, x, y, bewegt }
+  const jetzt = () => performance.now();
+  function feuere(art, ziel, t) {
+    try {
+      ziel.dispatchEvent(new PointerEvent(art, {
+        bubbles: true, cancelable: true, composed: true,
+        pointerId: 1000 + t.identifier, pointerType: 'touch', isPrimary: offen.size <= 1,
+        clientX: t.clientX, clientY: t.clientY, screenX: t.screenX, screenY: t.screenY,
+        button: art === 'pointermove' ? -1 : 0, buttons: art === 'pointerup' ? 0 : 1
+      }));
+    } catch (e) { /* sehr alter Browser */ }
+  }
+  // Echtes pointerdown merken; kommt es doch noch nach unserem Ersatz, wird es verschluckt (sonst doppelt)
+  window.addEventListener('pointerdown', ev => {
+    if (!ev.isTrusted || ev.pointerType !== 'touch') return;
+    if (jetzt() - beruehrung.ersatzZuletzt < 400) { ev.stopImmediatePropagation(); ev.preventDefault(); return; }
+    beruehrung.echtZuletzt = jetzt();
+  }, true);
+  window.addEventListener('click', ev => {
+    if (ev.isTrusted && jetzt() - beruehrung.ersatzKlickZuletzt < 600) { ev.stopImmediatePropagation(); ev.preventDefault(); }
+  }, true);
+  window.addEventListener('touchstart', ev => {
+    const ersatz = jetzt() - beruehrung.echtZuletzt > 300;   // das echte pointerdown (kommt vorher) fehlt
+    for (const t of ev.changedTouches) {
+      const ziel = t.target;
+      offen.set(t.identifier, { ziel, ersatz, x: t.clientX, y: t.clientY, bewegt: false });
+      if (ersatz) { beruehrung.ersatzZuletzt = jetzt(); beruehrung.anzahlErsatz++; feuere('pointerdown', ziel, t); }
+    }
+  }, { capture: true, passive: true });
+  window.addEventListener('touchmove', ev => {
+    for (const t of ev.changedTouches) {
+      const o = offen.get(t.identifier);
+      if (!o || !o.ersatz) continue;
+      if (Math.abs(t.clientX - o.x) + Math.abs(t.clientY - o.y) > 20) o.bewegt = true;
+      feuere('pointermove', o.ziel, t);
+    }
+  }, { capture: true, passive: true });
+  function ende(ev, abgebrochen) {
+    for (const t of ev.changedTouches) {
+      const o = offen.get(t.identifier);
+      offen.delete(t.identifier);
+      if (!o || !o.ersatz) continue;
+      feuere(abgebrochen ? 'pointercancel' : 'pointerup', o.ziel, t);
+      if (abgebrochen || o.bewegt || !o.ziel.isConnected) continue;
+      if (ev.cancelable) ev.preventDefault();   // kein zusätzlicher echter Klick
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(o.ziel.tagName)) o.ziel.focus();
+      beruehrung.ersatzKlickZuletzt = jetzt();
+      try {
+        o.ziel.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, clientX: t.clientX, clientY: t.clientY, button: 0 }));
+      } catch (e) { /* egal */ }
+    }
+  }
+  window.addEventListener('touchend', ev => ende(ev, false), { capture: true, passive: false });
+  window.addEventListener('touchcancel', ev => ende(ev, true), { capture: true, passive: true });
+})();
+
 /* ---------- Testmodus für Tafeln: Adresse mit «?diagnose» öffnen ----------
    Zeigt oben links, welche Berührungen beim Spiel ankommen, wie flüssig es läuft
    und ob ein Fehler passiert ist. Ändert am Spiel nichts. */
@@ -99,7 +162,7 @@ function schuetze(obj, name) {
   if (!/[?&]diagnose/.test(location.search)) return;
   const z = { pointer: 0, touch: 0, maus: 0, klick: 0, bilder: 0, fps: 0, haenger: 0, fehler: '' };
   let letzte = '', box = null, t0 = performance.now(), letzterFrame = performance.now();
-  const notiere = (art, ev) => { z[art]++; letzte = `${art} ${ev.pointerType || ''} ${Math.round(performance.now() / 1000)}s`; };
+  const notiere = (art, ev) => { if (!ev.isTrusted) return; z[art]++; letzte = `${art} ${ev.pointerType || ''} ${Math.round(performance.now() / 1000)}s`; };
   window.addEventListener('pointerdown', ev => notiere('pointer', ev), true);
   window.addEventListener('touchstart', ev => notiere('touch', ev), { capture: true, passive: true });
   window.addEventListener('mousedown', ev => notiere('maus', ev), true);
@@ -119,7 +182,7 @@ function schuetze(obj, name) {
     }
     if (box) box.textContent = `Berührungen: pointer ${z.pointer} · touch ${z.touch} · maus ${z.maus} · klick ${z.klick}\n`
       + `letzte: ${letzte}\nBilder/s: ${z.fps} · Hänger: ${z.haenger} · Zeit: ${Math.round(jetzt / 1000)}s\n`
-      + `Fehler: ${z.fehler || 'keiner'}`;
+      + `Ersatz: ${beruehrung.anzahlErsatz} · Fehler: ${z.fehler || 'keiner'}`;
     requestAnimationFrame(bild);
   }
   requestAnimationFrame(bild);
