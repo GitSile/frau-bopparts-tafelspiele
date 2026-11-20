@@ -48,8 +48,11 @@
     .kachel.bald .kachel-bild { font-size: 110px; }
     /* Spiel noch nicht freigeschaltet: grauer, durchsichtiger Querbalken über die ganze Kachel (Spiel bleibt anklickbar) */
     .kachel { position: relative; }
+    /* Der Balken wird knapp innerhalb der Kachel abgeschnitten; der Filzstift-Rand (::after) liegt darüber.
+       So berührt der Balken den Rand überall, überdeckt ihn aber nicht. */
+    .sperre-rahmen { position: absolute; inset: 3px; border-radius: inherit; overflow: hidden; pointer-events: none; }
     .sperre {
-      position: absolute; left: -6px; right: -6px; top: 32%; z-index: 2;
+      position: absolute; left: -20%; right: -20%; top: 32%; text-align: center;
       transform: translateY(-50%) rotate(-10deg);
       background: rgba(84, 98, 110, .72); color: #fff;
       padding: 14px 10px; font-size: 26px; font-weight: 900; letter-spacing: .02em;
@@ -154,7 +157,7 @@
         </div>
         ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
-        ${s.gesperrt ? '<div class="sperre">Nicht freigeschaltet.</div>' : ''}
+        ${s.gesperrt ? '<div class="sperre-rahmen"><div class="sperre">Nicht freigeschaltet.</div></div>' : ''}
       </a>`).join('') + `
       <div class="kachel bald filz" aria-hidden="true">
         <div class="kachel-bild">✨</div>
