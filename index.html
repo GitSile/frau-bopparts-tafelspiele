@@ -46,20 +46,16 @@
     /* Spiel im Testmodus: normal anklickbar, mit rotem Hinweis «Testmodus» bei den Fächern */
     .test { background: #d32f2f; color: #fff; }
     .kachel.bald .kachel-bild { font-size: 110px; }
-    /* Spiel noch nicht freigeschaltet: grauer, durchsichtiger Querbalken über die ganze Kachel (Spiel bleibt anklickbar) */
-    .kachel { position: relative; }
-    /* Der Balken wird knapp innerhalb der Kachel abgeschnitten; der Filzstift-Rand (::after) liegt darüber.
-       So berührt der Balken den Rand überall, überdeckt ihn aber nicht. */
-    /* Nicht freigeschaltetes Spiel: ganze Kachel grau (auch das Bild und der Rand), bleibt anklickbar */
-    .kachel.gesperrt { filter: grayscale(1); }
-    .sperre-rahmen { position: absolute; inset: 3px; border-radius: inherit; overflow: hidden; pointer-events: none; }
-    .sperre {
-      position: absolute; left: -20%; right: -20%; top: 32%; text-align: center;
-      transform: translateY(-50%) rotate(-10deg);
-      background: rgba(84, 98, 110, .72); color: #fff;
-      padding: 14px 10px; font-size: 26px; font-weight: 900; letter-spacing: .02em;
-      box-shadow: 0 4px 14px rgba(0,0,0,.18); pointer-events: none;
-    }
+    /* Archiv-Ordner: grau hinterlegt, öffnet sich beim Antippen und zeigt die archivierten Spiele */
+    .kachel.ordner { background: #e3e7ea; --filz-farbe: #90a4ae; cursor: pointer; font: inherit; border: 0; }
+    .kachel.ordner h2 { color: #546e7a; }
+    .kachel.ordner .knopf { background: #fff; color: #546e7a; }
+    .archiv { margin-top: 28px; padding: 26px; background: #e3e7ea; border-radius: var(--wackel-klein, 18px); }
+    .archiv[hidden] { display: none; }
+    .archiv h3 { margin: 0 0 18px; font-size: 26px; font-weight: 900; color: #546e7a; text-align: center; }
+    .kachel.arbeit { opacity: .85; }
+    .kachel.arbeit h2 { font-size: 28px; }
+    .kachel.arbeit .kachel-bild { width: 100%; }
     footer { margin-top: 48px; text-align: center; color: #78909c; font-size: 14px; }
   </style>
 </head>
@@ -90,7 +86,7 @@
        modus: Hinweis-Kachel mit der Anzahl Personen, z. B. «1 Person» (leer lassen, wenn keiner)
        farbe: vorerst bei allen Grün (später eine Farbe pro Fach)
        bald: true = Spiel noch im Test: anklickbar, mit rotem Hinweis «Testmodus»
-       gesperrt: true = ganze Kachel grau mit Querbalken «Nicht freigeschaltet.» (bleibt anklickbar)
+       archiv: true = Spiel liegt im grauen Archiv-Ordner (sichtbar erst nach Antippen des Ordners)
        ========================================================= */
     const SPIELE = [
       {
@@ -141,15 +137,14 @@
         link: 'spiele/wasser-tiere-quiz/index.html',
         bild: 'spiele/wasser-tiere-quiz/kachel-boppi.png',
         farbe: '#0277bd',
-        gesperrt: true   // grauer Querbalken «Nicht freigeschaltet.»
-
+        archiv: true   // liegt im Archiv-Ordner
       }
     ];
 
     const kacheln = document.getElementById('kacheln');
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    kacheln.innerHTML = SPIELE.map(s => `
-      <a class="kachel filz${s.gesperrt ? ' gesperrt' : ''}" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
+    const kachel = s => `
+      <a class="kachel filz" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
         <div class="kachel-bild"><img src="${esc(s.bild)}" alt="">${s.vorne ? `<img class="vorne" src="${esc(s.vorne)}" alt="">` : ''}</div>
         <h2>${esc(s.name)}</h2>
         <div class="hinweise">
@@ -159,13 +154,32 @@
         </div>
         ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
-        ${s.gesperrt ? '<div class="sperre-rahmen"><div class="sperre">Nicht freigeschaltet.</div></div>' : ''}
-      </a>`).join('') + `
-      <div class="kachel bald filz" aria-hidden="true">
-        <div class="kachel-bild">✨</div>
-        <h2>Bald mehr</h2>
-        <p>Weitere Spiele für andere Fächer folgen.</p>
-      </div>`;
+      </a>`;
+    const archiviert = SPIELE.filter(s => s.archiv);
+    kacheln.innerHTML = SPIELE.filter(s => !s.archiv).map(kachel).join('') + `
+      <div class="kachel bald arbeit filz" aria-hidden="true">
+        <div class="kachel-bild"><img src="bilder/baustelle.png" alt=""></div>
+        <h2>Weitere Spiele sind in Arbeit.</h2>
+      </div>` + (archiviert.length ? `
+      <button type="button" class="kachel ordner filz" id="ordner" aria-expanded="false" aria-controls="archiv">
+        <div class="kachel-bild" style="font-size:120px">🗄️</div>
+        <h2>Archiv</h2>
+        <div class="hinweise"><span class="fach">${archiviert.length} ${archiviert.length === 1 ? 'Spiel' : 'Spiele'}</span></div>
+        <span class="knopf gross filz" id="ordner-knopf">Öffnen ▼</span>
+      </button>` : '');
+    if (archiviert.length) {
+      const archiv = document.createElement('section');
+      archiv.className = 'archiv'; archiv.id = 'archiv'; archiv.hidden = true;
+      archiv.innerHTML = '<h3>🗄️ Archiv</h3><nav class="kacheln" aria-label="Archivierte Spiele">' + archiviert.map(kachel).join('') + '</nav>';
+      kacheln.after(archiv);
+      const ordner = document.getElementById('ordner');
+      ordner.addEventListener('click', () => {
+        archiv.hidden = !archiv.hidden;
+        ordner.setAttribute('aria-expanded', String(!archiv.hidden));
+        document.getElementById('ordner-knopf').textContent = archiv.hidden ? 'Öffnen ▼' : 'Schliessen ▲';
+        if (!archiv.hidden) archiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   </script>
   <script data-goatcounter="https://sile.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>

@@ -80,7 +80,9 @@ Mathe-Erlebnisse: Mit ChatGPT erstellt sind der Bär-Wanderer (`spiele/mathe-wan
 
 Einkaufen: Die Bilder in `spiele/einkaufen/bilder/` (Laden-Hintergrund, 30 Produkte in `produkte/`, Kassiererin, Goldsäckchen, Elefant mit Einkaufskorb) wurden mit ChatGPT erstellt. Regal, Kühlschrank, Kasse, Preisschilder, die aufgestickten Zahlen und die Münzen sind im Code gezeichnet (`style.css`, `spiel.js`). Das Spiel benutzt die Töne `richtig.mp3`, `falsch.mp3`, `tick.wav` und `jubel.mp3`, die Tierköpfe, die jubelnden Figuren und den Vogel von Mathe-Fussball; das Klimpern der Münzen wird im Code erzeugt.
 
-Wasser-Tiere-Quiz: Quiz und Boppi-Videos von Céline Boppart (übernommen von boppi.netlify.app).
+Wasser-Tiere-Quiz: Quiz und Boppi-Videos von Céline Boppart (übernommen von boppi.netlify.app). Auf der Startseite liegt es im grauen Archiv-Ordner (Eintrag `archiv: true` in `index.html`).
+
+Startseite: Das Bild `bilder/baustelle.png` (Löwe als Bauarbeiter für die Kachel «Weitere Spiele sind in Arbeit.») wurde mit ChatGPT erstellt.
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
