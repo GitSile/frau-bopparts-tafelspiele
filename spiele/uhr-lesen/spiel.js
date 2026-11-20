@@ -947,9 +947,14 @@ function verbindeZiehen(i, svg) {
 }
 
 /* ---------- Hauptschleife ---------- */
+/** Ein Fehler in einem Bild darf die Schleife nie anhalten (sonst hängt das Spiel) */
 function schleife(jetzt) {
+  try { schleifeSchritt(jetzt); }
+  catch (e) { meldeFehler(e, 'schleife'); if (S && !S.beendet) requestAnimationFrame(schleife); }
+}
+function schleifeSchritt(jetzt) {
   if (!S || S.beendet) { zeichneFunken(16); if (funken.length) requestAnimationFrame(schleife); return; }
-  const dt = Math.min(250, jetzt - letzterFrame);   // auch auf langsamen Tafeln flüssig genug
+  const dt = Math.max(0, Math.min(250, jetzt - letzterFrame) || 0);   // nie negativ oder NaN   // auch auf langsamen Tafeln flüssig genug
   letzterFrame = jetzt;
   if (!S.pausiert) {
     [0, 1].forEach(i => { if (S.sperre[i] > 0) S.sperre[i] = Math.max(0, S.sperre[i] - dt); });
@@ -1097,3 +1102,6 @@ document.addEventListener('keydown', ev => {
 });
 
 zeigeSeite('wahl');
+
+// Töne dürfen das Spiel nie anhalten, auch wenn der Ton-Teil des Browsers streikt
+schuetze(TON, 'TON');

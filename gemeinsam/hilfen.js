@@ -60,3 +60,34 @@ function ganzzahlIn(text, min, max) {
   const n = Number(text);
   return n >= min && n <= max ? n : null;
 }
+
+/* ---------- Schutz gegen Hänger ----------
+   Ein unerwarteter Fehler (z. B. im Browser einer Wandtafel) darf das Spiel nicht anhalten.
+   Fehler werden anonym über den Besucherzähler gemeldet (Pfad «fehler/…»), damit wir sie finden. */
+const gemeldeteFehler = new Set();
+function meldeFehler(e, wo) {
+  try {
+    const text = String((e && (e.message || e)) || 'unbekannt').slice(0, 100);
+    const teile = location.pathname.split('/').filter(t => t && t !== 'index.html');
+    const pfad = `fehler/${teile.slice(-1)[0] || 'start'}/${wo || 'js'}: ${text}`;
+    if (gemeldeteFehler.has(pfad) || gemeldeteFehler.size >= 10) return;
+    gemeldeteFehler.add(pfad);
+    if (window.console) console.warn('Fehler abgefangen:', wo, e);
+    const browser = navigator.userAgent.replace(/^Mozilla\/5\.0 /, '').slice(0, 150);
+    const senden = () => {
+      if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: pfad, title: browser, event: true });
+    };
+    if (window.goatcounter && window.goatcounter.count) senden(); else setTimeout(senden, 4000);
+  } catch (x) { /* Melden darf nie selbst stören */ }
+}
+window.addEventListener('error', ev => meldeFehler(ev.error || ev.message, ev.filename ? ev.filename.split('/').pop() + ':' + ev.lineno : 'js'));
+window.addEventListener('unhandledrejection', ev => meldeFehler(ev.reason, 'promise'));
+
+/** Alle Funktionen eines Objekts (z. B. TON) so umhüllen, dass ein Fehler darin nur gemeldet wird */
+function schuetze(obj, name) {
+  Object.keys(obj).forEach(k => {
+    const f = obj[k];
+    if (typeof f !== 'function') return;
+    obj[k] = function (...a) { try { return f.apply(this, a); } catch (e) { meldeFehler(e, `${name}.${k}`); } };
+  });
+}

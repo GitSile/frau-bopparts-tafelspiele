@@ -773,9 +773,14 @@ function beende() {
 }
 
 /* ---------- Hauptschleife ---------- */
+/** Ein Fehler in einem Bild darf die Schleife nie anhalten (sonst hängt das Spiel) */
 function schleife(jetzt) {
+  try { schleifeSchritt(jetzt); }
+  catch (e) { meldeFehler(e, 'schleife'); if (S && !S.beendet) requestAnimationFrame(schleife); }
+}
+function schleifeSchritt(jetzt) {
   if (!S || S.beendet) return;
-  const dt = Math.min(250, jetzt - letzterFrame);
+  const dt = Math.max(0, Math.min(250, jetzt - letzterFrame) || 0);   // nie negativ oder NaN
   letzterFrame = jetzt;
   schritt(dt);
   requestAnimationFrame(schleife);
@@ -905,3 +910,6 @@ document.addEventListener('keydown', ev => {
 
 baueLaden();
 zeigeSeite('wahl');
+
+// Töne dürfen das Spiel nie anhalten, auch wenn der Ton-Teil des Browsers streikt
+schuetze(TON, 'TON');
