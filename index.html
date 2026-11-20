@@ -46,6 +46,15 @@
     /* Spiel im Testmodus: normal anklickbar, mit rotem Hinweis «Testmodus» bei den Fächern */
     .test { background: #d32f2f; color: #fff; }
     .kachel.bald .kachel-bild { font-size: 110px; }
+    /* Spiel noch nicht freigeschaltet: grauer, durchsichtiger Querbalken über die ganze Kachel (Spiel bleibt anklickbar) */
+    .kachel { position: relative; }
+    .sperre {
+      position: absolute; left: -6px; right: -6px; top: 32%; z-index: 2;
+      transform: translateY(-50%) rotate(-10deg);
+      background: rgba(84, 98, 110, .72); color: #fff;
+      padding: 14px 10px; font-size: 26px; font-weight: 900; letter-spacing: .02em;
+      box-shadow: 0 4px 14px rgba(0,0,0,.18); pointer-events: none;
+    }
     footer { margin-top: 48px; text-align: center; color: #78909c; font-size: 14px; }
   </style>
 </head>
@@ -76,6 +85,7 @@
        modus: Hinweis-Kachel mit der Anzahl Personen, z. B. «1 Person» (leer lassen, wenn keiner)
        farbe: vorerst bei allen Grün (später eine Farbe pro Fach)
        bald: true = Spiel noch im Test: anklickbar, mit rotem Hinweis «Testmodus»
+       gesperrt: true = grauer Querbalken «Nicht freigeschaltet.» über der Kachel
        ========================================================= */
     const SPIELE = [
       {
@@ -124,8 +134,10 @@
         modus: '',
         text: '',
         link: 'spiele/wasser-tiere-quiz/index.html',
-        bild: 'spiele/wasser-tiere-quiz/kachel.svg',
-        farbe: '#0277bd'
+        bild: 'spiele/wasser-tiere-quiz/kachel-boppi.png',
+        farbe: '#0277bd',
+        gesperrt: true   // grauer Querbalken «Nicht freigeschaltet.»
+
       }
     ];
 
@@ -142,6 +154,7 @@
         </div>
         ${s.text ? `<p>${esc(s.text)}</p>` : ''}
         <span class="knopf gross filz">Spielen ▶</span>
+        ${s.gesperrt ? '<div class="sperre">Nicht freigeschaltet.</div>' : ''}
       </a>`).join('') + `
       <div class="kachel bald filz" aria-hidden="true">
         <div class="kachel-bild">✨</div>

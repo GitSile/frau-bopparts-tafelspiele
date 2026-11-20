@@ -47,7 +47,7 @@ spiele/
   wasser-tiere-quiz/       das Wasser-Tiere-Quiz (früher boppi.netlify.app)
     index.html             Quiz, Fragen und Stil in einer Datei
     warten.mp4, richtig.mp4, falsch.mp4   Boppi-Videos
-    kachel.svg             Bild für die Startseite
+    kachel-boppi.png       Bild für die Startseite (strahlender Boppi aus richtig.mp4)
 ```
 
 ## Neues Spiel hinzufügen
