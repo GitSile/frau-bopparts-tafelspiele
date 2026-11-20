@@ -49,7 +49,7 @@
     /* Archiv-Ordner: grau hinterlegt, öffnet sich beim Antippen und zeigt die archivierten Spiele */
     .kachel.ordner { background: #e3e7ea; --filz-farbe: #90a4ae; cursor: pointer; font: inherit; border: 0; }
     .kachel.ordner h2 { color: #546e7a; }
-    .kachel.ordner .knopf { background: #fff; color: #546e7a; }
+    .kachel.ordner .knopf { background: #78909c; color: #fff; --filz-farbe: #546e7a; }
     .archiv { margin-top: 28px; padding: 26px; background: #e3e7ea; border-radius: var(--wackel-klein, 18px); }
     .archiv[hidden] { display: none; }
     .archiv h3 { margin: 0 0 18px; font-size: 26px; font-weight: 900; color: #546e7a; text-align: center; }
@@ -162,21 +162,20 @@
         <h2>Weitere Spiele sind in Arbeit.</h2>
       </div>` + (archiviert.length ? `
       <button type="button" class="kachel ordner filz" id="ordner" aria-expanded="false" aria-controls="archiv">
-        <div class="kachel-bild" style="font-size:120px">🗄️</div>
+        <div class="kachel-bild"><img src="bilder/archiv.svg" alt="" style="width:160px"></div>
         <h2>Archiv</h2>
-        <div class="hinweise"><span class="fach">${archiviert.length} ${archiviert.length === 1 ? 'Spiel' : 'Spiele'}</span></div>
-        <span class="knopf gross filz" id="ordner-knopf">Öffnen ▼</span>
+        <span class="knopf gross filz" id="ordner-knopf">Öffnen</span>
       </button>` : '');
     if (archiviert.length) {
       const archiv = document.createElement('section');
       archiv.className = 'archiv'; archiv.id = 'archiv'; archiv.hidden = true;
-      archiv.innerHTML = '<h3>🗄️ Archiv</h3><nav class="kacheln" aria-label="Archivierte Spiele">' + archiviert.map(kachel).join('') + '</nav>';
+      archiv.innerHTML = '<h3>Archiv</h3><nav class="kacheln" aria-label="Archivierte Spiele">' + archiviert.map(kachel).join('') + '</nav>';
       kacheln.after(archiv);
       const ordner = document.getElementById('ordner');
       ordner.addEventListener('click', () => {
         archiv.hidden = !archiv.hidden;
         ordner.setAttribute('aria-expanded', String(!archiv.hidden));
-        document.getElementById('ordner-knopf').textContent = archiv.hidden ? 'Öffnen ▼' : 'Schliessen ▲';
+        document.getElementById('ordner-knopf').textContent = archiv.hidden ? 'Öffnen' : 'Schliessen';
         if (!archiv.hidden) archiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }

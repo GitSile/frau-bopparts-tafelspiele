@@ -82,7 +82,7 @@ Einkaufen: Die Bilder in `spiele/einkaufen/bilder/` (Laden-Hintergrund, 30 Produ
 
 Wasser-Tiere-Quiz: Quiz und Boppi-Videos von Céline Boppart (übernommen von boppi.netlify.app). Auf der Startseite liegt es im grauen Archiv-Ordner (Eintrag `archiv: true` in `index.html`).
 
-Startseite: Das Bild `bilder/baustelle.png` (Löwe als Bauarbeiter für die Kachel «Weitere Spiele sind in Arbeit.») wurde mit ChatGPT erstellt.
+Startseite: Der Aktenschrank `bilder/archiv.svg` ist selbst gezeichnet. Das Bild `bilder/baustelle.png` (Löwe als Bauarbeiter für die Kachel «Weitere Spiele sind in Arbeit.») wurde mit ChatGPT erstellt.
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
