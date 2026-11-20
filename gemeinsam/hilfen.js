@@ -171,6 +171,19 @@ document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.clos
   window.addEventListener('mousedown', ev => notiere('maus', ev), true);
   window.addEventListener('click', ev => notiere('klick', ev), true);
   window.addEventListener('error', ev => { z.fehler = String(ev.message).slice(0, 60); });
+  // Ereignisse rund um den Ausfall: wer nimmt dem Spiel die Berührungen weg?
+  const verlauf = [];
+  const merke = text => { verlauf.push(`${Math.round(performance.now() / 1000)}s ${text}`); if (verlauf.length > 6) verlauf.shift(); };
+  let finger = 0;
+  window.addEventListener('touchstart', ev => { finger = ev.touches.length; }, { capture: true, passive: true });
+  window.addEventListener('touchend', ev => { finger = ev.touches.length; }, { capture: true, passive: true });
+  window.addEventListener('touchcancel', ev => { finger = ev.touches.length; merke('touchcancel'); }, { capture: true, passive: true });
+  window.addEventListener('pointercancel', ev => merke('pointercancel ' + ev.pointerType), true);
+  window.addEventListener('blur', () => merke('Fenster verliert Fokus'));
+  window.addEventListener('focus', () => merke('Fenster hat Fokus'));
+  document.addEventListener('visibilitychange', () => merke('sichtbar: ' + document.visibilityState));
+  document.addEventListener('fullscreenchange', () => merke(document.fullscreenElement ? 'Vollbild an' : 'Vollbild aus'));
+  window.addEventListener('resize', () => merke(`Grösse ${innerWidth}×${innerHeight}`));
   const alt = window.meldeFehler;
   window.meldeFehler = function (e, wo) { z.fehler = `${wo}: ${String((e && e.message) || e).slice(0, 50)}`; return alt(e, wo); };
   function bild(jetzt) {
@@ -185,7 +198,8 @@ document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.clos
     }
     if (box) box.textContent = `Berührungen: pointer ${z.pointer} · touch ${z.touch} · maus ${z.maus} · klick ${z.klick}\n`
       + `letzte: ${letzte}\nBilder/s: ${z.fps} · Hänger: ${z.haenger} · Zeit: ${Math.round(jetzt / 1000)}s\n`
-      + `Ersatz: ${beruehrung.anzahlErsatz} · Fehler: ${z.fehler || 'keiner'}`;
+      + `Ersatz: ${beruehrung.anzahlErsatz} · Finger auf Tafel: ${finger} · Fokus: ${document.hasFocus() ? 'ja' : 'NEIN'} · Fehler: ${z.fehler || 'keiner'}`
+      + (verlauf.length ? '\n' + verlauf.join('\n') : '');
     requestAnimationFrame(bild);
   }
   requestAnimationFrame(bild);
