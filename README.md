@@ -10,6 +10,7 @@ Lernspiele für die digitale Schultafel. Alle Spiele laufen direkt im Browser, o
 | [Uhr lesen](spiele/uhr-lesen/index.html) | Mathematik | Für 1 oder 2 Kinder: Uhrzeiten ablesen und eintippen oder die Zeiger einer Uhr stellen. Jede richtige Antwort bringt das Tier mit der Fackel näher an die Zündschnur – dann startet die Rakete. |
 | [Mathe-Erlebnisse](spiele/mathe-wanderung/index.html) | Mathematik, 1.–4. Klasse | Für eine Person: Mit jeder richtigen Antwort kommt das Tier einen Schritt weiter. 8 richtige Antworten = Level geschafft, dann hebt der Kran das Tier in die nächste von 14 Welten (jede kommt einmal dran, bevor sich eine wiederholt). |
 | [Einkaufen](spiele/einkaufen/index.html) | Mathematik | Für 1 oder 2 Kinder: Im Markt liegen Produkte mit Preisschild auf dem Kassenband (auf Wunsch legen die Kinder sie selbst aufs Band). Wer das Total in Franken richtig ausrechnet, bekommt eine Goldmünze ins Samtsäckchen. Sind alle Säckchen voll, ist das Spiel fertig. |
+| [Wasser-Tiere-Quiz](spiele/wasser-tiere-quiz/index.html) | NMG | Quiz mit 10 Fragen zu Süsswasser- und Salzwasserfischen. Boppi, das Erdmännchen, freut sich bei richtigen Antworten und muntert bei falschen auf; falsch beantwortete Fragen kommen am Schluss nochmals. |
 
 ## Aufbau
 
@@ -43,6 +44,10 @@ spiele/
     produkte.js            die 30 Produkte und die Preise (in Rappen gerechnet)
     spiel.js
     bilder/                Laden, Kassiererin, Goldsäckchen, Elefant mit Einkaufskorb, produkte/ (30 Produkte)
+  wasser-tiere-quiz/       das Wasser-Tiere-Quiz (früher boppi.netlify.app)
+    index.html             Quiz, Fragen und Stil in einer Datei
+    warten.mp4, richtig.mp4, falsch.mp4   Boppi-Videos
+    kachel.svg             Bild für die Startseite
 ```
 
 ## Neues Spiel hinzufügen
@@ -74,6 +79,8 @@ Bilder in `spiele/uhr-lesen/bilder/` (Tiere mit Fackel, gebückte Tiere beim Zü
 Mathe-Erlebnisse: Mit ChatGPT erstellt sind der Bär-Wanderer (`spiele/mathe-wanderung/bilder/baer-wandern.png`), die 14 Welt-Hintergründe (`bilder/welten/`, mit den aufgesprühten Ziellinien und dem Landeplatz im Gras; den Schriftzug «Zuzi-Bahn» auf dem Zug haben wir selbst perspektivisch eingesetzt), die Maschinen, das Steuerpult, das U-Boot, die Möwen mit Zielfähnchen (4 Bilder eines Flügelschlags) und die Münze (`bilder/teile/`), die Fahrzeuge mit jedem Tier am Steuer (Buggy, Boot, Flugzeug mit Fliegerbrille, Schlitten, Gleitschirm mit Gurtzeug; `bilder/fahrzeuge/`) und die Posen zum Hebelziehen (`bilder/hebel/`). Ortsnamen («Zuzwil», «Aadorf»), Fahnen, Stufen-Zeichen, Zielband, Windsack, Hebel, Kabel und Kran sind im Code gezeichnet (`welten.js`, `index.html`). Das Spiel benutzt die Tierfiguren, Tierköpfe, den Vogel und die Töne von Mathe-Fussball. Das Kran-Geräusch `spiele/mathe-wanderung/toene/kran-hydraulik.mp3` ist «Homemade hydraulic hoist» von chainsaw_dinner_party (Freesound) über Pixabay (https://pixabay.com/sound-effects/technology-homemade-hydraulic-hoist-30527/, Pixabay Content License); das Spiel spielt nur Ausschnitte daraus, ohne die gesprochenen Worte am Anfang.
 
 Einkaufen: Die Bilder in `spiele/einkaufen/bilder/` (Laden-Hintergrund, 30 Produkte in `produkte/`, Kassiererin, Goldsäckchen, Elefant mit Einkaufskorb) wurden mit ChatGPT erstellt. Regal, Kühlschrank, Kasse, Preisschilder, die aufgestickten Zahlen und die Münzen sind im Code gezeichnet (`style.css`, `spiel.js`). Das Spiel benutzt die Töne `richtig.mp3`, `falsch.mp3`, `tick.wav` und `jubel.mp3`, die Tierköpfe, die jubelnden Figuren und den Vogel von Mathe-Fussball; das Klimpern der Münzen wird im Code erzeugt.
+
+Wasser-Tiere-Quiz: Quiz und Boppi-Videos von Céline Boppart (übernommen von boppi.netlify.app).
 
 Schrift: Deutschschweizer Basisschrift © NW EDK / EDK-Ost / BKZ (basisschrift.ch).
 Verwendung mit Erlaubnis der Rechteinhaber. Die Schriftdatei in `gemeinsam/schriften/`
