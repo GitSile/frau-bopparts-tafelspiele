@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wasser-Tiere-Quiz · Frau Bopparts Tafelspiele</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;background:#ffffff;padding-bottom:40px;overflow-x:hidden;}
+#loader{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+.lmoji{font-size:3.5rem;animation:lbob 1s ease-in-out infinite alternate;}
+.llabel{font-family:'Baloo 2',cursive;font-weight:800;color:#3d8b37;font-size:1.1rem;}
+.lwrap{width:240px;height:12px;background:#daefd8;border-radius:20px;overflow:hidden;}
+.lfill{height:100%;width:0;background:linear-gradient(90deg,#3d8b37,#5aaa53);border-radius:20px;transition:width 0.4s ease;}
+@keyframes lbob{from{transform:translateY(0) rotate(-8deg);}to{transform:translateY(-10px) rotate(8deg);}}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.sky{position:absolute;inset:0;background:#ffffff;}
+.sun{position:absolute;top:50px;right:7%;width:88px;height:88px;background:radial-gradient(circle,#fff7a0 30%,#ffd84d 70%,#ffb833 100%);border-radius:50%;box-shadow:0 0 55px 22px rgba(255,210,60,0.30);}
+.sun::before{content:'';position:absolute;inset:-44px;background:repeating-conic-gradient(rgba(255,220,60,0.14) 0deg 20deg,transparent 20deg 40deg);border-radius:50%;animation:sunsp 16s linear infinite;}
+@keyframes sunsp{to{transform:rotate(360deg);}}
+.tree{position:fixed;bottom:0;z-index:4;pointer-events:none;}
+.tree-l{left:0;}.tree-r{right:0;}
+.topbar{position:relative;z-index:10;width:100%;background:rgba(255,255,255,0.92);padding:11px 24px 8px;display:flex;flex-direction:column;align-items:center;}
+.zurueck{position:absolute;left:16px;top:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;color:#3d8b37;text-decoration:none;background:#fff;border:2px solid #a8d5a5;border-radius:12px;padding:6px 12px;}
+.zurueck:hover{background:#eaf6e9;}
+@media (max-width:560px){.topbar{padding-top:48px;}}
+.topbar h1{font-family:'Baloo 2',cursive;font-size:1.7rem;font-weight:800;color:#3d8b37;}
+.topbar p{font-size:.85rem;color:#6b9268;font-weight:700;margin-top:2px;}
+.main{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px;padding:10px 16px 0;justify-content:center;}
+.stage{position:relative;width:220px;height:300px;margin:0 auto 6px;overflow:visible;}
+.bv{position:absolute;bottom:0;width:220px;height:300px;object-fit:contain;opacity:0;transition:opacity 0.35s ease;pointer-events:none;display:block;vertical-align:bottom;border:none;outline:none;}
+.bv.on{opacity:1;}
+.cloud{position:absolute;border-radius:50%;background:radial-gradient(ellipse at 40% 40%,rgba(135,206,235,0.90) 0%,rgba(135,206,235,0.55) 45%,rgba(135,206,235,0.15) 72%,transparent 100%);pointer-events:none;z-index:6;}
+@keyframes fla{0%,100%{transform:translateY(0);}40%{transform:translateY(-10px) translateX(4px);}70%{transform:translateY(-4px) translateX(-4px);}}
+@keyframes flb{0%,100%{transform:translateY(0);}35%{transform:translateY(-13px) translateX(-5px);}65%{transform:translateY(-5px) translateX(5px);}}
+@keyframes flc{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px) translateX(3px);}}
+.cl1{width:130px;height:68px;top:-10px;right:calc(100% + 8px);animation:fla 7s ease-in-out infinite;}
+.cl1::before{content:'';position:absolute;width:72px;height:72px;border-radius:50%;background:rgba(135,206,235,0.85);top:-30px;left:20px;}
+.cl1::after{content:'';position:absolute;width:50px;height:50px;border-radius:50%;background:rgba(135,206,235,0.80);top:-20px;right:14px;}
+.cl2{width:90px;height:48px;top:90px;right:calc(100% + 28px);animation:flc 9s ease-in-out infinite 1.5s;}
+.cl2::before{content:'';position:absolute;width:50px;height:50px;border-radius:50%;background:rgba(135,206,235,0.82);top:-22px;left:12px;}
+.cr1{width:118px;height:62px;top:14px;left:calc(100% + 12px);animation:flb 8.5s ease-in-out infinite 0.7s;}
+.cr1::before{content:'';position:absolute;width:65px;height:65px;border-radius:50%;background:rgba(135,206,235,0.85);top:-27px;left:16px;}
+.cr1::after{content:'';position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(135,206,235,0.78);top:-17px;right:12px;}
+.cr2{width:96px;height:52px;top:115px;left:calc(100% + 18px);animation:fla 10.5s ease-in-out infinite 2.8s;}
+.cr2::before{content:'';position:absolute;width:55px;height:55px;border-radius:50%;background:rgba(135,206,235,0.80);top:-24px;left:14px;}
+.ct1{width:155px;height:68px;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);animation:flb 8s ease-in-out infinite 1s;}
+.ct1::before{content:'';position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(135,206,235,0.88);top:-35px;left:26px;}
+.ct1::after{content:'';position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(135,206,235,0.80);top:-24px;right:18px;}
+.bubble{position:absolute;bottom:175px;left:218px;transform:scale(0.75);transform-origin:bottom left;background:white;border:2.5px solid #3d8b37;border-radius:18px;padding:9px 18px;font-family:'Baloo 2',cursive;font-weight:700;font-size:.92rem;color:#1e3a1c;white-space:nowrap;box-shadow:0 4px 16px rgba(40,90,35,0.15);opacity:0;pointer-events:none;z-index:20;transition:opacity .28s ease,transform .34s cubic-bezier(0.34,1.56,0.64,1);}
+.bubble::after{content:'';position:absolute;bottom:13px;left:-13px;border:7px solid transparent;border-right-color:#3d8b37;}
+.bubble::before{content:'';position:absolute;bottom:13px;left:-10px;border:7px solid transparent;border-right-color:white;z-index:1;}
+.bubble.on{opacity:1;transform:scale(1);}
+.bubble.c{border-color:#3d8b37;color:#3d8b37;}.bubble.c::after{border-right-color:#3d8b37;}
+.bubble.w{border-color:#f07d00;color:#f07d00;}.bubble.w::after{border-right-color:#f07d00;}
+@keyframes fly{0%{transform:translate(0,0) rotate(0) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.3);opacity:0;}}
+.fx{position:absolute;pointer-events:none;font-size:1.2rem;z-index:30;animation:fly .9s ease-out forwards;top:40%;left:50%;}
+.scores{display:flex;gap:10px;margin-bottom:10px;}
+.sbadge{padding:5px 16px;border-radius:20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:6px;}
+.ok{background:rgba(234,246,233,0.92);color:#3d8b37;border:2px solid #a8d5a5;}
+.err{background:rgba(255,244,229,0.92);color:#f07d00;border:2px solid #ffc880;}
+.card{background:rgba(255,255,255,0.95);border:2px solid #c4dfc2;border-radius:20px;padding:24px 28px;width:100%;box-shadow:0 6px 28px rgba(0,0,0,0.11);position:relative;z-index:10;}
+.pw{background:#daefd8;height:9px;margin-bottom:14px;overflow:hidden;}
+.pb{height:100%;background:linear-gradient(90deg,#3d8b37,#5aaa53);transition:width .5s ease;}
+.qn{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#6b9268;margin-bottom:6px;}
+.qt{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:700;color:#1e3a1c;margin-bottom:16px;line-height:1.5;}
+.olist{display:flex;flex-direction:column;gap:8px;}
+.obtn{background:rgba(244,249,243,0.9);border:2px solid #cce4ca;border-radius:12px;padding:11px 16px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;color:#1e3a1c;cursor:pointer;text-align:left;line-height:1.4;-webkit-appearance:none;width:100%;position:relative;z-index:11;}
+.obtn:disabled{cursor:default;opacity:0.7;}
+.obtn.correct{background:#eaf6e9;border-color:#3d8b37;color:#3d8b37;}
+.obtn.wrong{background:#fdf0f0;border-color:#e05252;color:#e05252;}
+.nbtn{display:none;margin-top:16px;width:100%;background:#3d8b37;color:white;border:none;border-radius:12px;padding:13px;font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:700;cursor:pointer;-webkit-appearance:none;position:relative;z-index:11;}
+.res{display:none;text-align:center;}
+.res h2{font-family:'Baloo 2',cursive;font-size:1.8rem;color:#3d8b37;margin-bottom:6px;}
+.rscore{font-family:'Baloo 2',cursive;font-size:3.8rem;font-weight:800;color:#f07d00;line-height:1;margin:8px 0;}
+.rmsg{color:#6b9268;font-size:1rem;font-weight:700;margin-bottom:20px;}
+.rbtn{background:#f07d00;color:white;border:none;border-radius:12px;padding:12px 28px;font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:700;cursor:pointer;-webkit-appearance:none;}
+.copy{font-size:.72rem;color:#b8c0b6;text-align:center;margin-top:10px;position:relative;z-index:5;}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="lmoji">&#127807;</div>
+  <div class="llabel">Boppi wird geladen&#8230;</div>
+  <div class="lwrap"><div class="lfill" id="lfill"></div></div>
+</div>
+
+<div class="bg">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <svg class="tree tree-l" width="130" height="320" viewBox="0 0 130 320" xmlns="http://www.w3.org/2000/svg">
+    <rect x="57" y="120" width="13" height="200" rx="4" fill="#7a5520"/>
+    <line x1="63" y1="175" x2="28" y2="142" stroke="#7a5520" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="62" cy="108" rx="56" ry="24" fill="#3d7a20"/>
+    <ellipse cx="82" cy="118" rx="40" ry="19" fill="#4a8a28"/>
+    <ellipse cx="42" cy="120" rx="36" ry="17" fill="#3d7a20"/>
+    <ellipse cx="62" cy="96" rx="48" ry="20" fill="#4a8a28"/>
+    <ellipse cx="62" cy="84" rx="38" ry="15" fill="#5aaa38"/>
+  </svg>
+  <svg class="tree tree-r" width="140" height="340" viewBox="0 0 140 340" xmlns="http://www.w3.org/2000/svg">
+    <rect x="63" y="118" width="14" height="222" rx="4" fill="#7a5520"/>
+    <line x1="70" y1="172" x2="108" y2="138" stroke="#7a5520" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="68" cy="104" rx="62" ry="26" fill="#3d7a20"/>
+    <ellipse cx="44" cy="116" rx="42" ry="21" fill="#4a8a28"/>
+    <ellipse cx="92" cy="114" rx="40" ry="20" fill="#3d7a20"/>
+    <ellipse cx="68" cy="90" rx="52" ry="22" fill="#4a8a28"/>
+    <ellipse cx="68" cy="78" rx="42" ry="16" fill="#5aaa38"/>
+  </svg>
+  <svg style="position:absolute;bottom:0;left:0;width:100%;height:52%" viewBox="0 0 800 300" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="gG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8b870"/><stop offset="100%" stop-color="#8a6530"/></linearGradient></defs>
+    <ellipse cx="400" cy="155" rx="520" ry="90" fill="url(#gG)"/>
+    <rect x="0" y="200" width="800" height="100" fill="#a07040"/>
+    <rect x="0" y="245" width="800" height="55" fill="#7a5530"/>
+    <ellipse cx="60" cy="228" rx="44" ry="27" fill="#a09070"/><ellipse cx="78" cy="218" rx="28" ry="19" fill="#b8a880"/>
+    <ellipse cx="742" cy="232" rx="48" ry="29" fill="#a09070"/><ellipse cx="760" cy="220" rx="33" ry="21" fill="#b8a880"/>
+    <ellipse cx="232" cy="216" rx="27" ry="15" fill="#5a9a30"/><ellipse cx="218" cy="220" rx="18" ry="11" fill="#4a8a28"/>
+    <ellipse cx="578" cy="218" rx="31" ry="16" fill="#5a9a30"/><ellipse cx="595" cy="221" rx="21" ry="13" fill="#6aaa38"/>
+    <g fill="#c8a040" opacity="0.82">
+      <polygon points="160,234 163,210 166,234"/><polygon points="170,236 174,207 178,236"/>
+      <polygon points="302,231 305,207 308,231"/><polygon points="312,234 316,205 320,234"/>
+      <polygon points="482,232 485,206 488,232"/><polygon points="492,234 496,204 500,234"/>
+      <polygon points="622,233 625,209 628,233"/><polygon points="632,235 636,206 640,235"/>
+    </g>
+    <ellipse cx="400" cy="256" rx="58" ry="17" fill="#9a7040"/>
+    <ellipse cx="400" cy="250" rx="40" ry="11" fill="#b08848"/>
+    <ellipse cx="400" cy="253" rx="17" ry="9" fill="#7a5530"/>
+  </svg>
+</div>
+
+<div class="topbar">
+  <a class="zurueck" href="../../index.html">&larr; Alle Spiele</a>
+  <h1>&#128031; Wasser-Tiere-Quiz</h1>
+  <p>mit Boppi, dem Erdm&auml;nnchen</p>
+</div>
+
+<div class="main">
+  <div class="stage" id="stage">
+    <div class="cloud cl1"></div><div class="cloud cl2"></div>
+    <div class="cloud cr1"></div><div class="cloud cr2"></div>
+    <div class="cloud ct1"></div>
+    <div class="bubble" id="bubble"></div>
+    <video class="bv on" id="vIdle"      playsinline muted loop src="warten.mp4"></video>
+    <video class="bv"    id="vHappy"     playsinline muted loop src="richtig.mp4"></video>
+    <video class="bv"    id="vEncourage" playsinline muted loop src="falsch.mp4"></video>
+  </div>
+  <div class="scores">
+    <div class="sbadge ok">&#9989; <span id="sOk">0</span></div>
+    <div class="sbadge err">&#10060; <span id="sErr">0</span></div>
+  </div>
+  <div class="card">
+    <div class="pw"><div class="pb" id="pb" style="width:0%"></div></div>
+    <div class="qn" id="qn">Frage 1 von 10</div>
+    <div class="qt" id="qt"></div>
+    <div class="olist" id="ol"></div>
+    <button class="nbtn" id="nb">N&auml;chste Frage &rarr;</button>
+    <div class="res" id="res">
+      <h2>Geschafft! &#127881;</h2>
+      <div class="rscore" id="fs">0/10</div>
+      <p class="rmsg" id="rm"></p>
+      <button class="rbtn" onclick="startQuiz()">Nochmal &#128260;</button>
+    </div>
+  </div>
+  <p class="copy">&copy; C&eacute;line Boppart</p>
+</div>
+
+<script>
+var Q=[
+  {q:"Wo leben S\u00FCsswasserfische?",o:["Im Meer, wo das Wasser salzig ist","In Seen und Fl\u00FCssen, wo das Wasser nicht salzig ist","Nur in sehr kaltem Wasser","Nur in warmem Wasser"],a:1},
+  {q:"Warum trinken S\u00FCsswasserfische kein Wasser?",o:["Weil sie kein Wasser brauchen","Weil sie st\u00E4ndig Wasser aufnehmen und es wieder loswerden m\u00FCssen","Weil sie im Meer leben","Weil sie nur Salz trinken"],a:1},
+  {q:"Wie scheiden S\u00FCsswasserfische \u00FCbersch\u00FCssiges Wasser aus?",o:["Sie trinken viel Wasser und speichern es","Sie scheiden viel verd\u00FCnnten Harn aus","Sie schwitzen das Wasser aus","Sie nehmen kein Wasser auf"],a:1},
+  {q:"Was passiert mit Salzwasserfischen im salzigen Meer?",o:["Sie verlieren Wasser und m\u00FCssen viel trinken","Sie nehmen kein Wasser auf","Sie scheiden kein Salz aus","Sie leben nur in Fl\u00FCssen"],a:0},
+  {q:"Welche besondere F\u00E4higkeit haben die Kiemenzellen von Salzwasserfischen?",o:["Sie helfen, das Salz aus dem K\u00F6rper zu entfernen","Sie helfen, Wasser zu speichern","Sie machen die Fische bunt","Sie helfen beim Atmen unter Wasser"],a:0},
+  {q:"Warum k\u00F6nnen manche Fische wie Lachs und Aal in beiden Gew\u00E4ssern leben?",o:["Weil sie keine Kiemenzellen haben","Weil ihre Kiemenzellen sich an den Salzgehalt anpassen k\u00F6nnen","Weil sie nur in S\u00FCsswasser leben","Weil sie nur im Meer leben"],a:1},
+  {q:"Was ist der Hauptunterschied zwischen S\u00FCsswasser- und Salzwasserfischen?",o:["S\u00FCsswasserfische haben keine Kiemen","Salzwasserfische trinken viel Wasser und scheiden Salz aus, S\u00FCsswasserfische scheiden viel Wasser aus","S\u00FCsswasserfische leben im Meer","Salzwasserfische leben in Fl\u00FCssen"],a:1},
+  {q:"Welche Aussage zeigt, dass Fische sich gut an ihre Umgebung anpassen?",o:["Sie k\u00F6nnen nur in einem Gew\u00E4sser leben","Sie ver\u00E4ndern ihre Kiemenzellen, um mit dem Salzgehalt zurechtzukommen","Sie trinken kein Wasser","Sie schwimmen immer schnell"],a:1},
+  {q:"Warum ist es wichtig, dass Salzwasserfische Salz aus ihrem K\u00F6rper entfernen?",o:["Weil zu viel Salz sch\u00E4dlich f\u00FCr sie ist","Weil sie Salz essen wollen","Weil sie Wasser speichern wollen","Weil sie im S\u00FCsswasser leben"],a:0},
+  {q:"Was lernen wir aus dem Gespr\u00E4ch von Lena und Jonas \u00FCber Fische?",o:["Fische k\u00F6nnen nicht in verschiedenen Gew\u00E4ssern leben","Fische passen sich an ihre Umgebung an, um zu \u00FCberleben","Fische trinken immer viel Wasser","Fische leben nur im Meer"],a:1}
+];
+var HM=["Jawoll! Super gemacht!","YES! Genau richtig!","Bravo! Du bist toll!","Perfekt! Weiter so!","Richtig! Ich wusste es!","Top! High five!","So clever!","Genial! Du rockst!"];
+var WM=["Nicht schlimm! Du schaffst das!","Fast! N\u00E4chstes Mal!","Kopf hoch!","Ich glaube an dich!","Halb so wild!","Kein Problem! Weiter!"];
+
+var vI=document.getElementById('vIdle');
+var vH=document.getElementById('vHappy');
+var vE=document.getElementById('vEncourage');
+var bub=document.getElementById('bubble');
+var ld=document.getElementById('loader');
+var lf=document.getElementById('lfill');
+
+// Loader
+function hideLoader(){
+  if(lf){lf.style.width='100%';}
+  setTimeout(function(){
+    if(ld){ld.style.transition='opacity 0.4s';ld.style.opacity='0';}
+    setTimeout(function(){ if(ld)ld.style.display='none'; },450);
+  },300);
+}
+window.addEventListener('load',function(){ setTimeout(hideLoader,400); });
+setTimeout(hideLoader,8000);
+
+// Video
+function showVid(w){
+  [vI,vH,vE].forEach(function(v){ v.classList.remove('on'); try{v.pause();}catch(e){} });
+  var t=(w==='happy')?vH:(w==='encourage')?vE:vI;
+  t.classList.add('on');
+  t.currentTime=0;
+  var p=t.play(); if(p&&p.catch)p.catch(function(){});
+}
+document.addEventListener('touchstart',function(){
+  [vI,vH,vE].forEach(function(v){
+    var p=v.play();
+    if(p&&p.then)p.then(function(){ if(v!==vI)v.pause(); }).catch(function(){});
+  });
+},{once:true,passive:true});
+
+// Bubble
+var bt=null;
+function showBub(txt,type,dur){
+  bub.textContent=txt; bub.className='bubble';
+  if(type==='c')bub.classList.add('c');
+  if(type==='w')bub.classList.add('w');
+  bub.classList.add('on'); clearTimeout(bt);
+  bt=setTimeout(function(){ bub.classList.remove('on'); },dur);
+}
+
+// FX
+function spawnFX(){
+  var s=document.getElementById('stage');
+  var e=['&#11088;','&#10024;','&#127881;','&#128154;','&#127752;','&#128171;','&#127882;','&#127942;'];
+  for(var i=0;i<9;i++)(function(){
+    var p=document.createElement('div'); p.className='fx';
+    p.innerHTML=e[Math.floor(Math.random()*e.length)];
+    var ang=(Math.random()*300-150)*Math.PI/180,d=60+Math.random()*90;
+    p.style.setProperty('--tx',Math.round(Math.sin(ang)*d)+'px');
+    p.style.setProperty('--ty',Math.round(-Math.abs(Math.cos(ang)*d)-30)+'px');
+    p.style.setProperty('--rot',Math.round(Math.random()*360)+'deg');
+    p.style.animationDelay=(Math.random()*.25).toFixed(2)+'s';
+    p.style.animationDuration=(.7+Math.random()*.5).toFixed(2)+'s';
+    s.appendChild(p);
+    setTimeout(function(){ if(p.parentNode)p.parentNode.removeChild(p); },1400);
+  })();
+}
+
+// Quiz
+var queue=[],ci=0,cur=null,tot=0,ans=0,cor=0,wrg=0;
+function upScore(){ document.getElementById('sOk').textContent=cor; document.getElementById('sErr').textContent=wrg; }
+
+function startQuiz(){
+  queue=Q.map(function(q){ return {q:q.q,o:q.o,a:q.a,retry:false}; });
+  ci=0;tot=queue.length;ans=0;cor=0;wrg=0;upScore();
+  document.getElementById('res').style.display='none';
+  document.getElementById('qn').style.display='';
+  document.getElementById('qt').style.display='';
+  document.getElementById('ol').style.display='';
+  document.getElementById('pb').parentElement.style.display='';
+  document.getElementById('nb').style.display='none';
+  showVid('idle'); renderQ();
+  showBub('Viel Erfolg!','',2500);
+}
+function renderQ(){
+  if(ci>=queue.length){ showRes(); return; }
+  cur=queue[ci];
+  document.getElementById('qn').textContent='Frage '+(ans+1)+' von '+tot;
+  document.getElementById('pb').style.width=(ans/tot*100)+'%';
+  document.getElementById('qt').textContent=cur.q;
+  var ol=document.getElementById('ol'); ol.innerHTML='';
+  cur.o.forEach(function(txt,i){
+    var b=document.createElement('button');
+    b.className='obtn'; b.textContent=txt;
+    b.addEventListener('click',function(){ pick(i); });
+    ol.appendChild(b);
+  });
+  document.getElementById('nb').style.display='none';
+}
+function pick(idx){
+  var ok=(idx===cur.a);
+  var btns=document.querySelectorAll('.obtn');
+  for(var i=0;i<btns.length;i++){
+    btns[i].disabled=true;
+    if(i===cur.a)btns[i].classList.add('correct');
+    else if(i===idx&&!ok)btns[i].classList.add('wrong');
+  }
+  ans++;
+  if(ok){
+    cor++; if(cur.retry&&wrg>0)wrg--;
+    showVid('happy'); showBub(HM[Math.floor(Math.random()*HM.length)],'c',3500); spawnFX();
+  } else {
+    wrg++; queue.push({q:cur.q,o:cur.o,a:cur.a,retry:true}); tot++;
+    showVid('encourage'); showBub(WM[Math.floor(Math.random()*WM.length)],'w',3500);
+  }
+  upScore();
+  document.getElementById('pb').style.width=(ans/tot*100)+'%';
+  var nb=document.getElementById('nb'); nb.style.display='block';
+  nb.textContent=(ci+1<queue.length)?'N\u00E4chste Frage \u2192':'Ergebnis anzeigen';
+}
+document.getElementById('nb').addEventListener('click',function(){
+  ci++; if(ci<queue.length){showVid('idle');renderQ();}else showRes();
+});
+function showRes(){
+  document.getElementById('res').style.display='block';
+  ['qn','qt','ol'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+  document.getElementById('pb').parentElement.style.display='none';
+  document.getElementById('nb').style.display='none';
+  document.getElementById('fs').textContent=cor+'/'+Q.length;
+  var r=cor/Q.length,msg='';
+  if(r===1){msg='Perfekt! Absoluter Champion!';showVid('happy');showBub('UNGLAUBLICH!','c',5000);spawnFX();}
+  else if(r>=.8){msg='Sehr gut! Fast alles richtig!';showVid('happy');showBub('Super!','c',4000);}
+  else if(r>=.6){msg='Gut gemacht!';showVid('happy');showBub('Sch\u00F6n gemacht!','c',3500);}
+  else if(r>=.4){msg='Nicht schlecht! Weiter \u00FCben!';showVid('encourage');showBub('Du schaffst mehr!','w',3500);}
+  else{msg='Nochmal versuchen!';showVid('encourage');showBub('Ich glaube an dich!','w',3500);}
+  document.getElementById('rm').textContent=msg;
+}
+
+startQuiz();
+</script>
+<script data-goatcounter="https://sile.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
