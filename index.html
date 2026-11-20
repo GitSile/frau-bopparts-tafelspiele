@@ -50,6 +50,8 @@
     .kachel { position: relative; }
     /* Der Balken wird knapp innerhalb der Kachel abgeschnitten; der Filzstift-Rand (::after) liegt darüber.
        So berührt der Balken den Rand überall, überdeckt ihn aber nicht. */
+    /* Nicht freigeschaltetes Spiel: ganze Kachel grau (auch das Bild und der Rand), bleibt anklickbar */
+    .kachel.gesperrt { filter: grayscale(1); }
     .sperre-rahmen { position: absolute; inset: 3px; border-radius: inherit; overflow: hidden; pointer-events: none; }
     .sperre {
       position: absolute; left: -20%; right: -20%; top: 32%; text-align: center;
@@ -88,7 +90,7 @@
        modus: Hinweis-Kachel mit der Anzahl Personen, z. B. «1 Person» (leer lassen, wenn keiner)
        farbe: vorerst bei allen Grün (später eine Farbe pro Fach)
        bald: true = Spiel noch im Test: anklickbar, mit rotem Hinweis «Testmodus»
-       gesperrt: true = grauer Querbalken «Nicht freigeschaltet.» über der Kachel
+       gesperrt: true = ganze Kachel grau mit Querbalken «Nicht freigeschaltet.» (bleibt anklickbar)
        ========================================================= */
     const SPIELE = [
       {
@@ -134,7 +136,7 @@
       {
         name: 'Wasser-Tiere-Quiz',
         fach: 'NMG',
-        modus: '',
+        modus: '1 Person',
         text: '',
         link: 'spiele/wasser-tiere-quiz/index.html',
         bild: 'spiele/wasser-tiere-quiz/kachel-boppi.png',
@@ -147,7 +149,7 @@
     const kacheln = document.getElementById('kacheln');
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     kacheln.innerHTML = SPIELE.map(s => `
-      <a class="kachel filz" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
+      <a class="kachel filz${s.gesperrt ? ' gesperrt' : ''}" href="${esc(s.link)}" style="--farbe:${s.farbe}; --farbe-hell:${s.farbe}22">
         <div class="kachel-bild"><img src="${esc(s.bild)}" alt="">${s.vorne ? `<img class="vorne" src="${esc(s.vorne)}" alt="">` : ''}</div>
         <h2>${esc(s.name)}</h2>
         <div class="hinweise">
