@@ -155,6 +155,9 @@ const beruehrung = { echtZuletzt: -1e9, ersatzZuletzt: -1e9, ersatzKlickZuletzt:
   window.addEventListener('touchcancel', ev => ende(ev, true), { capture: true, passive: true });
 })();
 
+// Langes Drücken auf der Spielfläche öffnet kein Kontextmenü (es würde weitere Berührungen abfangen)
+document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.closest && ev.target.closest('#spiel')) ev.preventDefault(); });
+
 /* ---------- Testmodus für Tafeln: Adresse mit «?diagnose» öffnen ----------
    Zeigt oben links, welche Berührungen beim Spiel ankommen, wie flüssig es läuft
    und ob ein Fehler passiert ist. Ändert am Spiel nichts. */

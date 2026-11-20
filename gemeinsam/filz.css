@@ -57,3 +57,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; color: inhe
 .knopf:active { transform: translateY(2px) rotate(-0.5deg); }
 .knopf.hell { background: #fff; color: #1d2733; }
 .knopf.gross { font-size: 28px; padding: 16px 44px; background: var(--gruen); }
+
+/* Spielfläche: Der Browser soll Berührungen nie selbst als Geste (Zoomen, Wischen, Markieren) abfangen,
+   sonst kommen auf manchen Wandtafeln die Berührungen nicht mehr beim Spiel an. */
+#spiel { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
