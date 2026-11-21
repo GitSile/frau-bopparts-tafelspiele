@@ -56,6 +56,10 @@ spiele/
 2. Darin eine `index.html` mit dem Spiel ablegen. Gemeinsame Dateien mit `../../gemeinsam/filz.css` und `../../gemeinsam/hilfen.js` einbinden.
 3. In der Startseite `index.html` in der Liste `SPIELE` einen Eintrag ergänzen.
 
+## Versionsnummer bei jeder Änderung erhöhen
+
+Alle `<script>`- und `<link>`-Verweise auf eigene `.js`- und `.css`-Dateien tragen eine Versionsnummer, z. B. `spiel.js?v=2026-11-21b`. Ändert sich eine `.js`- oder `.css`-Datei, in **allen** `index.html` die Nummer durch eine neue ersetzen (Datum plus Buchstabe; Suchen und Ersetzen über das ganze Repository). Sonst laden die Browser an den Tafeln bis zu 10 Minuten oder länger die alte Datei aus ihrem Speicher, und es laufen alte und neue Teile gemischt.
+
 ## Lokal ansehen
 
 Die Startseite `index.html` per Doppelklick im Browser öffnen. Alle Links funktionieren auch ohne Webserver.
