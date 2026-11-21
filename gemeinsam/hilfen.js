@@ -92,15 +92,69 @@ function schuetze(obj, name) {
   });
 }
 
-/* ---------- Ersatz für fehlende Pointer-Signale bei Berührung ----------
-   Auf manchen Wandtafeln (Windows-PC an Touch-Tafel) liefert der Browser nach kurzer Zeit
-   nur noch «touch»-Signale, aber keine «pointer»-Signale und keine Klicks mehr.
-   Fehlt bei einer Berührung das echte pointerdown, erzeugen wir pointerdown/-move/-up
-   und den Klick selbst. Funktioniert alles normal, greift dieser Teil nie ein. */
-const beruehrung = { echtZuletzt: -1e9, ersatzZuletzt: -1e9, ersatzKlickZuletzt: -1e9, anzahlErsatz: 0 };
+/* ---------- Berührungen auf Wandtafeln zuverlässig machen ----------
+   Zwei Probleme auf Touch-Tafeln (Windows-Laptop, Tafel per USB):
+   1. Manchmal liefert der Browser bei einer Berührung nur «touch»-Signale, aber kein pointerdown.
+      Dann erzeugen wir pointerdown/-move/-up selbst («Ersatz»).
+   2. Meldet die Tafel ein Loslassen nicht («Geisterfinger»), hält der Browser jede neue Berührung
+      für eine Mehrfinger-Geste und erzeugt keine Klicks mehr. Deshalb lösen wir bei jeder
+      Berührung den Klick selbst aus und verwerfen den Klick des Browsers, falls er doch noch kommt.
+   Echte Signale und Berührungen werden über die Position einander zugeordnet, nicht nur über die
+   Zeit – so stören sich zwei Kinder, die gleichzeitig tippen, nicht gegenseitig. */
+const beruehrung = { anzahlErsatz: 0, anzahlEigeneKlicks: 0 };
 (function () {
-  const offen = new Map();   // Finger-Nummer -> { ziel, ersatz, x, y, bewegt }
   const jetzt = () => performance.now();
+  const nah = (a, x, y, d) => Math.abs(a.x - x) + Math.abs(a.y - y) <= d;
+  const aufraeumen = (liste, ms) => { const g = jetzt() - ms; while (liste.length && liste[0].t < g) liste.shift(); };
+  const echteDowns = [];    // echte pointerdown (touch) der letzten Zeit: { x, y, t, zugeordnet }
+  const ersatzDowns = [];   // von uns erzeugte pointerdown: { x, y, t }
+  const eigeneKlicks = [];  // von uns ausgelöste Klicks: { x, y, t }
+  const offen = new Map();  // Finger-Nummer (touch) -> { ziel, ersatz, x, y, bewegt }
+  const zeiger = new Map(); // pointerId einer echten Berührung -> { x, y, bewegt }
+
+  // Klick selbst auslösen (nicht bei Auswahllisten: die öffnet nur der Browser selbst)
+  function klicke(ziel, x, y) {
+    if (!ziel || !ziel.isConnected || ziel.tagName === 'SELECT' || ziel.tagName === 'OPTION') return;
+    if (ziel.tagName === 'TEXTAREA' || (ziel.tagName === 'INPUT' && /^(text|number|search|tel)$/.test(ziel.type))) ziel.focus();
+    aufraeumen(eigeneKlicks, 1000);
+    eigeneKlicks.push({ x, y, t: jetzt() });
+    beruehrung.anzahlEigeneKlicks++;
+    try {
+      ziel.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, view: window, detail: 1, clientX: x, clientY: y, button: 0 }));
+    } catch (e) { /* egal */ }
+  }
+
+  // Echtes pointerdown einer Berührung
+  window.addEventListener('pointerdown', ev => {
+    if (!ev.isTrusted || ev.pointerType !== 'touch') return;
+    // Kommt es erst nach unserem Ersatz für denselben Finger, verschlucken (sonst doppelt)
+    aufraeumen(ersatzDowns, 600);
+    const i = ersatzDowns.findIndex(e => nah(e, ev.clientX, ev.clientY, 40));
+    if (i >= 0) { ersatzDowns.splice(i, 1); ev.stopImmediatePropagation(); ev.preventDefault(); return; }
+    aufraeumen(echteDowns, 1000);
+    echteDowns.push({ x: ev.clientX, y: ev.clientY, t: jetzt(), zugeordnet: false });
+    zeiger.set(ev.pointerId, { x: ev.clientX, y: ev.clientY, bewegt: false });
+  }, true);
+  window.addEventListener('pointermove', ev => {
+    const z = ev.isTrusted && zeiger.get(ev.pointerId);
+    if (z && Math.abs(ev.clientX - z.x) + Math.abs(ev.clientY - z.y) > 20) z.bewegt = true;
+  }, { capture: true, passive: true });
+  window.addEventListener('pointerup', ev => {
+    const z = ev.isTrusted && zeiger.get(ev.pointerId);
+    if (!z) return;
+    zeiger.delete(ev.pointerId);
+    if (!z.bewegt) klicke(ev.target, ev.clientX, ev.clientY);
+  }, true);
+  window.addEventListener('pointercancel', ev => { if (ev.isTrusted) zeiger.delete(ev.pointerId); }, true);
+
+  // Klick des Browsers verwerfen, wenn wir für diese Berührung schon selbst geklickt haben
+  window.addEventListener('click', ev => {
+    if (!ev.isTrusted) return;
+    aufraeumen(eigeneKlicks, 1000);
+    const i = eigeneKlicks.findIndex(k => nah(k, ev.clientX, ev.clientY, 40));
+    if (i >= 0) { eigeneKlicks.splice(i, 1); ev.stopImmediatePropagation(); ev.preventDefault(); }
+  }, true);
+
   function feuere(art, ziel, t) {
     try {
       ziel.dispatchEvent(new PointerEvent(art, {
@@ -111,21 +165,21 @@ const beruehrung = { echtZuletzt: -1e9, ersatzZuletzt: -1e9, ersatzKlickZuletzt:
       }));
     } catch (e) { /* sehr alter Browser */ }
   }
-  // Echtes pointerdown merken; kommt es doch noch nach unserem Ersatz, wird es verschluckt (sonst doppelt)
-  window.addEventListener('pointerdown', ev => {
-    if (!ev.isTrusted || ev.pointerType !== 'touch') return;
-    if (jetzt() - beruehrung.ersatzZuletzt < 400) { ev.stopImmediatePropagation(); ev.preventDefault(); return; }
-    beruehrung.echtZuletzt = jetzt();
-  }, true);
-  window.addEventListener('click', ev => {
-    if (ev.isTrusted && jetzt() - beruehrung.ersatzKlickZuletzt < 600) { ev.stopImmediatePropagation(); ev.preventDefault(); }
-  }, true);
+  // touch-Signal: gehört zu diesem Finger kein echtes pointerdown (kommt sonst kurz vorher), Ersatz erzeugen
   window.addEventListener('touchstart', ev => {
-    const ersatz = jetzt() - beruehrung.echtZuletzt > 300;   // das echte pointerdown (kommt vorher) fehlt
+    aufraeumen(echteDowns, 1000);
     for (const t of ev.changedTouches) {
-      const ziel = t.target;
-      offen.set(t.identifier, { ziel, ersatz, x: t.clientX, y: t.clientY, bewegt: false });
-      if (ersatz) { beruehrung.ersatzZuletzt = jetzt(); beruehrung.anzahlErsatz++; feuere('pointerdown', ziel, t); }
+      const g = jetzt() - 500;
+      const echt = echteDowns.find(e => !e.zugeordnet && e.t >= g && nah(e, t.clientX, t.clientY, 40));
+      if (echt) echt.zugeordnet = true;
+      const ersatz = !echt;
+      offen.set(t.identifier, { ziel: t.target, ersatz, x: t.clientX, y: t.clientY, bewegt: false });
+      if (ersatz) {
+        aufraeumen(ersatzDowns, 600);
+        ersatzDowns.push({ x: t.clientX, y: t.clientY, t: jetzt() });
+        beruehrung.anzahlErsatz++;
+        feuere('pointerdown', t.target, t);
+      }
     }
   }, { capture: true, passive: true });
   window.addEventListener('touchmove', ev => {
@@ -142,18 +196,21 @@ const beruehrung = { echtZuletzt: -1e9, ersatzZuletzt: -1e9, ersatzKlickZuletzt:
       offen.delete(t.identifier);
       if (!o || !o.ersatz) continue;
       feuere(abgebrochen ? 'pointercancel' : 'pointerup', o.ziel, t);
-      if (abgebrochen || o.bewegt || !o.ziel.isConnected) continue;
-      if (ev.cancelable) ev.preventDefault();   // kein zusätzlicher echter Klick
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test(o.ziel.tagName)) o.ziel.focus();
-      beruehrung.ersatzKlickZuletzt = jetzt();
-      try {
-        o.ziel.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, clientX: t.clientX, clientY: t.clientY, button: 0 }));
-      } catch (e) { /* egal */ }
+      if (abgebrochen || o.bewegt) continue;
+      klicke(o.ziel, t.clientX, t.clientY);
     }
   }
-  window.addEventListener('touchend', ev => ende(ev, false), { capture: true, passive: false });
+  window.addEventListener('touchend', ev => ende(ev, false), { capture: true, passive: true });
   window.addEventListener('touchcancel', ev => ende(ev, true), { capture: true, passive: true });
 })();
+
+/** Ton freischalten: Browser erlauben Ton erst nach einem «echten» Antippen. Bei Berührung zählt
+    erst das Loslassen, nicht schon das Aufsetzen. Deshalb bei jeder Art von Eingabe nochmals versuchen.
+    an() erzeugt bzw. weckt den Ton des Spiels und gibt den AudioContext zurück (oder null). */
+function tonFreischaltenBei(an) {
+  const weck = () => { try { const ac = an(); if (ac && ac.state === 'suspended') ac.resume(); } catch (e) { /* egal */ } };
+  ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(a => window.addEventListener(a, weck, { capture: true, passive: true }));
+}
 
 // Langes Drücken auf der Spielfläche öffnet kein Kontextmenü (es würde weitere Berührungen abfangen)
 document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.closest && ev.target.closest('#spiel')) ev.preventDefault(); });
@@ -186,6 +243,11 @@ document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.clos
   window.addEventListener('resize', () => merke(`Grösse ${innerWidth}×${innerHeight}`));
   const alt = window.meldeFehler;
   window.meldeFehler = function (e, wo) { z.fehler = `${wo}: ${String((e && e.message) || e).slice(0, 50)}`; return alt(e, wo); };
+  function tonZustand() {
+    const ac = typeof audioCtx !== 'undefined' ? audioCtx : null;   // audioCtx gehört dem jeweiligen Spiel
+    if (!ac) return 'noch nicht gestartet';
+    return { running: 'läuft', suspended: 'GESPERRT', closed: 'aus' }[ac.state] || ac.state;
+  }
   function bild(jetzt) {
     z.bilder++;
     if (jetzt - letzterFrame > 1500) z.haenger++;
@@ -198,7 +260,8 @@ document.addEventListener('contextmenu', ev => { if (ev.target && ev.target.clos
     }
     if (box) box.textContent = `Berührungen: pointer ${z.pointer} · touch ${z.touch} · maus ${z.maus} · klick ${z.klick}\n`
       + `letzte: ${letzte}\nBilder/s: ${z.fps} · Hänger: ${z.haenger} · Zeit: ${Math.round(jetzt / 1000)}s\n`
-      + `Ersatz: ${beruehrung.anzahlErsatz} · Finger auf Tafel: ${finger} · Fokus: ${document.hasFocus() ? 'ja' : 'NEIN'} · Fehler: ${z.fehler || 'keiner'}`
+      + `Ersatz: ${beruehrung.anzahlErsatz} · eigene Klicks: ${beruehrung.anzahlEigeneKlicks} · Ton: ${tonZustand()}\n`
+      + `Finger auf Tafel: ${finger} · Fokus: ${document.hasFocus() ? 'ja' : 'NEIN'} · Fehler: ${z.fehler || 'keiner'}`
       + (verlauf.length ? '\n' + verlauf.join('\n') : '');
     requestAnimationFrame(bild);
   }

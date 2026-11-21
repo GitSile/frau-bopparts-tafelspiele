@@ -118,7 +118,7 @@ const mitArtikel = name => istStandardName(name) ? `die ${name}` : name;
 /* =========================================================
    Töne
    ========================================================= */
-let audioCtx = null, tonAusgang = null, stumm = false;
+let audioCtx = null, tonAusgang = null;
 const tonPuffer = {};
 const TON_DATEIEN = {   // aus Mathe-Fussball (Quellen in der README)
   richtig: { datei: '../mathe-fussball/toene/richtig.mp3', von: 0.3, dauer: 1.8, laut: 0.9 },
@@ -140,8 +140,8 @@ function audio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-document.addEventListener('pointerdown', () => { if (E.ton) audio(); }, { once: true });
-const tonAn = () => E.ton && !stumm;
+tonFreischaltenBei(() => (E.ton ? audio() : null));   // bei jedem Antippen, bis der Browser den Ton erlaubt
+const tonAn = () => E.ton;
 function spieleDatei(name) {
   const ac = audio(), p = tonPuffer[name], t = TON_DATEIEN[name];
   if (!ac || !p) return false;
@@ -291,6 +291,7 @@ function leseFormular() {
   E.minuten = $('e-minuten').value.trim();
   E.wechselSek = $('e-wechsel').value.trim();
   E.ton = $('e-ton').checked;
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';
   E.zurueck = $('e-zurueck').checked;
   merke();
 }
@@ -472,7 +473,7 @@ function baueSpielfeld() {
     bauePanel(i);
   });
   $('uhr-gross').innerHTML = uhrSvg(E.blatt);
-  $('btn-ton').textContent = stumm ? '🔇' : '🔊';
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';   // gleicher Schalter wie «Ton» in den Einstellungen
   ['jubel', 'pause-menue', 'ende', 'wechsel-box', 'flug-rakete'].forEach(id => $(id).classList.add('versteckt'));
   $('aufgabe-box').classList.remove('versteckt');
   funken.length = 0;
@@ -1085,7 +1086,14 @@ $('aufgabe-box').addEventListener('pointerdown', () => {
 $('btn-weiter').addEventListener('click', () => pause(false));
 $('btn-neustart').addEventListener('click', () => abbrechenUnd(starteSpiel));
 $('btn-zu-einst').addEventListener('click', () => abbrechenUnd(zeigeEinstellungen));
-$('btn-ton').addEventListener('click', () => { stumm = !stumm; $('btn-ton').textContent = stumm ? '🔇' : '🔊'; });
+// Lautsprecher-Knopf im Spiel = Häkchen «Ton» in den Einstellungen (wird gespeichert)
+$('btn-ton').addEventListener('click', () => {
+  E.ton = !E.ton; merke();
+  $('e-ton').checked = E.ton;
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';
+  if (E.ton) audio();
+});
+$('btn-ton').textContent = E.ton ? '🔊' : '🔇';   // schon beim Laden richtig anzeigen
 document.querySelectorAll('.btn-vollbild').forEach(b => b.addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});

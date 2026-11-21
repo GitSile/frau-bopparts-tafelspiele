@@ -106,7 +106,7 @@ function mitArtikel(name) { return istStandardName(name) ? `die ${name}` : name;
    Töne (im Code erzeugt)
    ========================================================= */
 let audioCtx = null;
-let stumm = false;
+
 function audio() {
   if (!audioCtx) {
     try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
@@ -128,7 +128,7 @@ const TON_DATEIEN = {
 };
 const tonPuffer = {};
 // Beim ersten Antippen der Seite Töne schon laden, damit der Anpfiff bereit ist
-document.addEventListener('pointerdown', () => { if (E.ton) audio(); }, { once: true });
+tonFreischaltenBei(() => (E.ton ? audio() : null));   // bei jedem Antippen, bis der Browser den Ton erlaubt
 let tonAusgang = null;
 function ladeToene() {
   const ac = audioCtx;
@@ -159,7 +159,7 @@ function spieleDatei(name, start = 0) {
   src.start(t0, t.von, t.dauer);
   return true;
 }
-function tonAn() { return E.ton && !stumm; }
+function tonAn() { return E.ton; }
 function piep(freq, dauer, { typ = 'sine', start = 0, laut = 0.2, bis = null } = {}) {
   const ac = audio(); if (!ac) return;
   const t0 = ac.currentTime + start;
@@ -321,6 +321,7 @@ function leseFormular() {
   E.rueckrollen = $('e-rueckrollen').checked;
   E.auto = $('e-auto').checked;
   E.ton = $('e-ton').checked;
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';
   $('zeile-sekunden').classList.toggle('aus', !E.zeitlimitAn);
   merke();
 }
@@ -478,7 +479,7 @@ function baueSpielfeld() {
       ev.preventDefault(); taste(i, b.dataset.taste);
     }));
   });
-  $('btn-ton').textContent = stumm ? '🔇' : '🔊';
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';   // gleicher Schalter wie «Ton» in den Einstellungen
   ['jubel', 'pause-menue', 'ende', 'wechsel-box'].forEach(id => $(id).classList.add('versteckt'));
   $('aufgabe-box').classList.remove('versteckt');
   $('konfetti').innerHTML = '';
@@ -896,7 +897,14 @@ $('aufgabe-box').addEventListener('pointerdown', () => {
 $('btn-weiter').addEventListener('click', () => pause(false));
 $('btn-neustart').addEventListener('click', () => abbrechenUnd(() => { neueTeamsWennAuto(); starteSpiel(); }));
 $('btn-zu-einst').addEventListener('click', () => abbrechenUnd(zeigeEinstellungen));
-$('btn-ton').addEventListener('click', () => { stumm = !stumm; $('btn-ton').textContent = stumm ? '🔇' : '🔊'; });
+// Lautsprecher-Knopf im Spiel = Häkchen «Ton» in den Einstellungen (wird gespeichert)
+$('btn-ton').addEventListener('click', () => {
+  E.ton = !E.ton; merke();
+  $('e-ton').checked = E.ton;
+  $('btn-ton').textContent = E.ton ? '🔊' : '🔇';
+  if (E.ton) audio();
+});
+$('btn-ton').textContent = E.ton ? '🔊' : '🔇';   // schon beim Laden richtig anzeigen
 // Vollbild ein/aus – im Spiel und in den Einstellungen
 const vollbildUmschalten = () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
